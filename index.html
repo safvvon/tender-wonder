@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tender Wonder &bull; Pure Tender Coconut Water</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Tender Wonder - 100% Pure Natural Tender Coconut Water. Refreshing, cold-pressed with natural electrolytes, no added sugar, and no preservatives.">
+  <meta name="theme-color" content="#0C562E">
+  
+  <!-- Brand Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=2">
+  <link rel="shortcut icon" href="/favicon.ico?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- 0. INTRO LOADING SCREEN (INITIAL ASSET LOAD ONLY)            -->
+  <!-- ============================================================ -->
+  <div id="loading-screen" class="screen-loader">
+    <div class="loader-content">
+      <div class="brand-logo-wrap">
+        <svg class="palm-frond-icon" viewBox="0 0 100 40" width="120" height="48">
+          <path d="M10,32 Q45,6 90,16" fill="none" stroke="#46C154" stroke-width="3" stroke-linecap="round"/>
+          <path d="M25,26 L20,12 M35,23 L32,8 M45,20 L44,5 M55,18 L56,4 M65,17 L68,5 M75,16 L80,7 M85,16 L92,10" stroke="#0C562E" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M30,27 L30,38 M40,25 L42,36 M50,22 L54,34 M60,20 L66,32 M70,19 L78,30 M80,18 L88,28" stroke="#46C154" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <div class="brand-name">Tender</div>
+        <div class="brand-sub">WONDER &reg;</div>
+        <div class="brand-tagline">Tender Coconut Water</div>
+      </div>
+
+      <div class="loading-label">L O A D I N G</div>
+      <div class="progress-bar-container">
+        <div id="loading-progress-bar" class="progress-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APP (7 FULL-SCREEN SECTIONS ARRANGED IN SEQUENCE)       -->
+  <!-- ============================================================ -->
+  <div id="website-app">
+
+    <!-- Floating Shopping Cart Button (Top Right) -->
+    <button id="btn-floating-cart" class="floating-cart-btn" title="View Cart">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      <span id="cart-counter" class="cart-counter-badge">0</span>
+    </button>
+
+    <!-- Side Dot Scroll Indicators (7 Sections) -->
+    <nav class="scroll-dots-nav" aria-label="Page Navigation">
+      <span class="dot active" data-target="1" title="1. Product Detail"></span>
+      <span class="dot" data-target="2" title="2. New Collection"></span>
+      <span class="dot" data-target="3" title="3. The Product"></span>
+      <span class="dot" data-target="4" title="4. Catalog"></span>
+      <span class="dot" data-target="5" title="5. Global Reach"></span>
+      <span class="dot" data-target="6" title="6. Customer Details"></span>
+      <span class="dot" data-target="7" title="7. Valued Clients"></span>
+    </nav>
+
+    <!-- Real-Time Interactive 3D WebGL Bottle (Persistent Viewport Stage) -->
+    <div id="hero-3d-bottle-container" class="bottle-3d-stage"></div>
+
+    <!-- Main Viewport Flow -->
+    <main class="deck-viewport">
+
+      <!-- ======================================================== -->
+      <!-- SECTION 1: PRODUCT DETAIL (HERO 3D BOTTLE EXPERIENCE)   -->
+      <!-- ======================================================== -->
+      <section class="slide-panel active" data-index="1" id="slide-1">
+        <div class="section-inner hero-detail-stage">
+          <!-- Top Left Logo -->
+          <div class="screen-logo-corner">
+            <svg viewBox="0 0 60 25" width="60" height="25" class="corner-palm">
+              <path d="M5,20 Q25,4 55,10" fill="none" stroke="#46C154" stroke-width="2" stroke-linecap="round"/>
+              <path d="M15,16 L12,8 M22,14 L20,5 M30,12 L31,3 M38,11 L41,4 M46,11 L51,6" stroke="#0C562E" stroke-width="1.5"/>
+              <path d="M18,17 L18,24 M25,15 L27,22 M33,13 L36,20 M40,12 L45,18" stroke="#46C154" stroke-width="1.5"/>
+            </svg>
+            <span class="logo-text-cursive">Tender</span>
+            <span class="logo-text-sub">WONDER</span>
+          </div>
+
+          <!-- Monumental Background Typography (Scroll-Driven Kinetic Arrival) -->
+          <div class="giant-bg-text">
+            <div class="bg-word word-pure">PURE</div>
+            <div class="bg-word word-tender">TENDER</div>
+            <div class="bg-word word-drink">DRINK</div>
+          </div>
+        </div>
+
+        <!-- Snap Checkpoint at 100vh (exact point where text reaches center) -->
+        <div class="hero-locked-checkpoint" aria-hidden="true"></div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 2: NEW COLLECTION OF DRINKS                      -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="2" id="slide-2">
+        <div class="section-inner new-collection-stage">
+          <div class="collection-layout">
+            
+            <!-- Left: 3 Horizontal Bottles Staggered Entrance (1L, 500ml, 250ml) -->
+            <div class="collection-col-left">
+              <div class="h-bottles-stagger-group" id="slide-2-left-bottles">
+                <div class="h-bottle-item h-bottle-1" data-bottle="1">
+                  <img src="/drive_bottles/h_bottle_1l.png" alt="Tender Wonder 1L" class="h-bottle-img" decoding="async" width="1080" height="460">
+                </div>
+                <div class="h-bottle-item h-bottle-2" data-bottle="2">
+                  <img src="/drive_bottles/h_bottle_500ml.png" alt="Tender Wonder 500ml" class="h-bottle-img" decoding="async" width="820" height="357">
+                </div>
+                <div class="h-bottle-item h-bottle-3" data-bottle="3">
+                  <img src="/drive_bottles/h_bottle_250ml.png" alt="Tender Wonder 250ml" class="h-bottle-img" decoding="async" width="630" height="282">
+                </div>
+              </div>
+            </div>
+
+            <!-- Center: Title, Formula Badges & Story -->
+            <div class="collection-col-center">
+              <h2 class="section-hero-title">NEW COLLECTION<br>OF DRINKS</h2>
+
+              <div class="formula-badges-row">
+                <div class="formula-badge formula-badge-coconut">
+                  <div class="formula-icon-wrap">
+                    <img src="/assets/icon_tender_coconut.png" alt="Tender Coconut" class="formula-art-img" decoding="async" width="80" height="80">
+                  </div>
+                  <span class="badge-label">TENDER<br>COCONUT</span>
+                </div>
+
+                <span class="formula-math-plus">+</span>
+
+                <div class="formula-badge formula-badge-palm">
+                  <div class="formula-icon-wrap">
+                    <img src="/assets/icon_palm_nectar.png" alt="Tender Palm Nectar" class="formula-art-img" decoding="async" width="80" height="80">
+                  </div>
+                  <span class="badge-label">TENDER<br>PALM NECTAR</span>
+                </div>
+
+                <span class="formula-math-plus">+</span>
+
+                <div class="formula-badge formula-badge-electrolytes">
+                  <div class="formula-icon-wrap">
+                    <img src="/assets/icon_natural_electrolytes.png" alt="Natural Electrolytes" class="formula-art-img" decoding="async" width="80" height="80">
+                  </div>
+                  <span class="badge-label">NATURAL<br>ELECTROLYTES</span>
+                </div>
+              </div>
+
+              <p class="collection-paragraph">
+                Juicy and incredibly refreshing drinks that recharge you with freshness and energy! Each drink is crafted from natural ingredients to deliver true goodness. Bright lemon, aromatic strawberry, crisp apple, and gentle tender coconut &mdash; choose your flavor and enjoy the feel-good vibes in every sip!
+              </p>
+            </div>
+
+            <!-- Right: Standing 1L Bottle Target Slot -->
+            <div class="collection-col-right">
+              <div class="stand-bottle-card" id="slide-2-bottle-target">
+                <img src="/drive_bottles/bottle_1l_clean.png" alt="Tender Wonder 1L Bottle" class="stand-bottle-art" decoding="async" width="355" height="900">
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 3: THE PRODUCT (COCONUT SPLASH COMPOSITION)     -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="3" id="slide-3">
+        <div class="section-inner the-product-stage">
+          <!-- Background Split Typography -->
+          <div class="giant-bg-split">
+            <span class="bg-split-top">TENDER</span>
+            <span class="bg-split-bot">WONDER</span>
+          </div>
+
+          <!-- Central Coconut Splash Art -->
+          <div class="product-center-art">
+            <img src="/assets_clean/coconut_splash.png" alt="Fresh Tender Coconut with Splash" class="center-splash-img" loading="lazy" decoding="async" width="600" height="600">
+          </div>
+
+          <!-- 4 Grid Content Cards -->
+          <div class="benefits-quad-grid">
+            <div class="benefit-block top-left">
+              <h3>PURE REFRESHMENT, FROM NATURE</h3>
+              <div class="benefit-accent-line"></div>
+              <p>Tender Wonder is crafted to deliver the pure, hydrating goodness of tender coconut &mdash; straight from nature to you.</p>
+            </div>
+
+            <div class="benefit-block top-right">
+              <h3>COLD-PRESSED TECHNOLOGY</h3>
+              <div class="benefit-accent-line"></div>
+              <p>We use advanced cold-pressed technology to lock in essential nutrients and natural electrolytes, ensuring you get unmatched freshness and maximum goodness in every sip.</p>
+            </div>
+
+            <div class="benefit-block bot-left">
+              <h3>CLEAN &amp; HONEST INGREDIENTS</h3>
+              <div class="benefit-accent-line"></div>
+              <p>Made with 100% natural tender coconut water. No added sugar, no preservatives, no artificial flavors &mdash; just pure, natural goodness in every sip.</p>
+            </div>
+
+            <div class="benefit-block bot-right">
+              <h3>NATURAL ELECTROLYTES, NATURAL ENERGY</h3>
+              <div class="benefit-accent-line"></div>
+              <p>Packed with natural electrolytes like potassium and magnesium to help you stay hydrated, active and balanced &mdash; the natural way.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 4: CATALOG (3 LUXURY PRODUCT CARDS)             -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="4" id="slide-4">
+        <div class="section-inner catalog-stage">
+          <h2 class="catalog-main-title">CATALOG</h2>
+
+          <div class="catalog-grid-row">
+            
+            <!-- Card 1: 1 Litre Bottle -->
+            <div class="luxury-product-card" data-id="1l">
+              <div class="card-art-box">
+                <img src="/drive_bottles/bottle_1l_clean.png" alt="1 Litre Bottle" class="catalog-bottle-img large" loading="lazy" decoding="async" width="355" height="900">
+              </div>
+              <div class="card-action-bar">
+                <div class="card-price-tag">0.99$</div>
+                <div class="card-qty-spinner">
+                  <button class="btn-qty-spin minus">&minus;</button>
+                  <span class="qty-spin-val">2</span>
+                  <button class="btn-qty-spin plus">&plus;</button>
+                </div>
+                <button class="btn-add-to-cart-luxury" data-size="1 Litre Bottle" data-price="0.99">ADD TO CART</button>
+              </div>
+            </div>
+
+            <!-- Card 2: 500 ml Bottle -->
+            <div class="luxury-product-card" data-id="500ml">
+              <div class="card-art-box">
+                <img src="/drive_bottles/bottle_500ml_clean.png" alt="500ml Bottle" class="catalog-bottle-img medium" loading="lazy" decoding="async" width="245" height="800">
+              </div>
+              <div class="card-action-bar">
+                <div class="card-price-tag">0.99$</div>
+                <div class="card-qty-spinner">
+                  <button class="btn-qty-spin minus">&minus;</button>
+                  <span class="qty-spin-val">2</span>
+                  <button class="btn-qty-spin plus">&plus;</button>
+                </div>
+                <button class="btn-add-to-cart-luxury" data-size="500ml Bottle" data-price="0.99">ADD TO CART</button>
+              </div>
+            </div>
+
+            <!-- Card 3: 250 ml Bottle -->
+            <div class="luxury-product-card" data-id="250ml">
+              <div class="card-art-box">
+                <img src="/drive_bottles/bottle_250ml_clean.png" alt="250ml Bottle" class="catalog-bottle-img small" loading="lazy" decoding="async" width="550" height="1734">
+              </div>
+              <div class="card-action-bar">
+                <div class="card-price-tag">0.99$</div>
+                <div class="card-qty-spinner">
+                  <button class="btn-qty-spin minus">&minus;</button>
+                  <span class="qty-spin-val">2</span>
+                  <button class="btn-qty-spin plus">&plus;</button>
+                </div>
+                <button class="btn-add-to-cart-luxury" data-size="250ml Bottle" data-price="0.99">ADD TO CART</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 5: GLOBAL REACH                                  -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="5" id="slide-5">
+        <div class="section-inner global-reach-stage">
+          <div class="reach-header-title">
+            <div class="top-accent-bar"></div>
+            <h2>OUR PRODUCTS<br>AROUND THE WORLD</h2>
+            <p class="reach-subtitle">FROM THE TROPICS TO TABLES EVERYWHERE</p>
+          </div>
+
+          <div class="reach-content-row">
+            <!-- Left Stat Card -->
+            <div class="reach-stat-column">
+              <div class="stat-vertical-label">NATURAL HYDRATION FOR A BRIGHTER TOMORROW</div>
+              <div class="stat-big-number">20+</div>
+              <div class="stat-big-unit">COUNTRIES</div>
+              <div class="stat-sep-line"></div>
+              <h4 class="stat-subhead">GLOBAL REACH</h4>
+              <p class="stat-desc">From the tropics of India to customers around the world, Tender Wonder brings the purity of nature to more people, everywhere.</p>
+            </div>
+
+            <!-- Center World Map Visual -->
+            <div class="reach-map-column">
+              <img src="/assets_clean/world_map.png" alt="Tender Wonder Global Distribution Map" class="clean-world-map" loading="lazy" decoding="async" width="800" height="500">
+            </div>
+
+            <!-- Right Seal Badge -->
+            <div class="reach-seal-column">
+              <div class="circular-seal-badge">
+                <svg viewBox="0 0 120 120" class="seal-svg">
+                  <path id="seal-text-path" d="M 15,60 A 45,45 0 1,1 105,60 A 45,45 0 1,1 15,60" fill="none"/>
+                  <text class="seal-text">
+                    <textPath href="#seal-text-path" startOffset="0%">GOODNESS &bull; KNOWS NO BORDERS &bull; TENDER WONDER &bull;</textPath>
+                  </text>
+                </svg>
+                <div class="seal-center-leaf">
+                  <svg viewBox="0 0 40 40" width="36" height="36" fill="none" stroke="#0C562E" stroke-width="2.5">
+                    <path d="M10,30 Q20,10 32,15"/>
+                    <path d="M15,22 L12,12 M22,18 L20,8 M28,16 L30,6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reach-bottom-banner">
+            <div class="thin-green-line"></div>
+            <span>NATURE UNITES US</span>
+            <div class="thin-green-line"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 6: CUSTOMER DETAILS (ORDER FORM)                 -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="6" id="slide-6">
+        <div class="section-inner customer-details-stage">
+          <div class="customer-split-layout">
+            
+            <!-- Left Side: Condensation Bottle & Manifesto -->
+            <div class="customer-left-side">
+              <div class="vertical-brand-motto">
+                <span>PURE</span>
+                <span>NATURAL</span>
+                <span>REFRESHING</span>
+                <span>ALWAYS</span>
+              </div>
+              <div class="chilled-bottle-wrap">
+                <img src="/drive_bottles/bottle_1l_clean.png" alt="Tender Wonder 1L Bottle" class="clean-chilled-bottle" loading="lazy" decoding="async" width="355" height="900">
+              </div>
+            </div>
+
+            <!-- Right Side: Clean Checkout Form Card -->
+            <div class="customer-right-side">
+              <div class="customer-form-card">
+                <div class="form-title-block">
+                  <div class="top-accent-bar"></div>
+                  <h2>CUSTOMER DETAILS</h2>
+                  <p>A HEALTHIER YOU, CLOSER TO NATURE</p>
+                </div>
+
+                <form id="customer-checkout-form" onsubmit="event.preventDefault(); window.submitOrder();">
+                  <div class="form-inputs-row">
+                    <div class="input-field">
+                      <label>Full Name</label>
+                      <div class="input-box">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="cust-name" placeholder="Enter your full name" required>
+                      </div>
+                    </div>
+
+                    <div class="input-field">
+                      <label>Email Address</label>
+                      <div class="input-box">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" id="cust-email" placeholder="Enter your email" required>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-inputs-row">
+                    <div class="input-field">
+                      <label>Phone Number</label>
+                      <div class="input-box">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <input type="tel" id="cust-phone" placeholder="Enter your phone number" required>
+                      </div>
+                    </div>
+
+                    <div class="input-field">
+                      <label>Country</label>
+                      <div class="input-box">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <select id="cust-country" required>
+                          <option value="AE" selected>United Arab Emirates</option>
+                          <option value="SA">Saudi Arabia</option>
+                          <option value="QA">Qatar</option>
+                          <option value="IN">India</option>
+                          <option value="UK">United Kingdom</option>
+                          <option value="US">United States</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="input-field full">
+                    <label>Delivery Address</label>
+                    <div class="input-box">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                      <input type="text" id="cust-address" placeholder="Enter your delivery address" required>
+                    </div>
+                  </div>
+
+                  <div class="form-checkbox-row">
+                    <input type="checkbox" id="save-info" checked>
+                    <label for="save-info">Save this information for future orders</label>
+                  </div>
+
+                  <button type="submit" class="btn-form-continue">
+                    <span>CONTINUE</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Right Tag -->
+            <div class="customer-right-tag">
+              <div class="thin-green-line"></div>
+              <span>GOODNESS DELIVERED WORLDWIDE</span>
+              <div class="thin-green-line"></div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 7: VALUED CLIENTS                                -->
+      <!-- ======================================================== -->
+      <section class="slide-panel" data-index="7" id="slide-7">
+        <div class="section-inner valued-clients-stage">
+          <div class="clients-head-block">
+            <div class="top-accent-bar"></div>
+            <h2>OUR VALUED CLIENTS</h2>
+            <p class="clients-tagline">TRUSTED PARTNERS IN A HEALTHIER TOMORROW</p>
+            <p class="clients-body">We are proud to work with leading brands, retailers, and organizations who share our commitment to quality, wellness, and a more sustainable future.</p>
+          </div>
+
+          <div class="clients-card-box">
+            <img src="/assets_clean/partner_logos.png" alt="Tender Wonder Brand Partners" class="clean-partner-logos" loading="lazy" decoding="async" width="1150" height="480">
+          </div>
+
+          <div class="clients-side-tag left">
+            <div class="thin-green-line"></div>
+            <span>GOODNESS DELIVERED TOGETHER</span>
+            <div class="thin-green-line"></div>
+          </div>
+
+          <div class="clients-side-tag right">
+            <div class="thin-green-line"></div>
+            <span>STRONGER PARTNERSHIPS FOR A HEALTHIER WORLD</span>
+            <div class="thin-green-line"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Shopping Cart Floating Drawer -->
+  <div id="cart-drawer" class="cart-drawer hidden">
+    <div class="cart-header">
+      <h3>Your Fresh Cart</h3>
+      <button id="btn-close-cart" class="btn-close" aria-label="Close Cart">&times;</button>
+    </div>
+    <div id="cart-items-list" class="cart-items">
+      <div class="cart-empty-msg">Your cart is empty. Add fresh Tender Wonder bottles from the catalog!</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Total:</span>
+        <strong id="cart-total-val">$0.00</strong>
+      </div>
+      <button class="btn-checkout" onclick="window.goToSlide(6)">Proceed to Checkout &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-notification hidden">Added to Cart!</div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

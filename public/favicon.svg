@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Vibrant Emerald Brand Gradient -->
+    <linearGradient id="tenderStem" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#229E38" />
+      <stop offset="50%" stop-color="#46C154" />
+      <stop offset="100%" stop-color="#6BF57C" />
+    </linearGradient>
+
+    <linearGradient id="tenderLeafGreen" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1B822C" />
+      <stop offset="100%" stop-color="#4AE35B" />
+    </linearGradient>
+
+    <!-- Contrast Shadow so it pops on white, grey, and dark browser tabs -->
+    <filter id="iconShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.8" flood-color="#052411" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Group with Shadow Filter (ICON ONLY, NO BACKGROUND) -->
+  <g filter="url(#iconShadow)">
+    <!-- Main Sweeping Stem -->
+    <path d="M8,46 Q28,14 56,18" fill="none" stroke="url(#tenderStem)" stroke-width="5.5" stroke-linecap="round"/>
+
+    <!-- Top Leaflets (Crisp White with Lime Accents for maximum contrast on dark & colored tabs) -->
+    <!-- Leaflet 1 -->
+    <line x1="18" y1="36" x2="11" y2="23" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet 2 -->
+    <line x1="26" y1="30" x2="21" y2="15" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet 3 -->
+    <line x1="35" y1="26" x2="33" y2="10" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet 4 -->
+    <line x1="43" y1="23" x2="44" y2="8" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet 5 -->
+    <line x1="50" y1="21" x2="55" y2="9" stroke="#6BF57C" stroke-width="3.6" stroke-linecap="round"/>
+
+    <!-- Bottom Leaflets (Rich Fresh Emerald Green) -->
+    <!-- Leaflet B1 -->
+    <line x1="22" y1="40" x2="20" y2="52" stroke="url(#tenderLeafGreen)" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet B2 -->
+    <line x1="31" y1="34" x2="34" y2="48" stroke="url(#tenderLeafGreen)" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet B3 -->
+    <line x1="40" y1="29" x2="46" y2="43" stroke="url(#tenderLeafGreen)" stroke-width="3.8" stroke-linecap="round"/>
+    <!-- Leaflet B4 -->
+    <line x1="48" y1="24" x2="56" y2="36" stroke="url(#tenderLeafGreen)" stroke-width="3.8" stroke-linecap="round"/>
+
+    <!-- Tip Terminal Accent (Fresh droplet node) -->
+    <circle cx="55.5" cy="18" r="3.2" fill="#6BF57C"/>
+    <circle cx="55.5" cy="18" r="1.5" fill="#FFFFFF"/>
+  </g>
+</svg>

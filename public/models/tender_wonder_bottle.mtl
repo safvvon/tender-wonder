@@ -1,0 +1,28 @@
+# Material Library for Tender Wonder 1L Bottle
+
+newmtl Mat_Translucent_PP
+Ka 0.2 0.2 0.2
+Kd 0.94 0.97 0.94
+Ks 0.6 0.6 0.6
+Ns 45.0
+d 0.88
+illum 2
+
+newmtl Mat_Green_Cap
+Ka 0.1 0.2 0.05
+Kd 0.48 0.76 0.12
+Ks 0.4 0.4 0.4
+Ns 35.0
+d 1.0
+illum 2
+
+newmtl Mat_Shrink_Sleeve
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.3 0.3 0.3
+Ns 40.0
+d 1.0
+illum 2
+map_Kd ../textures/label_albedo.png
+map_Ns ../textures/label_roughness.png
+map_Bump -bm 0.05 ../textures/label_normal.png
