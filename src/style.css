@@ -376,7 +376,7 @@ body {
   transform: translate3d(-140%, 0, 0);
   opacity: 0;
   pointer-events: none;
-  transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
 

@@ -103,11 +103,11 @@ function updateScrollMetrics() {
 
   renderHeroText(p1, p2);
 
-  // Trigger 1-by-1 left bottle sequence ONLY after 3D bottle docks at Slide 2
-  if (p2 >= 0.95 || (slide2El && scrollY >= slide2El.offsetTop - 60)) {
-    triggerLeftBottlesSequence();
-  } else if (p2 < 0.35 && scrollY < vh * 1.3) {
+  // Reset left bottles if user scrolls back up to Slide 1
+  if (p2 < 0.35 && scrollY < vh * 1.3) {
     resetLeftBottlesSequence();
+  } else if (slide3El && scrollY >= slide3El.offsetTop - 60) {
+    setLeftBottlesStep(3);
   }
 
   // Update target 3D transform cache when scrolling near slide 2
@@ -128,68 +128,97 @@ function onWindowScroll() {
 }
 
 // ======================================================================
-// SLIDE 2: SEQUENCED 1-BY-1 LEFT HORIZONTAL BOTTLE ENTRANCE CONTROLLER
-// Triggers ONLY after 3D bottle docks into right card position
-// Bottle 1 (1L) enters -> Wait 1.0s -> Bottle 2 (500ml) -> Wait 1.0s -> Bottle 3 (250ml)
-// Slide 2 remains strictly scroll-locked until all 3 bottles complete entrance
+// SLIDE 2: SCROLL-DRIVEN 3-BOTTLE STAGGERED ENTRANCE CONTROLLER
+// Bottles enter ONLY on user scroll while at Slide 2:
+// Scroll 1: Bottle 1 (1L) enters
+// Scroll 2: Bottle 2 (500ml) enters
 // ======================================================================
-let leftBottlesStep = 0;
-let isLeftBottlesSequenceFinished = false;
-let leftBottlesFinishedTimestamp = 0;
-let leftBottleTimers = [];
+// SLIDE 2: SCROLL-DRIVEN 3-BOTTLE STAGGERED ENTRANCE CONTROLLER
+// As user scrolls on Slide 2, the 3 horizontal bottles enter from the side:
+// Bottle 1 (1L) -> Bottle 2 (500ml) -> Bottle 3 (250ml)
+// The viewport STRICTLY STAYS on Slide 2 until all 3 bottles have come and settled.
+// Only after the 3-bottle entry finishes does scrolling down advance to Slide 3.
+// ======================================================================
+let leftBottlesStep = 0; // 0: none, 1: 1L, 2: 500ml, 3: 250ml
+let isLastBottleSettled = false;
+let lastBottleSettledTimer = null;
+let lastBottleStepTime = 0;
+let canAdvancePastSlide2 = false;
+let slide2IdleUnlockTimer = null;
 
-function resetLeftBottlesSequence() {
-  leftBottleTimers.forEach(t => clearTimeout(t));
-  leftBottleTimers = [];
-  leftBottlesStep = 0;
-  isLeftBottlesSequenceFinished = false;
-  leftBottlesFinishedTimestamp = 0;
+function setLeftBottlesStep(step) {
+  leftBottlesStep = Math.max(0, Math.min(3, step));
   const b1 = document.querySelector('.h-bottle-1');
   const b2 = document.querySelector('.h-bottle-2');
   const b3 = document.querySelector('.h-bottle-3');
-  if (b1) b1.classList.remove('entered');
-  if (b2) b2.classList.remove('entered');
-  if (b3) b3.classList.remove('entered');
+  if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
+  if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
+  if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
+
+  clearTimeout(lastBottleSettledTimer);
+  if (leftBottlesStep === 3) {
+    // When the last bottle starts entering, keep slide 2 locked until it arrives & settles
+    isLastBottleSettled = false;
+    lastBottleSettledTimer = setTimeout(() => {
+      isLastBottleSettled = true;
+    }, 900);
+  } else {
+    isLastBottleSettled = false;
+    canAdvancePastSlide2 = false;
+  }
 }
 
-function enterBottle(num) {
-  const el = document.querySelector(`.h-bottle-${num}`);
-  if (el) {
-    el.classList.add('entered');
+function advanceSlide2BottlesOnScroll() {
+  const now = performance.now();
+  if (leftBottlesStep === 0) {
+    setLeftBottlesStep(1);
+    lastBottleStepTime = now;
+    return true;
   }
-  leftBottlesStep = Math.max(leftBottlesStep, num);
-  if (num === 3) {
-    // Full 1.0s for Bottle 3 to slide in and settle before unlocking
-    const finishTimer = setTimeout(() => {
-      isLeftBottlesSequenceFinished = true;
-      leftBottlesFinishedTimestamp = performance.now();
-    }, 1000);
-    leftBottleTimers.push(finishTimer);
+  if (leftBottlesStep === 1 && now - lastBottleStepTime >= 280) {
+    setLeftBottlesStep(2);
+    lastBottleStepTime = now;
+    return true;
   }
+  if (leftBottlesStep === 2 && now - lastBottleStepTime >= 280) {
+    setLeftBottlesStep(3);
+    lastBottleStepTime = now;
+    return true;
+  }
+  return false;
+}
+
+function stepLeftBottlesForward() {
+  return advanceSlide2BottlesOnScroll();
+}
+
+function resetLeftBottlesSequence() {
+  clearTimeout(lastBottleSettledTimer);
+  clearTimeout(slide2IdleUnlockTimer);
+  isLastBottleSettled = false;
+  canAdvancePastSlide2 = false;
+  lastBottleStepTime = 0;
+  setLeftBottlesStep(0);
 }
 
 function triggerLeftBottlesSequence() {
-  if (leftBottlesStep > 0 || isLeftBottlesSequenceFinished) return;
-  // Step 1: 3D bottle reached position -> Bottle 1 enters immediately
-  enterBottle(1);
+  advanceSlide2BottlesOnScroll();
+}
 
-  // Step 2: Wait 1.0s (1000ms) -> Bottle 2 enters
-  const t1 = setTimeout(() => {
-    enterBottle(2);
-  }, 1000);
-  leftBottleTimers.push(t1);
-
-  // Step 3: Wait another 1.0s (2000ms from start) -> Bottle 3 enters
-  const t2 = setTimeout(() => {
-    enterBottle(3);
-  }, 2000);
-  leftBottleTimers.push(t2);
+function isLeftBottlesSequenceFinished() {
+  return leftBottlesStep === 3 && isLastBottleSettled && canAdvancePastSlide2;
 }
 
 // Expose for testing/debugging
+window.setLeftBottlesStep = setLeftBottlesStep;
+window.stepLeftBottlesForward = stepLeftBottlesForward;
+window.advanceSlide2BottlesOnScroll = advanceSlide2BottlesOnScroll;
 window.triggerLeftBottlesSequence = triggerLeftBottlesSequence;
 window.resetLeftBottlesSequence = resetLeftBottlesSequence;
-window.isLeftBottlesSequenceFinished = () => isLeftBottlesSequenceFinished;
+window.isLeftBottlesSequenceFinished = isLeftBottlesSequenceFinished;
+window.getLeftBottlesStep = () => leftBottlesStep;
+window.isLastBottleSettled = () => isLastBottleSettled;
+window.canAdvancePastSlide2 = () => canAdvancePastSlide2;
 
 window.addEventListener('scroll', onWindowScroll, { passive: true });
 
@@ -243,17 +272,22 @@ window.goToSlide = function(index) {
 
   const vh = window.innerHeight || 800;
   if (index === 1) {
+    resetLeftBottlesSequence();
     animateScrollTo(0, 800);
     return;
   }
 
+  if (index === 2) {
+    resetLeftBottlesSequence();
+  } else if (index >= 3) {
+    setLeftBottlesStep(3);
+    isLastBottleSettled = true;
+    canAdvancePastSlide2 = true;
+  }
+
   const targetElement = document.getElementById(`slide-${index}`);
   if (targetElement) {
-    animateScrollTo(targetElement.offsetTop, 850, () => {
-      if (index === 2) {
-        triggerLeftBottlesSequence();
-      }
-    });
+    animateScrollTo(targetElement.offsetTop, 850);
   }
 };
 
@@ -329,6 +363,7 @@ function getCurrentStop() {
 function navigateToStop(targetStop) {
   const vh = window.innerHeight || 800;
   if (targetStop <= 0) {
+    resetLeftBottlesSequence();
     animateScrollTo(0, 800);
   } else if (targetStop === 1) {
     resetLeftBottlesSequence();
@@ -336,10 +371,11 @@ function navigateToStop(targetStop) {
   } else if (targetStop === 2) {
     const s2 = document.getElementById('slide-2');
     const top = s2 ? s2.offsetTop : vh * 2;
-    animateScrollTo(top, 900, () => {
-      triggerLeftBottlesSequence();
-    });
+    animateScrollTo(top, 900);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
+    setLeftBottlesStep(3);
+    isLastBottleSettled = true;
+    canAdvancePastSlide2 = true;
     const s = document.getElementById(`slide-${targetStop}`);
     if (s) {
       animateScrollTo(s.offsetTop, 850);
@@ -349,8 +385,16 @@ function navigateToStop(targetStop) {
 
 function handleAdvance() {
   const cur = getCurrentStop();
-  // If on Slide 2 and 3 bottles are not finished entering yet: STAY THERE!
-  if (cur === 2 && !isLeftBottlesSequenceFinished) {
+  // If on Slide 2:
+  // 1) Bring in bottles from the side on scroll
+  // 2) The page STRICTLY STAYS on second page only until all 3 bottles finish their entry!
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    advanceSlide2BottlesOnScroll();
+    const s2 = document.getElementById('slide-2');
+    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+    if (Math.abs(window.scrollY - s2Top) > 5) {
+      window.scrollTo(0, s2Top);
+    }
     return;
   }
   if (cur < totalSlides) {
@@ -360,6 +404,15 @@ function handleAdvance() {
 
 function handleRetreat() {
   const cur = getCurrentStop();
+  // If on Slide 2, STRICTLY stay on second page only until all 3 bottles finish entry!
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    const s2 = document.getElementById('slide-2');
+    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+    if (Math.abs(window.scrollY - s2Top) > 5) {
+      window.scrollTo(0, s2Top);
+    }
+    return;
+  }
   if (cur > 0) {
     navigateToStop(cur - 1);
   }
@@ -386,6 +439,20 @@ function isScrollableInside(target, deltaY) {
 
 // Keyboard Navigation
 window.addEventListener('keydown', (e) => {
+  const cur = getCurrentStop();
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      advanceSlide2BottlesOnScroll();
+      const s2 = document.getElementById('slide-2');
+      const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+      if (Math.abs(window.scrollY - s2Top) > 5) {
+        window.scrollTo(0, s2Top);
+      }
+    }
+    return;
+  }
+
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
     e.preventDefault();
     if (!isStepTransitioning) {
@@ -407,9 +474,34 @@ function handleGlobalWheel(e) {
   }
 
   // Filter out tiny trackpad jitter
-  if (Math.abs(e.deltaY) < 10) return;
+  if (Math.abs(e.deltaY) < 5) return;
 
   e.preventDefault();
+
+  const cur = getCurrentStop();
+
+  // STRICT SLIDE 2 LOCK: STAY ON SECOND PAGE ONLY UNTIL 3 BOTTLE ENTRY FINISHES
+  // While scrolling on Slide 2, user scrolling brings all 3 bottles in from the side!
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    const s2 = document.getElementById('slide-2');
+    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+    if (Math.abs(window.scrollY - s2Top) > 5) {
+      window.scrollTo(0, s2Top);
+    }
+
+    if (e.deltaY > 5 || e.deltaY < -5) {
+      advanceSlide2BottlesOnScroll();
+    }
+
+    // Once all 3 bottles have entered and settled, require an idle pause before allowing advance to Slide 3
+    if (leftBottlesStep === 3 && isLastBottleSettled) {
+      clearTimeout(slide2IdleUnlockTimer);
+      slide2IdleUnlockTimer = setTimeout(() => {
+        canAdvancePastSlide2 = true;
+      }, 450);
+    }
+    return;
+  }
 
   const wasIdle = isWheelIdle;
   isWheelIdle = false;
@@ -423,17 +515,6 @@ function handleGlobalWheel(e) {
 
   const timeSinceLastTransition = performance.now() - lastTransitionEndTime;
   if (!wasIdle || timeSinceLastTransition < 400) return;
-
-  const cur = getCurrentStop();
-  if (cur === 2 && !isLeftBottlesSequenceFinished) {
-    // Hold strictly on Slide 2 until all 3 bottles finish!
-    const s2 = document.getElementById('slide-2');
-    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 15) {
-      window.scrollTo(0, s2Top);
-    }
-    return;
-  }
 
   if (e.deltaY > 10) {
     handleAdvance();
@@ -473,7 +554,18 @@ window.addEventListener('touchend', (e) => {
   const deltaY = touchStartY - currentY;
 
   const cur = getCurrentStop();
-  if (cur === 2 && !isLeftBottlesSequenceFinished) {
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    if (Math.abs(deltaY) > 25) {
+      if (leftBottlesStep < 3) {
+        stepLeftBottlesForward();
+        lastTransitionEndTime = performance.now();
+      }
+      const s2 = document.getElementById('slide-2');
+      const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+      if (Math.abs(window.scrollY - s2Top) > 5) {
+        window.scrollTo(0, s2Top);
+      }
+    }
     return;
   }
 
