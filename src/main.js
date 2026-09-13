@@ -256,35 +256,51 @@ let isWheelGestureActive = false;
 let wheelGestureResetTimer = null;
 let lastTransitionEndTime = 0;
 
-function animateScrollTo(targetY, duration = 850, callback) {
+function animateScrollTo(targetY, duration = null, callback) {
   if (currentScrollAnimationId) {
     cancelAnimationFrame(currentScrollAnimationId);
   }
-  isStepTransitioning = true;
 
   const startY = window.scrollY || window.pageYOffset || 0;
   const distance = targetY - startY;
+
+  // Accessibility: instant scroll if user prefers reduced motion
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, targetY);
+    isStepTransitioning = false;
+    lastTransitionEndTime = performance.now();
+    if (callback) callback();
+    return;
+  }
+
+  isStepTransitioning = true;
   const startTime = performance.now();
+
+  // Natural adaptive duration: ~590ms for adjacent slide, up to 780ms for multi-slide jumps
+  const actualDuration = duration !== null
+    ? duration
+    : Math.min(780, Math.max(560, Math.abs(distance) * 0.32 + 340));
 
   function tick(now) {
     const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1.0);
-    // Quintic smoothstep ease for butter-smooth arrival
-    const ease = progress < 0.5
-      ? 4 * progress * progress * progress
-      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    const progress = Math.min(elapsed / actualDuration, 1.0);
 
-    window.scrollTo(0, startY + distance * ease);
-
-    if (progress < 1.0) {
-      currentScrollAnimationId = requestAnimationFrame(tick);
-    } else {
+    if (progress >= 0.992) {
       window.scrollTo(0, targetY);
       currentScrollAnimationId = null;
       isStepTransitioning = false;
       lastTransitionEndTime = performance.now();
       if (callback) callback();
+      return;
     }
+
+    // Quintic smoothstep ease (sublime luxury deceleration)
+    const ease = progress < 0.5
+      ? 4 * progress * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    window.scrollTo(0, startY + distance * ease);
+    currentScrollAnimationId = requestAnimationFrame(tick);
   }
   currentScrollAnimationId = requestAnimationFrame(tick);
 }
@@ -296,7 +312,7 @@ window.goToSlide = function(index) {
   const vh = window.innerHeight || 800;
   if (index === 1) {
     resetLeftBottlesSequence();
-    animateScrollTo(0, 800);
+    animateScrollTo(0);
     return;
   }
 
@@ -310,7 +326,7 @@ window.goToSlide = function(index) {
 
   const targetElement = document.getElementById(`slide-${index}`);
   if (targetElement) {
-    animateScrollTo(targetElement.offsetTop, 850);
+    animateScrollTo(targetElement.offsetTop);
   }
 };
 
@@ -350,6 +366,25 @@ document.querySelectorAll('.scroll-dots-nav .dot').forEach(dot => {
   });
 });
 
+// Universal Anchor Links Smooth Navigation (handles all in-page # links smoothly via delegation)
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href^="#"]');
+  if (!link) return;
+  const hash = link.getAttribute('href');
+  if (!hash || hash === '#') return;
+  const targetElem = document.querySelector(hash);
+  if (targetElem) {
+    e.preventDefault();
+    const slideMatch = hash.match(/slide-(\d+)/);
+    if (slideMatch) {
+      window.goToSlide(parseInt(slideMatch[1], 10));
+    } else {
+      const top = targetElem.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+      animateScrollTo(top);
+    }
+  }
+});
+
 // ======================================================================
 // UNIFIED BULLETPROOF SLIDE NAVIGATION ENGINE
 // Stop 0: Slide 1 Top (0vh)
@@ -387,21 +422,21 @@ function navigateToStop(targetStop) {
   const vh = window.innerHeight || 800;
   if (targetStop <= 0) {
     resetLeftBottlesSequence();
-    animateScrollTo(0, 800);
+    animateScrollTo(0);
   } else if (targetStop === 1) {
     resetLeftBottlesSequence();
-    animateScrollTo(vh, 850);
+    animateScrollTo(vh);
   } else if (targetStop === 2) {
     const s2 = document.getElementById('slide-2');
     const top = s2 ? s2.offsetTop : vh * 2;
-    animateScrollTo(top, 900);
+    animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
     setLeftBottlesStep(3);
     isLastBottleSettled = true;
     canAdvancePastSlide2 = true;
     const s = document.getElementById(`slide-${targetStop}`);
     if (s) {
-      animateScrollTo(s.offsetTop, 850);
+      animateScrollTo(s.offsetTop);
     }
   }
 }
@@ -536,11 +571,11 @@ function handleGlobalWheel(e) {
   wheelGestureResetTimer = setTimeout(() => {
     isWheelGestureActive = false;
     wheelDeltaAccumulator = 0;
-  }, 220);
+  }, 380);
 
   // If currently animating or in cooldown or the current gesture has already triggered a slide stop:
   if (isStepTransitioning) return;
-  if (performance.now() - lastTransitionEndTime < 350) return;
+  if (performance.now() - lastTransitionEndTime < 400) return;
   if (isWheelGestureActive) return;
 
   wheelDeltaAccumulator += e.deltaY;

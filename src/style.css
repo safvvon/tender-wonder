@@ -1862,3 +1862,51 @@ body {
     max-width: 100vw;
   }
 }
+
+/* Subtle modern micro-arrivals when slide becomes active */
+.slide-panel .benefit-block,
+.slide-panel .luxury-product-card,
+.slide-panel .clean-world-map,
+.slide-panel .reach-stat-card,
+.slide-panel .customer-form-card,
+.slide-panel .clients-card-box {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 769px) {
+  .slide-panel:not(.active) .benefit-block {
+    opacity: 0.18;
+    transform: translateY(12px);
+  }
+  .slide-panel:not(.active) .luxury-product-card {
+    opacity: 0.18;
+    transform: translateY(14px);
+  }
+  .slide-panel:not(.active) .reach-stat-card {
+    opacity: 0.18;
+    transform: translateY(12px);
+  }
+  .slide-panel:not(.active) .customer-form-card {
+    opacity: 0.18;
+    transform: translateY(12px);
+  }
+  .slide-panel:not(.active) .clients-card-box {
+    opacity: 0.18;
+    transform: translateY(12px);
+  }
+}
+
+/* Accessibility: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
