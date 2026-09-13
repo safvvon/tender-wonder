@@ -373,8 +373,9 @@ body {
   transform: translate3d(-140%, 0, 0);
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Active entered state */
@@ -409,6 +410,10 @@ body {
   user-select: none;
   -webkit-user-drag: none;
   filter: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .collection-col-center {

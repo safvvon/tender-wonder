@@ -492,10 +492,13 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Filter out tiny trackpad jitter
-  if (Math.abs(e.deltaY) < 5) return;
+  // Prevent browser default on all wheel events to eliminate micro-scroll drift and jitter
+  if (e.cancelable) {
+    e.preventDefault();
+  }
 
-  e.preventDefault();
+  // Filter out tiny trackpad noise
+  if (Math.abs(e.deltaY) < 1) return;
 
   const cur = getCurrentStop();
 
@@ -504,7 +507,7 @@ function handleGlobalWheel(e) {
   if (cur === 2 && !isLeftBottlesSequenceFinished()) {
     const s2 = document.getElementById('slide-2');
     const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 2 && !isStepTransitioning) {
+    if (Math.abs(window.scrollY - s2Top) > 1 && !isStepTransitioning) {
       window.scrollTo(0, s2Top);
     }
 
@@ -962,8 +965,8 @@ if (heroStage) {
     }
 
     const rect = slide2TargetEl.getBoundingClientRect();
-    const slotCenterX = rect.left + rect.width / 2;
-    const slotCenterY = rect.top + rect.height / 2;
+    const slotCenterX = Math.round(rect.left + rect.width / 2);
+    const slotCenterY = Math.round(rect.top + rect.height / 2);
 
     const normX = (slotCenterX - vw / 2) / (vw / 2);
     const normY = -(slotCenterY - vh / 2) / (vh / 2);
@@ -1001,6 +1004,12 @@ if (heroStage) {
     // Damped progress tracking for butter-smooth physical response
     currentPhase1Progress += (targetPhase1Progress - currentPhase1Progress) * Math.min(1.0, dt * 7.5);
     currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * Math.min(1.0, dt * 7.5);
+    if (Math.abs(targetPhase1Progress - currentPhase1Progress) < 0.0005) {
+      currentPhase1Progress = targetPhase1Progress;
+    }
+    if (Math.abs(targetPhase2Progress - currentPhase2Progress) < 0.0005) {
+      currentPhase2Progress = targetPhase2Progress;
+    }
 
     const ease1 = smoothstep5(currentPhase1Progress);
     const ease2 = smoothstep5(currentPhase2Progress);
@@ -1025,16 +1034,17 @@ if (heroStage) {
     const baseRotY = THREE.MathUtils.lerp(p1RotY, 0.0, ease2);
     const baseRotZ = THREE.MathUtils.lerp(p1RotZ, 0.0, ease2);
 
-    // 3. Weightless Harmonic Floating (subtle breathing)
-    const floatWeight = ease1 * (1.0 - ease2 * 0.45);
-    const floatY = Math.sin(now * 0.0016) * 0.007 * floatWeight;
-    const floatX = Math.cos(now * 0.0011) * 0.004 * floatWeight;
-    const floatZ = Math.sin(now * 0.0009) * 0.003 * floatWeight;
+    // 3. Weightless Harmonic Floating (subtle breathing - active only on Slide 1 hero)
+    // On Slide 2, the bottle is docked in its slot - floatWeight fades completely to 0 so it stays rock-solid
+    const floatWeight = ease1 * Math.max(0, 1.0 - ease2 * 1.6);
+    const floatY = floatWeight > 0.0001 ? Math.sin(now * 0.0016) * 0.007 * floatWeight : 0;
+    const floatX = floatWeight > 0.0001 ? Math.cos(now * 0.0011) * 0.004 * floatWeight : 0;
+    const floatZ = floatWeight > 0.0001 ? Math.sin(now * 0.0009) * 0.003 * floatWeight : 0;
 
     // Subtle multi-axis precession
-    const floatRotX = Math.cos(now * 0.0013) * 0.016 * floatWeight;
-    const floatRotZ = Math.sin(now * 0.0012 + 0.6) * 0.020 * floatWeight;
-    const floatRotY = Math.sin(now * 0.0008) * 0.06 * floatWeight;
+    const floatRotX = floatWeight > 0.0001 ? Math.cos(now * 0.0013) * 0.016 * floatWeight : 0;
+    const floatRotZ = floatWeight > 0.0001 ? Math.sin(now * 0.0012 + 0.6) * 0.020 * floatWeight : 0;
+    const floatRotY = floatWeight > 0.0001 ? Math.sin(now * 0.0008) * 0.06 * floatWeight : 0;
 
     // Apply Transform
     const targetX = baseX + floatX;
@@ -1045,14 +1055,24 @@ if (heroStage) {
     const targetRotY = baseRotY + floatRotY;
     const targetRotZ = baseRotZ + floatRotZ;
 
-    const lerpFactor = Math.min(1.0, dt * 6.0);
-    bottleRig.position.x += (targetX - bottleRig.position.x) * lerpFactor;
-    bottleRig.position.y += (targetY - bottleRig.position.y) * lerpFactor;
-    bottleRig.position.z += (targetZ - bottleRig.position.z) * lerpFactor;
+    const lerpFactor = Math.min(1.0, dt * 7.5);
+    if (Math.abs(targetX - bottleRig.position.x) < 0.0002) bottleRig.position.x = targetX;
+    else bottleRig.position.x += (targetX - bottleRig.position.x) * lerpFactor;
 
-    bottleRig.rotation.x += (targetRotX - bottleRig.rotation.x) * lerpFactor;
-    bottleRig.rotation.y += (targetRotY - bottleRig.rotation.y) * lerpFactor;
-    bottleRig.rotation.z += (targetRotZ - bottleRig.rotation.z) * lerpFactor;
+    if (Math.abs(targetY - bottleRig.position.y) < 0.0002) bottleRig.position.y = targetY;
+    else bottleRig.position.y += (targetY - bottleRig.position.y) * lerpFactor;
+
+    if (Math.abs(targetZ - bottleRig.position.z) < 0.0002) bottleRig.position.z = targetZ;
+    else bottleRig.position.z += (targetZ - bottleRig.position.z) * lerpFactor;
+
+    if (Math.abs(targetRotX - bottleRig.rotation.x) < 0.0002) bottleRig.rotation.x = targetRotX;
+    else bottleRig.rotation.x += (targetRotX - bottleRig.rotation.x) * lerpFactor;
+
+    if (Math.abs(targetRotY - bottleRig.rotation.y) < 0.0002) bottleRig.rotation.y = targetRotY;
+    else bottleRig.rotation.y += (targetRotY - bottleRig.rotation.y) * lerpFactor;
+
+    if (Math.abs(targetRotZ - bottleRig.rotation.z) < 0.0002) bottleRig.rotation.z = targetRotZ;
+    else bottleRig.rotation.z += (targetRotZ - bottleRig.rotation.z) * lerpFactor;
 
     bottleRig.scale.setScalar(baseScale);
 
