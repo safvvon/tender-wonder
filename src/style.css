@@ -24,6 +24,8 @@ html {
   width: 100%;
   min-height: 100%;
   overflow-x: clip;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
 }
 
 body {
@@ -36,21 +38,16 @@ body {
   color: var(--color-charcoal);
   background-color: var(--color-sage-bg);
   -webkit-font-smoothing: antialiased;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
 }
 
-/* Custom Sleek Scrollbar */
+/* Hide scrollbar across all browsers */
 ::-webkit-scrollbar {
-  width: 7px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-sage-bg);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(12, 86, 46, 0.35);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-forest-green);
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 /* ============================================================ */
