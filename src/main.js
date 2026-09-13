@@ -449,17 +449,6 @@ function handleAdvance() {
 
 function handleRetreat() {
   const cur = getCurrentStop();
-  // On Slide 2: step bottles back out if visible; once at 0, retreat to Slide 1 center checkpoint
-  if (cur === 2 && leftBottlesStep > 0) {
-    stepLeftBottlesBackward();
-    const s2 = document.getElementById('slide-2');
-    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 2) {
-      window.scrollTo(0, s2Top);
-    }
-    return;
-  }
-
   if (cur > 0) {
     navigateToStop(cur - 1);
   }
@@ -549,16 +538,9 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Slide 2: Reverse bottle stepping on scroll up
-  if (cur === 2 && leftBottlesStep > 0 && e.deltaY < 0) {
-    stepLeftBottlesBackward();
-    wheelDeltaAccumulator = 0;
-    return;
-  }
-
   // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
-  // The next scroll (after brief pause) goes to Slide 2.
-  if (cur === 1 && isFirstScrollLocked) {
+  // The next scroll down (after brief pause) goes to Slide 2.
+  if (cur === 1 && isFirstScrollLocked && e.deltaY > 0) {
     return;
   }
 
