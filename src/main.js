@@ -422,58 +422,38 @@ window.getCurrentStop = getCurrentStop;
 
 // ======================================================================
 // SLIDE 3: "FROM COCONUT TO BOTTLE" INTERACTIVE PROCESS ENGINE
-// 7 Sequential Stages + Stage 8 (Final Reveal Screen)
-// 01 Coconut Cutting -> 02 Bottle Cleaning -> 03 Water Filling ->
-// 04 Controlled Heating -> 05 Micro Lab -> 06 Packaging ->
-// 07 Loading & Dispatch -> 08 Final Reveal ("FROM NATURE. THROUGH CARE. TO YOU.")
+// 7 Handcrafted Vector-Animated Stages (01 Coconut Cutting -> 07 Loading & Dispatch)
+// Continuous Animated Green Connector Line & Interactive Step Scrubbing
 // ======================================================================
 let currentProcessStep = 1;
 let lastProcessStepTime = 0;
 
-const PROCESS_DESCRIPTIONS = {
-  1: "01 COCONUT CUTTING — Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.",
-  2: "02 BOTTLE CLEANING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
-  3: "03 COCONUT WATER FILLING — Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals.",
-  4: "04 CONTROLLED HEATING — Regulated temperature treatment retains natural flavor profile and nutritional integrity.",
-  5: "05 MICRO LABORATORY — Quality testing and micro-analysis confirm purity standards and safety before sealing.",
-  6: "06 PACKAGING — Secure capping, labeling, and protective boxing prepare each batch for safe transit.",
-  7: "07 LOADING & DISPATCH — Efficient distribution ensures fresh tender coconut water reaches destinations swiftly.",
-  8: "FROM NATURE. THROUGH CARE. TO YOU. — A carefully controlled journey from fresh tender coconut to a finished product."
-};
-
 function setProcessStep(step) {
-  currentProcessStep = Math.max(1, Math.min(8, step));
+  currentProcessStep = Math.max(1, Math.min(7, step));
 
-  // 1. Stage visual items
-  const stageItems = document.querySelectorAll('#process-viewport .process-stage-item');
-  stageItems.forEach(item => {
-    const s = parseInt(item.dataset.stage, 10);
-    item.classList.toggle('active', s === currentProcessStep);
+  // 1. Highlight vector card (active and completed states)
+  const cards = document.querySelectorAll('.process-vector-card');
+  cards.forEach(card => {
+    const s = parseInt(card.dataset.step, 10);
+    card.classList.toggle('active', s === currentProcessStep);
+    card.classList.toggle('completed', s < currentProcessStep);
   });
 
-  // 2. Timeline nodes
-  const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
-  nodeItems.forEach(node => {
-    const nodeStep = parseInt(node.dataset.step, 10);
-    node.classList.toggle('active', currentProcessStep <= 7 ? nodeStep === currentProcessStep : nodeStep === 7);
-    node.classList.toggle('completed', nodeStep < currentProcessStep);
-  });
-
-  // 3. Continuous progress track fill bar
-  const trackFill = document.getElementById('process-track-fill');
-  if (trackFill) {
-    const pct = ((Math.min(currentProcessStep, 7) - 1) / 6) * 100;
-    trackFill.style.width = `${pct}%`;
+  // 2. Update continuous connector fill line
+  const connectorFill = document.getElementById('connector-track-fill');
+  if (connectorFill) {
+    const pct = ((currentProcessStep - 1) / 6) * 100;
+    connectorFill.style.width = `${pct}%`;
   }
 
-  // 4. Dynamic Description text
-  const descEl = document.getElementById('process-desc-text');
-  if (descEl) {
-    descEl.style.opacity = '0';
-    setTimeout(() => {
-      descEl.textContent = PROCESS_DESCRIPTIONS[currentProcessStep] || '';
-      descEl.style.opacity = '1';
-    }, 160);
+  // 3. Smoothly center active card within horizontal overflow container on mobile
+  const flowContainer = document.querySelector('.process-journey-flow');
+  const activeCard = document.getElementById(`proc-card-${currentProcessStep}`);
+  if (flowContainer && activeCard && window.innerWidth <= 820) {
+    const containerRect = flowContainer.getBoundingClientRect();
+    const cardRect = activeCard.getBoundingClientRect();
+    const targetScrollLeft = flowContainer.scrollLeft + (cardRect.left - containerRect.left) - (containerRect.width / 2) + (cardRect.width / 2);
+    flowContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
   }
 }
 
@@ -481,9 +461,10 @@ window.setProcessStep = setProcessStep;
 window.getProcessStep = () => currentProcessStep;
 
 function initProcessControls() {
-  document.querySelectorAll('.process-timeline-bar .process-node-item').forEach(node => {
-    node.addEventListener('click', () => {
-      const step = parseInt(node.dataset.step, 10);
+  // Click on any vector card to jump directly to that step
+  document.querySelectorAll('.process-vector-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const step = parseInt(card.dataset.step, 10);
       if (step) {
         setProcessStep(step);
         lastProcessStepTime = performance.now();
@@ -491,10 +472,28 @@ function initProcessControls() {
     });
   });
 
-  const replayBtn = document.getElementById('btn-replay-process');
-  if (replayBtn) {
-    replayBtn.addEventListener('click', () => {
-      setProcessStep(1);
+  // Previous stage button
+  const prevBtn = document.getElementById('btn-proc-prev');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentProcessStep > 1) {
+        setProcessStep(currentProcessStep - 1);
+      } else {
+        setProcessStep(7);
+      }
+      lastProcessStepTime = performance.now();
+    });
+  }
+
+  // Next stage button
+  const nextBtn = document.getElementById('btn-proc-next');
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentProcessStep < 7) {
+        setProcessStep(currentProcessStep + 1);
+      } else {
+        setProcessStep(1);
+      }
       lastProcessStepTime = performance.now();
     });
   }
@@ -547,8 +546,8 @@ function handleAdvance() {
     return;
   }
 
-  // On Slide 3: step through stages 1 to 8 before advancing to Slide 4
-  if (cur === 3 && currentProcessStep < 8) {
+  // On Slide 3: step through vector stages 1 to 7 before advancing to Slide 4
+  if (cur === 3 && currentProcessStep < 7) {
     setProcessStep(currentProcessStep + 1);
     lastProcessStepTime = performance.now();
     const s3 = document.getElementById('slide-3');
