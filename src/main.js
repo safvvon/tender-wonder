@@ -318,6 +318,10 @@ window.goToSlide = function(index) {
     setLeftBottlesStep(3);
   }
 
+  if (index === 3 && typeof setProcessStep === 'function') {
+    setProcessStep(1);
+  }
+
   const targetElement = document.getElementById(`slide-${index}`);
   if (targetElement) {
     animateScrollTo(targetElement.offsetTop);
@@ -416,8 +420,90 @@ function getCurrentStop() {
 }
 window.getCurrentStop = getCurrentStop;
 
+// ======================================================================
+// SLIDE 3: "FROM COCONUT TO BOTTLE" INTERACTIVE PROCESS ENGINE
+// 7 Sequential Stages + Stage 8 (Final Reveal Screen)
+// 01 Coconut Cutting -> 02 Bottle Cleaning -> 03 Water Filling ->
+// 04 Controlled Heating -> 05 Micro Lab -> 06 Packaging ->
+// 07 Loading & Dispatch -> 08 Final Reveal ("FROM NATURE. THROUGH CARE. TO YOU.")
+// ======================================================================
+let currentProcessStep = 1;
+let lastProcessStepTime = 0;
+
+const PROCESS_DESCRIPTIONS = {
+  1: "01 COCONUT CUTTING — Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.",
+  2: "02 BOTTLE CLEANING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
+  3: "03 COCONUT WATER FILLING — Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals.",
+  4: "04 CONTROLLED HEATING — Regulated temperature treatment retains natural flavor profile and nutritional integrity.",
+  5: "05 MICRO LABORATORY — Quality testing and micro-analysis confirm purity standards and safety before sealing.",
+  6: "06 PACKAGING — Secure capping, labeling, and protective boxing prepare each batch for safe transit.",
+  7: "07 LOADING & DISPATCH — Efficient distribution ensures fresh tender coconut water reaches destinations swiftly.",
+  8: "FROM NATURE. THROUGH CARE. TO YOU. — A carefully controlled journey from fresh tender coconut to a finished product."
+};
+
+function setProcessStep(step) {
+  currentProcessStep = Math.max(1, Math.min(8, step));
+
+  // 1. Stage visual items
+  const stageItems = document.querySelectorAll('#process-viewport .process-stage-item');
+  stageItems.forEach(item => {
+    const s = parseInt(item.dataset.stage, 10);
+    item.classList.toggle('active', s === currentProcessStep);
+  });
+
+  // 2. Timeline nodes
+  const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
+  nodeItems.forEach(node => {
+    const nodeStep = parseInt(node.dataset.step, 10);
+    node.classList.toggle('active', currentProcessStep <= 7 ? nodeStep === currentProcessStep : nodeStep === 7);
+    node.classList.toggle('completed', nodeStep < currentProcessStep);
+  });
+
+  // 3. Continuous progress track fill bar
+  const trackFill = document.getElementById('process-track-fill');
+  if (trackFill) {
+    const pct = ((Math.min(currentProcessStep, 7) - 1) / 6) * 100;
+    trackFill.style.width = `${pct}%`;
+  }
+
+  // 4. Dynamic Description text
+  const descEl = document.getElementById('process-desc-text');
+  if (descEl) {
+    descEl.style.opacity = '0';
+    setTimeout(() => {
+      descEl.textContent = PROCESS_DESCRIPTIONS[currentProcessStep] || '';
+      descEl.style.opacity = '1';
+    }, 160);
+  }
+}
+
+window.setProcessStep = setProcessStep;
+window.getProcessStep = () => currentProcessStep;
+
+function initProcessControls() {
+  document.querySelectorAll('.process-timeline-bar .process-node-item').forEach(node => {
+    node.addEventListener('click', () => {
+      const step = parseInt(node.dataset.step, 10);
+      if (step) {
+        setProcessStep(step);
+        lastProcessStepTime = performance.now();
+      }
+    });
+  });
+
+  const replayBtn = document.getElementById('btn-replay-process');
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => {
+      setProcessStep(1);
+      lastProcessStepTime = performance.now();
+    });
+  }
+}
+
 function navigateToStop(targetStop) {
   const vh = window.innerHeight || 800;
+  const cur = getCurrentStop();
+
   if (targetStop <= 0) {
     resetLeftBottlesSequence();
     animateScrollTo(0);
@@ -430,7 +516,7 @@ function navigateToStop(targetStop) {
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
     // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered and 1s delay has elapsed
-    if (!isLeftBottlesSequenceFinished() || performance.now() - lastBottleStepTime < 1000) {
+    if (cur === 2 && (!isLeftBottlesSequenceFinished() || performance.now() - lastBottleStepTime < 1000)) {
       if (!isLeftBottlesSequenceFinished()) {
         stepLeftBottlesForward();
       }
@@ -449,21 +535,28 @@ function navigateToStop(targetStop) {
 
 function handleAdvance() {
   const cur = getCurrentStop();
-  // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered and settled!
-  if (cur === 2) {
-    if (!isLeftBottlesSequenceFinished()) {
-      stepLeftBottlesForward();
-      const s2 = document.getElementById('slide-2');
-      const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-      if (Math.abs(window.scrollY - s2Top) > 2) {
-        window.scrollTo(0, s2Top);
-      }
-      return;
+  // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
+  // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+    stepLeftBottlesForward();
+    const s2 = document.getElementById('slide-2');
+    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+    if (Math.abs(window.scrollY - s2Top) > 2) {
+      window.scrollTo(0, s2Top);
     }
-    // All 3 bottles have entered! Enforce 1 second delay after bottle 3 before allowing advance to Slide 3
-    if (performance.now() - lastBottleStepTime < 1000) {
-      return;
+    return;
+  }
+
+  // On Slide 3: step through stages 1 to 8 before advancing to Slide 4
+  if (cur === 3 && currentProcessStep < 8) {
+    setProcessStep(currentProcessStep + 1);
+    lastProcessStepTime = performance.now();
+    const s3 = document.getElementById('slide-3');
+    const s3Top = s3 ? s3.offsetTop : window.innerHeight * 3;
+    if (Math.abs(window.scrollY - s3Top) > 2) {
+      window.scrollTo(0, s3Top);
     }
+    return;
   }
 
   // Once all 3 bottles have come in (or on any other slide), advance to the next slide!
@@ -474,6 +567,16 @@ function handleAdvance() {
 
 function handleRetreat() {
   const cur = getCurrentStop();
+  if (cur === 3 && currentProcessStep > 1) {
+    setProcessStep(currentProcessStep - 1);
+    lastProcessStepTime = performance.now();
+    const s3 = document.getElementById('slide-3');
+    const s3Top = s3 ? s3.offsetTop : window.innerHeight * 3;
+    if (Math.abs(window.scrollY - s3Top) > 2) {
+      window.scrollTo(0, s3Top);
+    }
+    return;
+  }
   if (cur > 0) {
     navigateToStop(cur - 1);
   }
@@ -515,8 +618,8 @@ window.addEventListener('keydown', (e) => {
 
 // Wheel Navigation
 let wheelDeltaAccumulator = 0;
-let isGestureActive = false;
-let gestureIdleTimer = null;
+let wheelDecayTimer = null;
+let isFirstScrollLocked = false;
 
 function handleGlobalWheel(e) {
   // If scrolling inside an active scrollable dialog / element, let it scroll naturally
@@ -534,12 +637,12 @@ function handleGlobalWheel(e) {
 
   const now = performance.now();
 
-  // Active gesture tracking: user must pause scrolling for at least 260ms before next action can trigger
-  clearTimeout(gestureIdleTimer);
-  gestureIdleTimer = setTimeout(() => {
-    isGestureActive = false;
+  // Reset accumulator and first scroll lock when user pauses
+  clearTimeout(wheelDecayTimer);
+  wheelDecayTimer = setTimeout(() => {
     wheelDeltaAccumulator = 0;
-  }, 260);
+    isFirstScrollLocked = false;
+  }, 140);
 
   // If transition is actively animating, swallow wheel events until slide arrives
   if (isStepTransitioning) {
@@ -547,15 +650,8 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Graceful post-arrival cooldown (250ms) to ensure user settles on slide before next scroll
-  if (now - lastTransitionEndTime < 250) {
-    wheelDeltaAccumulator = 0;
-    return;
-  }
-
-  // If a slide transition or bottle step was already triggered during this continuous gesture,
-  // user MUST pause scrolling before another action can be triggered (NO RUNAWAY SKIPPING!)
-  if (isGestureActive) {
+  // Graceful cooldown (95ms) to ensure smooth slide arrival before next scroll
+  if (now - lastTransitionEndTime < 95) {
     wheelDeltaAccumulator = 0;
     return;
   }
@@ -574,10 +670,9 @@ function handleGlobalWheel(e) {
           return;
         }
         wheelDeltaAccumulator += e.deltaY;
-        const BOTTLE_SCROLL_THRESHOLD = 28;
+        const BOTTLE_SCROLL_THRESHOLD = 26;
         if (wheelDeltaAccumulator >= BOTTLE_SCROLL_THRESHOLD) {
           wheelDeltaAccumulator = 0;
-          isGestureActive = true;
           stepLeftBottlesForward();
         }
         return;
@@ -593,10 +688,9 @@ function handleGlobalWheel(e) {
         return;
       }
       wheelDeltaAccumulator += e.deltaY;
-      const BOTTLE_SCROLL_THRESHOLD = -28;
+      const BOTTLE_SCROLL_THRESHOLD = -26;
       if (wheelDeltaAccumulator <= BOTTLE_SCROLL_THRESHOLD) {
         wheelDeltaAccumulator = 0;
-        isGestureActive = true;
         if (leftBottlesStep > 0) {
           stepLeftBottlesBackward();
           return;
@@ -609,17 +703,68 @@ function handleGlobalWheel(e) {
     }
   }
 
+  // Slide 3: 7 Stages Process Journey scrubbed via scroll
+  if (cur === 3) {
+    if (e.deltaY > 0) {
+      if (currentProcessStep < 8) {
+        if (now - lastProcessStepTime < 380) {
+          wheelDeltaAccumulator = 0;
+          return;
+        }
+        wheelDeltaAccumulator += e.deltaY;
+        const PROCESS_SCROLL_THRESHOLD = 24;
+        if (wheelDeltaAccumulator >= PROCESS_SCROLL_THRESHOLD) {
+          wheelDeltaAccumulator = 0;
+          setProcessStep(currentProcessStep + 1);
+          lastProcessStepTime = now;
+        }
+        return;
+      }
+      // Reached Stage 8 (Final Reveal)! Allow brief pause before advancing down to Slide 4
+      if (now - lastProcessStepTime < 500) {
+        wheelDeltaAccumulator = 0;
+        return;
+      }
+    } else if (e.deltaY < 0) {
+      if (now - lastProcessStepTime < 320) {
+        wheelDeltaAccumulator = 0;
+        return;
+      }
+      wheelDeltaAccumulator += e.deltaY;
+      const PROCESS_SCROLL_THRESHOLD = -24;
+      if (wheelDeltaAccumulator <= PROCESS_SCROLL_THRESHOLD) {
+        wheelDeltaAccumulator = 0;
+        if (currentProcessStep > 1) {
+          setProcessStep(currentProcessStep - 1);
+          lastProcessStepTime = now;
+          return;
+        } else {
+          handleRetreat();
+          return;
+        }
+      }
+      return;
+    }
+  }
+
+  // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
+  // The next scroll down (after brief pause) goes to Slide 2.
+  if (cur === 1 && isFirstScrollLocked && e.deltaY > 0) {
+    return;
+  }
+
   // Slide transitions: accumulate wheel delta with measured, smooth threshold
   wheelDeltaAccumulator += e.deltaY;
 
-  const THRESHOLD = 32;
+  const THRESHOLD = 28;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    isGestureActive = true;
+    if (cur === 0) {
+      isFirstScrollLocked = true;
+    }
     handleAdvance();
   } else if (wheelDeltaAccumulator <= -THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    isGestureActive = true;
     handleRetreat();
   }
 }
@@ -1268,5 +1413,29 @@ window.submitOrder = function() {
     window.goToSlide(7); // Scroll smoothly to Valued Clients page
   }, 1200);
 };
+
+// ======================================================================
+// 5. VALUED CLIENTS (SLIDE 7) & PROCESS JOURNEY (SLIDE 3) INITIALIZATION
+// ======================================================================
+const clientsSection = document.getElementById('slide-7');
+if (clientsSection) {
+  const clientObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        clientsSection.classList.add('in-view');
+        document.querySelectorAll('.client-grid-item').forEach(item => {
+          item.classList.add('revealed');
+        });
+      }
+    });
+  }, { threshold: 0.2 });
+  clientObserver.observe(clientsSection);
+}
+
+// Initialize Slide 3 process stage controls & sync to step 1
+if (typeof initProcessControls === 'function') {
+  initProcessControls();
+  setProcessStep(1);
+}
 
 console.log('Tender Wonder native website experience running.');

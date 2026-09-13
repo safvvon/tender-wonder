@@ -1,0 +1,170 @@
+[
+  {
+    "id": "01_air_arabia",
+    "name": "AIR ARABIA",
+    "src": "/clients/01_air_arabia.png",
+    "width": 1326,
+    "height": 511,
+    "aspect": "2.59"
+  },
+  {
+    "id": "02_lulu",
+    "name": "LULU",
+    "src": "/clients/02_lulu.png",
+    "width": 1326,
+    "height": 450,
+    "aspect": "2.95"
+  },
+  {
+    "id": "03_union_coop",
+    "name": "UNION COOP",
+    "src": "/clients/03_union_coop.png",
+    "width": 1326,
+    "height": 1252,
+    "aspect": "1.06"
+  },
+  {
+    "id": "04_sharjah_coop",
+    "name": "SHARJAH COOP",
+    "src": "/clients/04_sharjah_coop.png",
+    "width": 1326,
+    "height": 423,
+    "aspect": "3.13"
+  },
+  {
+    "id": "05_al_ain_coop",
+    "name": "AL AIN COOP",
+    "src": "/clients/05_al_ain_coop.png",
+    "width": 1326,
+    "height": 966,
+    "aspect": "1.37"
+  },
+  {
+    "id": "06_adnoc",
+    "name": "ADNOC",
+    "src": "/clients/06_adnoc.png",
+    "width": 871,
+    "height": 1252,
+    "aspect": "0.70"
+  },
+  {
+    "id": "07_emarat",
+    "name": "EMARAT",
+    "src": "/clients/07_emarat.png",
+    "width": 945,
+    "height": 1252,
+    "aspect": "0.75"
+  },
+  {
+    "id": "08_capital_catering",
+    "name": "CAPITAL CATERING",
+    "src": "/clients/08_capital_catering.png",
+    "width": 1326,
+    "height": 703,
+    "aspect": "1.89"
+  },
+  {
+    "id": "09_amazon",
+    "name": "AMAZON",
+    "src": "/clients/09_amazon.png",
+    "width": 1326,
+    "height": 522,
+    "aspect": "2.54"
+  },
+  {
+    "id": "10_blue_mart",
+    "name": "BLUE MART",
+    "src": "/clients/10_blue_mart.png",
+    "width": 1326,
+    "height": 452,
+    "aspect": "2.93"
+  },
+  {
+    "id": "11_noon",
+    "name": "NOON",
+    "src": "/clients/11_noon.png",
+    "width": 1326,
+    "height": 589,
+    "aspect": "2.25"
+  },
+  {
+    "id": "12_adcoop",
+    "name": "ADCOOP",
+    "src": "/clients/12_adcoop.png",
+    "width": 1326,
+    "height": 548,
+    "aspect": "2.42"
+  },
+  {
+    "id": "13_grand_mart",
+    "name": "GRAND MART",
+    "src": "/clients/13_grand_mart.png",
+    "width": 1326,
+    "height": 1210,
+    "aspect": "1.10"
+  },
+  {
+    "id": "14_grandiose",
+    "name": "GRANDIOSE",
+    "src": "/clients/14_grandiose.png",
+    "width": 1326,
+    "height": 1140,
+    "aspect": "1.16"
+  },
+  {
+    "id": "15_talabat",
+    "name": "TALABAT",
+    "src": "/clients/15_talabat.png",
+    "width": 1326,
+    "height": 334,
+    "aspect": "3.97"
+  },
+  {
+    "id": "16_talal_group",
+    "name": "TALAL GROUP",
+    "src": "/clients/16_talal_group.png",
+    "width": 1306,
+    "height": 1252,
+    "aspect": "1.04"
+  },
+  {
+    "id": "17_instashop",
+    "name": "INSTASHOP",
+    "src": "/clients/17_instashop.png",
+    "width": 1785,
+    "height": 864,
+    "aspect": "2.07"
+  },
+  {
+    "id": "18_al_madina",
+    "name": "AL MADINA",
+    "src": "/clients/18_al_madina.png",
+    "width": 1658,
+    "height": 1006,
+    "aspect": "1.65"
+  },
+  {
+    "id": "19_f_mart",
+    "name": "F MART",
+    "src": "/clients/19_f_mart.png",
+    "width": 1452,
+    "height": 1882,
+    "aspect": "0.77"
+  },
+  {
+    "id": "20_enoc",
+    "name": "ENOC",
+    "src": "/clients/20_enoc.png",
+    "width": 1579,
+    "height": 2526,
+    "aspect": "0.63"
+  },
+  {
+    "id": "21_safari_mall",
+    "name": "SAFARI MALL",
+    "src": "/clients/21_safari_mall.png",
+    "width": 1597,
+    "height": 497,
+    "aspect": "3.21"
+  }
+]

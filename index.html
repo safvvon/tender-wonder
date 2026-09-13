@@ -184,47 +184,192 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 3: THE PRODUCT (COCONUT SPLASH COMPOSITION)     -->
+      <!-- SECTION 3: OUR PROCESS (FROM COCONUT TO BOTTLE)           -->
       <!-- ======================================================== -->
       <section class="slide-panel" data-index="3" id="slide-3">
-        <div class="section-inner the-product-stage">
-          <!-- Background Split Typography -->
-          <div class="giant-bg-split">
-            <span class="bg-split-top">TENDER</span>
-            <span class="bg-split-bot">WONDER</span>
+        <div class="section-inner process-journey-stage">
+          
+          <!-- Header -->
+          <div class="process-header">
+            <h2 class="process-main-title">FROM COCONUT TO BOTTLE</h2>
+            <p class="process-subtitle">A carefully controlled journey from fresh tender coconut to a finished product.</p>
           </div>
 
-          <!-- Central Coconut Splash Art -->
-          <div class="product-center-art">
-            <img src="/assets_clean/coconut_splash.png" alt="Fresh Tender Coconut with Splash" class="center-splash-img" loading="lazy" decoding="async" width="600" height="600">
+          <!-- Main Interactive Process Frame -->
+          <div class="process-visual-viewport" id="process-viewport">
+            
+            <!-- Stage 01: Coconut Cutting -->
+            <div class="process-stage-item active" data-stage="1">
+              <div class="stage-visual-box stage-1-visual">
+                <div class="coconut-cut-wrapper">
+                  <img src="/assets_clean/coconut_splash.png" alt="Fresh Tender Coconut" class="process-coconut-img">
+                  <div class="cut-laser-blade"></div>
+                  <div class="cut-sparkle-droplets">
+                    <span class="p-drop d1"></span>
+                    <span class="p-drop d2"></span>
+                    <span class="p-drop d3"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 02: Bottle Cleaning -->
+            <div class="process-stage-item" data-stage="2">
+              <div class="stage-visual-box stage-2-visual">
+                <div class="bottle-clean-rig">
+                  <div class="cleaning-jets-top">
+                    <span class="sonic-jet j1"></span>
+                    <span class="sonic-jet j2"></span>
+                    <span class="sonic-jet j3"></span>
+                  </div>
+                  <img src="/drive_bottles/bottle_1l_clean.png" alt="Tender Wonder Bottle Sanitization" class="process-bottle-img">
+                  <div class="rinse-mist-aura"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 03: Coconut Water Filling -->
+            <div class="process-stage-item" data-stage="3">
+              <div class="stage-visual-box stage-3-visual">
+                <div class="bottle-fill-rig">
+                  <div class="filling-valve-nozzle">
+                    <div class="laminar-stream"></div>
+                  </div>
+                  <div class="filling-bottle-container">
+                    <img src="/drive_bottles/bottle_1l_clean.png" alt="Tender Wonder Bottle Filling" class="process-bottle-img">
+                    <div class="liquid-fill-level"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 04: Controlled Heating -->
+            <div class="process-stage-item" data-stage="4">
+              <div class="stage-visual-box stage-4-visual">
+                <div class="thermal-chamber-rig">
+                  <div class="thermal-pulse-wave w1"></div>
+                  <div class="thermal-pulse-wave w2"></div>
+                  <div class="thermal-pulse-wave w3"></div>
+                  <img src="/drive_bottles/bottle_1l_clean.png" alt="Thermal Processing" class="process-bottle-img thermal-glow-bottle">
+                  <div class="thermal-badge">
+                    <span class="thermal-temp">72&deg;C</span>
+                    <span class="thermal-label">PASTEURIZED INTEGRITY</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 05: Micro Laboratory -->
+            <div class="process-stage-item" data-stage="5">
+              <div class="stage-visual-box stage-5-visual">
+                <div class="micro-lab-rig">
+                  <div class="lab-scan-beam"></div>
+                  <img src="/drive_bottles/bottle_1l_clean.png" alt="Micro Laboratory Quality Check" class="process-bottle-img">
+                  <div class="lab-data-hud">
+                    <div class="hud-item hud-1"><span class="hud-dot"></span> 100% PURE</div>
+                    <div class="hud-item hud-2"><span class="hud-dot"></span> QC: PASSED</div>
+                    <div class="hud-item hud-3"><span class="hud-dot"></span> ZERO ADDED SUGAR</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 06: Packaging -->
+            <div class="process-stage-item" data-stage="6">
+              <div class="stage-visual-box stage-6-visual">
+                <div class="packaging-conveyor-rig">
+                  <div class="conveyor-track-line"></div>
+                  <div class="pack-case-box">
+                    <img src="/drive_bottles/bottle_1l_clean.png" alt="Finished Bottle Pack" class="process-bottle-img b-pack-1">
+                    <img src="/drive_bottles/bottle_1l_clean.png" alt="Finished Bottle Pack" class="process-bottle-img b-pack-2">
+                    <img src="/drive_bottles/bottle_1l_clean.png" alt="Finished Bottle Pack" class="process-bottle-img b-pack-3">
+                  </div>
+                  <div class="eco-seal-badge">SEALED &amp; BOXED</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage 07: Loading & Dispatch -->
+            <div class="process-stage-item" data-stage="7">
+              <div class="stage-visual-box stage-7-visual">
+                <div class="dispatch-motion-rig">
+                  <div class="dispatch-fleet-icon">
+                    <svg viewBox="0 0 64 64" width="84" height="84" fill="none" stroke="#0C562E" stroke-width="2.5">
+                      <rect x="6" y="16" width="34" height="28" rx="3"/>
+                      <path d="M40 24h12l6 8v12h-18V24z"/>
+                      <circle cx="18" cy="46" r="6"/>
+                      <circle cx="48" cy="46" r="6"/>
+                    </svg>
+                  </div>
+                  <div class="dispatch-status-badge">READY FOR DISPATCH &rarr;</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Final Reveal Screen -->
+            <div class="process-stage-item final-reveal-stage" data-stage="8">
+              <div class="stage-visual-box final-reveal-visual">
+                <div class="reveal-content-wrap">
+                  <div class="reveal-brand-mark">
+                    <img src="/assets/icon_tender_coconut.png" alt="Tender Wonder" width="48" height="48">
+                  </div>
+                  <h3 class="reveal-motto">FROM NATURE. THROUGH CARE. TO YOU.</h3>
+                  <p class="reveal-sub">Every bottle follows a carefully controlled journey from fresh tender coconut to the finished product.</p>
+                  <button class="btn-replay-process" id="btn-replay-process">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                    Replay Journey
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- 4 Grid Content Cards -->
-          <div class="benefits-quad-grid">
-            <div class="benefit-block top-left">
-              <h3>PURE REFRESHMENT, FROM NATURE</h3>
-              <div class="benefit-accent-line"></div>
-              <p>Tender Wonder is crafted to deliver the pure, hydrating goodness of tender coconut &mdash; straight from nature to you.</p>
+          <!-- Horizontal Animated Process Timeline -->
+          <div class="process-timeline-wrapper">
+            <div class="process-timeline-bar">
+              <div class="process-track-bg"></div>
+              <div class="process-track-fill" id="process-track-fill"></div>
+              <div class="process-nodes-row">
+                <div class="process-node-item active" data-step="1">
+                  <div class="node-bullet"><span class="node-num">01</span><span class="node-dot"></span></div>
+                  <div class="node-label">Coconut Cutting</div>
+                </div>
+                <div class="process-node-item" data-step="2">
+                  <div class="node-bullet"><span class="node-num">02</span><span class="node-dot"></span></div>
+                  <div class="node-label">Bottle Cleaning</div>
+                </div>
+                <div class="process-node-item" data-step="3">
+                  <div class="node-bullet"><span class="node-num">03</span><span class="node-dot"></span></div>
+                  <div class="node-label">Filling</div>
+                </div>
+                <div class="process-node-item" data-step="4">
+                  <div class="node-bullet"><span class="node-num">04</span><span class="node-dot"></span></div>
+                  <div class="node-label">Heating</div>
+                </div>
+                <div class="process-node-item" data-step="5">
+                  <div class="node-bullet"><span class="node-num">05</span><span class="node-dot"></span></div>
+                  <div class="node-label">Micro Lab</div>
+                </div>
+                <div class="process-node-item" data-step="6">
+                  <div class="node-bullet"><span class="node-num">06</span><span class="node-dot"></span></div>
+                  <div class="node-label">Packaging</div>
+                </div>
+                <div class="process-node-item" data-step="7">
+                  <div class="node-bullet"><span class="node-num">07</span><span class="node-dot"></span></div>
+                  <div class="node-label">Loading &amp; Dispatch</div>
+                </div>
+              </div>
             </div>
 
-            <div class="benefit-block top-right">
-              <h3>COLD-PRESSED TECHNOLOGY</h3>
-              <div class="benefit-accent-line"></div>
-              <p>We use advanced cold-pressed technology to lock in essential nutrients and natural electrolytes, ensuring you get unmatched freshness and maximum goodness in every sip.</p>
-            </div>
-
-            <div class="benefit-block bot-left">
-              <h3>CLEAN &amp; HONEST INGREDIENTS</h3>
-              <div class="benefit-accent-line"></div>
-              <p>Made with 100% natural tender coconut water. No added sugar, no preservatives, no artificial flavors &mdash; just pure, natural goodness in every sip.</p>
-            </div>
-
-            <div class="benefit-block bot-right">
-              <h3>NATURAL ELECTROLYTES, NATURAL ENERGY</h3>
-              <div class="benefit-accent-line"></div>
-              <p>Packed with natural electrolytes like potassium and magnesium to help you stay hydrated, active and balanced &mdash; the natural way.</p>
+            <!-- Dynamic Description Card -->
+            <div class="process-desc-viewport">
+              <div class="process-desc-text" id="process-desc-text">
+                Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.
+              </div>
             </div>
           </div>
+
         </div>
       </section>
 
@@ -449,32 +594,112 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 7: VALUED CLIENTS                                -->
+      <!-- SECTION 7: OUR VALUED CLIENTS                             -->
       <!-- ======================================================== -->
       <section class="slide-panel" data-index="7" id="slide-7">
         <div class="section-inner valued-clients-stage">
+          
           <div class="clients-head-block">
             <div class="top-accent-bar"></div>
-            <h2>OUR VALUED CLIENTS</h2>
-            <p class="clients-tagline">TRUSTED PARTNERS IN A HEALTHIER TOMORROW</p>
-            <p class="clients-body">We are proud to work with leading brands, retailers, and organizations who share our commitment to quality, wellness, and a more sustainable future.</p>
+            <h2 class="clients-main-title">Our Valued Clients</h2>
+            <p class="clients-subtitle">Trusted by businesses and partners who value quality, reliability and excellence.</p>
           </div>
 
-          <div class="clients-card-box">
-            <img src="/assets_clean/partner_logos.png" alt="Tender Wonder Brand Partners" class="clean-partner-logos" loading="lazy" decoding="async" width="1150" height="480">
+          <!-- Dual-Track Infinite Marquee on Desktop -->
+          <div class="clients-marquee-container" id="clients-marquee-container">
+            <!-- Row 1 Track (Moves Left) -->
+            <div class="marquee-track track-left" aria-hidden="true">
+              <div class="marquee-group">
+                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/10_blue_mart.png" alt="Blue Mart Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="lazy"></div>
+              </div>
+              <!-- Cloned Group for Seamless 100% Infinite Loop -->
+              <div class="marquee-group">
+                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/10_blue_mart.png" alt="Blue Mart Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="lazy"></div>
+              </div>
+            </div>
+
+            <!-- Row 2 Track (Moves Right or Staggered Left) -->
+            <div class="marquee-track track-right" aria-hidden="true">
+              <div class="marquee-group">
+                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/13_grand_mart.png" alt="Grand Mart" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari Mall" class="client-logo-img" loading="lazy"></div>
+              </div>
+              <!-- Cloned Group for Seamless 100% Infinite Loop -->
+              <div class="marquee-group">
+                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/13_grand_mart.png" alt="Grand Mart" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari Mall" class="client-logo-img" loading="lazy"></div>
+              </div>
+            </div>
           </div>
 
-          <div class="clients-side-tag left">
+          <!-- Responsive Multi-Column Grid (All 21 Logos) -->
+          <div class="clients-responsive-grid" id="clients-grid">
+            <div class="client-grid-item" style="--d: 0.05s"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.10s"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.15s"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.20s"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.25s"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.30s"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.35s"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.40s"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.45s"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.50s"><img src="/clients/10_blue_mart.png" alt="Blue Mart Group" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.55s"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.60s"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.65s"><img src="/clients/13_grand_mart.png" alt="Grand Mart" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.70s"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.75s"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.80s"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.85s"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.90s"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 0.95s"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 1.00s"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="lazy"></div>
+            <div class="client-grid-item" style="--d: 1.05s"><img src="/clients/21_safari_mall.png" alt="Safari Mall" class="client-logo-img" loading="lazy"></div>
+          </div>
+
+          <!-- Bottom Partnership Banner -->
+          <div class="clients-footer-banner">
             <div class="thin-green-line"></div>
-            <span>GOODNESS DELIVERED TOGETHER</span>
+            <span>PURVEYORS OF NATURAL GOODNESS &bull; UNITED IN EXCELLENCE</span>
             <div class="thin-green-line"></div>
           </div>
 
-          <div class="clients-side-tag right">
-            <div class="thin-green-line"></div>
-            <span>STRONGER PARTNERSHIPS FOR A HEALTHIER WORLD</span>
-            <div class="thin-green-line"></div>
-          </div>
         </div>
       </section>
 
