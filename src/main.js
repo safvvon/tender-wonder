@@ -812,15 +812,16 @@ if (heroStage) {
   const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
   const texLoader = new THREE.TextureLoader();
-  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=13', (t) => {
+  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=15', (t) => {
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = THREE.RepeatWrapping;
     t.wrapT = THREE.ClampToEdgeWrapping;
-    t.offset.x = -0.258; // Align the exact center of front Tender WONDER logo to rotation.y = 0
+    t.offset.x = -0.095; // Align the exact center of front Tender WONDER logo to rotation.y = 0
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
   labelAlbedoTex.wrapS = THREE.RepeatWrapping;
-  labelAlbedoTex.offset.x = -0.258;
+  labelAlbedoTex.offset.x = -0.095;
+  window.labelAlbedoTex = labelAlbedoTex;
 
   const sleeveMat = new THREE.MeshStandardMaterial({
     map: labelAlbedoTex,
