@@ -331,16 +331,20 @@ body {
 #slide-2 .new-collection-stage {
   width: 100vw;
   max-width: 100vw;
-  padding: 40px 48px;
+  padding: 24px 48px;
   margin: 0;
+  box-sizing: border-box;
 }
 
 .collection-layout {
   display: grid;
-  grid-template-columns: 1fr minmax(auto, 580px) 1fr; /* Symmetrical side columns for dead-center alignment */
+  grid-template-columns: minmax(0, 1fr) minmax(auto, 540px) minmax(0, 1fr); /* Symmetrical side columns for dead-center alignment */
   align-items: center;
+  justify-content: center;
   gap: 24px;
   width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .collection-col-left {
@@ -349,18 +353,20 @@ body {
   align-items: center;
   height: 100%;
   overflow: visible;
-  margin-left: -48px; /* Hugs viewport edge cleanly */
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .h-bottles-stagger-group {
   position: relative;
   width: 100%;
-  height: clamp(580px, 86vh, 840px);
+  height: clamp(520px, 80vh, 760px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  margin-left: -65px; /* Shifted further left as requested */
+  margin-left: -180px; /* Hugs outer left edge so caps do not encroach on centered text */
   overflow: visible;
 }
 
@@ -420,8 +426,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  max-width: 580px;
+  width: 100%;
+  max-width: 540px;
   margin: 0 auto;
 }
 
@@ -433,8 +441,8 @@ body {
   color: var(--color-forest-green);
   letter-spacing: -0.018em;
   text-transform: uppercase;
-  margin-top: -22px; /* Moved heading little up as requested */
-  margin-bottom: 34px;
+  margin-top: 0;
+  margin-bottom: 28px;
 }
 
 .formula-badges-row {
@@ -442,7 +450,7 @@ body {
   align-items: flex-start;
   justify-content: center;
   gap: 20px;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
   width: 100%;
 }
 
@@ -609,15 +617,17 @@ body {
   color: #1b3822;
   font-weight: 450;
   max-width: 520px;
-  margin: 14px auto 0; /* Moved second part little down as requested */
+  margin: 0 auto;
 }
 
 .collection-col-right {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
   padding: 0;
   margin: 0;
+  min-width: 0;
 }
 
 .stand-bottle-art {
