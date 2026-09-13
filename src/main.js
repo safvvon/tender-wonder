@@ -250,6 +250,8 @@ let currentScrollAnimationId = null;
 let isStepTransitioning = false;
 let isWheelIdle = true;
 let wheelIdleTimer = null;
+let wheelDeltaAccumulator = 0;
+let wheelAccumulatorTimer = null;
 let lastTransitionEndTime = 0;
 
 function animateScrollTo(targetY, duration = 850, callback) {
@@ -527,22 +529,23 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  const wasIdle = isWheelIdle;
-  isWheelIdle = false;
-
-  clearTimeout(wheelIdleTimer);
-  wheelIdleTimer = setTimeout(() => {
-    isWheelIdle = true;
-  }, 350);
-
   if (isStepTransitioning) return;
 
   const timeSinceLastTransition = performance.now() - lastTransitionEndTime;
-  if (!wasIdle || timeSinceLastTransition < 400) return;
+  if (timeSinceLastTransition < 350) return;
 
-  if (e.deltaY > 10) {
+  wheelDeltaAccumulator += e.deltaY;
+  clearTimeout(wheelAccumulatorTimer);
+  wheelAccumulatorTimer = setTimeout(() => {
+    wheelDeltaAccumulator = 0;
+  }, 180);
+
+  const THRESHOLD = 18;
+  if (wheelDeltaAccumulator >= THRESHOLD) {
+    wheelDeltaAccumulator = 0;
     handleAdvance();
-  } else if (e.deltaY < -10) {
+  } else if (wheelDeltaAccumulator <= -THRESHOLD) {
+    wheelDeltaAccumulator = 0;
     handleRetreat();
   }
 }
