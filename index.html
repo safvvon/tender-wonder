@@ -1122,51 +1122,115 @@
       <!-- ======================================================== -->
       <section class="slide-panel" data-index="5" id="slide-5">
         <div class="section-inner global-reach-stage">
-          <div class="reach-header-title">
-            <div class="top-accent-bar"></div>
-            <h2>OUR PRODUCTS<br>AROUND THE WORLD</h2>
-            <p class="reach-subtitle">FROM THE TROPICS TO TABLES EVERYWHERE</p>
-          </div>
+          <div class="reach-card-container">
+            <div class="reach-card-wrapper">
+              <img 
+                src="/assets_clean/global_reach_master.png" 
+                alt="Tender Wonder Global Distribution - Our Products Around The World" 
+                class="reach-card-backdrop"
+                width="1862" 
+                height="1240"
+                loading="lazy"
+                decoding="async"
+              >
 
-          <div class="reach-content-row">
-            <!-- Left Stat Card -->
-            <div class="reach-stat-column">
-              <div class="stat-vertical-label">NATURAL HYDRATION FOR A BRIGHTER TOMORROW</div>
-              <div class="stat-big-number">20+</div>
-              <div class="stat-big-unit">COUNTRIES</div>
-              <div class="stat-sep-line"></div>
-              <h4 class="stat-subhead">GLOBAL REACH</h4>
-              <p class="stat-desc">From the tropics of India to customers around the world, Tender Wonder brings the purity of nature to more people, everywhere.</p>
-            </div>
-
-            <!-- Center World Map Visual -->
-            <div class="reach-map-column">
-              <img src="/assets_clean/world_map.png" alt="Tender Wonder Global Distribution Map" class="clean-world-map" loading="lazy" decoding="async" width="800" height="500">
-            </div>
-
-            <!-- Right Seal Badge -->
-            <div class="reach-seal-column">
-              <div class="circular-seal-badge">
-                <svg viewBox="0 0 120 120" class="seal-svg">
-                  <path id="seal-text-path" d="M 15,60 A 45,45 0 1,1 105,60 A 45,45 0 1,1 15,60" fill="none"/>
-                  <text class="seal-text">
-                    <textPath href="#seal-text-path" startOffset="0%">GOODNESS &bull; KNOWS NO BORDERS &bull; TENDER WONDER &bull;</textPath>
+              <!-- Live SVG Rotating Seal Badge Overlaid Directly on the Badge Spot -->
+              <div class="reach-live-seal" aria-label="Goodness Knows No Borders">
+                <svg viewBox="0 0 120 120" class="reach-seal-svg">
+                  <path id="seal-orbit-path" d="M 16,60 A 44,44 0 1,1 104,60 A 44,44 0 1,1 16,60" fill="none"/>
+                  <text class="reach-seal-text">
+                    <textPath href="#seal-orbit-path" startOffset="0%">GOODNESS &bull; KNOWS NO BORDERS &bull; TENDER WONDER &bull;</textPath>
                   </text>
                 </svg>
-                <div class="seal-center-leaf">
-                  <svg viewBox="0 0 40 40" width="36" height="36" fill="none" stroke="#0C562E" stroke-width="2.5">
-                    <path d="M10,30 Q20,10 32,15"/>
-                    <path d="M15,22 L12,12 M22,18 L20,8 M28,16 L30,6"/>
+                <div class="reach-seal-leaf">
+                  <svg viewBox="0 0 32 32" width="26" height="26" fill="none" stroke="#0C562E" stroke-width="2.2">
+                    <path d="M7,25 Q15,8 25,12" stroke-linecap="round"/>
+                    <path d="M11,19 L9,11 M17,15 L15,7 M22,13 L23,5" stroke-linecap="round"/>
                   </svg>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div class="reach-bottom-banner">
-            <div class="thin-green-line"></div>
-            <span>NATURE UNITES US</span>
-            <div class="thin-green-line"></div>
+              <!-- Interactive Hotspots & Animated Pulse Rings on Every Destination -->
+              <div class="reach-pins-overlay">
+                <!-- 1. India Origin Hub -->
+                <div class="reach-interactive-pin hub" style="left: 62.41%; top: 54.44%;" tabindex="0" role="button" aria-label="India - Origin and Global Hub">
+                  <div class="hub-pulse-core"></div>
+                  <div class="hub-sonar-ring r1"></div>
+                  <div class="hub-sonar-ring r2"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇮🇳</span> <strong>India</strong> &bull; Origin &amp; Global Hub</div>
+                </div>
+
+                <!-- 2. North America (USA) -->
+                <div class="reach-interactive-pin" style="left: 28.68%; top: 41.05%;" tabindex="0" role="button" aria-label="North America">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇺🇸</span> <strong>North America</strong> &bull; USA &amp; Canada</div>
+                </div>
+
+                <!-- 3. Brazil -->
+                <div class="reach-interactive-pin" style="left: 33.51%; top: 57.82%;" tabindex="0" role="button" aria-label="Brazil">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇧🇷</span> <strong>Brazil</strong> &bull; South America</div>
+                </div>
+
+                <!-- 4. Argentina -->
+                <div class="reach-interactive-pin" style="left: 36.95%; top: 63.95%;" tabindex="0" role="button" aria-label="Argentina">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇦🇷</span> <strong>Argentina</strong> &bull; South America</div>
+                </div>
+
+                <!-- 5. Europe / UK & Scandinavia -->
+                <div class="reach-interactive-pin" style="left: 49.89%; top: 39.84%;" tabindex="0" role="button" aria-label="United Kingdom & Europe">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇬🇧</span> <strong>Europe</strong> &bull; UK &amp; Scandinavia</div>
+                </div>
+
+                <!-- 6. UAE & Middle East -->
+                <div class="reach-interactive-pin" style="left: 52.85%; top: 48.31%;" tabindex="0" role="button" aria-label="United Arab Emirates">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇦🇪</span> <strong>Middle East</strong> &bull; UAE &amp; Gulf</div>
+                </div>
+
+                <!-- 7. Africa -->
+                <div class="reach-interactive-pin" style="left: 48.93%; top: 56.85%;" tabindex="0" role="button" aria-label="Africa">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🌍</span> <strong>Africa</strong> &bull; Regional Network</div>
+                </div>
+
+                <!-- 8. Japan & East Asia -->
+                <div class="reach-interactive-pin" style="left: 69.39%; top: 47.50%;" tabindex="0" role="button" aria-label="Japan">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇯🇵</span> <strong>East Asia</strong> &bull; Japan</div>
+                </div>
+
+                <!-- 9. Southeast Asia (Thailand) -->
+                <div class="reach-interactive-pin" style="left: 66.81%; top: 53.95%;" tabindex="0" role="button" aria-label="Southeast Asia">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇹🇭</span> <strong>Southeast Asia</strong> &bull; Thailand</div>
+                </div>
+
+                <!-- 10. Indonesia -->
+                <div class="reach-interactive-pin" style="left: 65.25%; top: 59.44%;" tabindex="0" role="button" aria-label="Indonesia">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇮🇩</span> <strong>Indonesia</strong> &bull; Southeast Asia</div>
+                </div>
+
+                <!-- 11. Australia -->
+                <div class="reach-interactive-pin" style="left: 70.25%; top: 65.89%;" tabindex="0" role="button" aria-label="Australia & Oceania">
+                  <div class="pin-pulse-dot"></div>
+                  <div class="reach-pin-tooltip"><span class="pin-flag">🇦🇺</span> <strong>Australia</strong> &bull; Oceania</div>
+                </div>
+              </div>
+
+              <!-- Screen reader accessibility data -->
+              <div class="sr-only">
+                <h2>OUR PRODUCTS AROUND THE WORLD</h2>
+                <p>FROM THE TROPICS TO TABLES EVERYWHERE</p>
+                <p>NATURAL HYDRATION FOR A BRIGHTER TOMORROW</p>
+                <p>20+ COUNTRIES GLOBAL REACH</p>
+                <p>From the tropics of India to customers around the world, Tender Wonder brings the purity of nature to more people, everywhere.</p>
+                <p>NATURE UNITES US</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

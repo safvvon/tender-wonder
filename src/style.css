@@ -1579,174 +1579,256 @@ body {
 }
 
 /* ============================================================ */
-/* SECTION 5: GLOBAL REACH                                      */
+/* SECTION 5: GLOBAL REACH (AUTHENTIC MAP DESIGN)               */
 /* ============================================================ */
 .global-reach-stage {
-  flex-direction: column;
-}
-
-.reach-header-title {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.top-accent-bar {
-  width: 44px;
-  height: 3px;
-  background: var(--color-forest-green);
-  margin-bottom: 12px;
-}
-
-.reach-header-title h2 {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 3.4vw, 46px);
-  font-weight: 900;
-  line-height: 1.1;
-  color: var(--color-forest-green);
-  letter-spacing: -0.5px;
-}
-
-.reach-subtitle {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--color-forest-green);
-  margin-top: 6px;
-}
-
-.reach-content-row {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  align-items: center;
-  gap: 34px;
+  justify-content: center;
   width: 100%;
+  height: 100%;
+  padding: 24px 32px;
 }
 
-.reach-stat-column {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1.5px solid var(--color-border-subtle);
-  border-radius: 22px;
-  padding: 26px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
-}
-
-.stat-vertical-label {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--color-forest-green);
-  margin-bottom: 12px;
-}
-
-.stat-big-number {
-  font-family: var(--font-display);
-  font-size: 54px;
-  font-weight: 900;
-  line-height: 0.9;
-  color: var(--color-forest-green);
-}
-
-.stat-big-unit {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--color-forest-green);
-  margin-bottom: 12px;
-}
-
-.stat-sep-line {
+.reach-card-container {
   width: 100%;
-  height: 1px;
-  background: rgba(12, 86, 46, 0.2);
-  margin-bottom: 12px;
-}
-
-.stat-subhead {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--color-forest-green);
-  margin-bottom: 6px;
-}
-
-.stat-desc {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--color-charcoal);
-}
-
-.reach-map-column {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.clean-world-map {
-  max-width: 100%;
-  max-height: 48vh;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08));
-}
-
-.reach-seal-column {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.circular-seal-badge {
+.reach-card-wrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: min(94vw, calc((100vh - 88px) * (1862 / 1240)));
+  max-width: 1340px;
+  aspect-ratio: 1862 / 1240;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(12, 86, 46, 0.05);
+  background: var(--color-sage-bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
 }
 
-.seal-svg {
+.reach-card-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.11), 0 6px 20px rgba(12, 86, 46, 0.08);
+}
+
+.reach-card-backdrop {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Live SVG Rotating Seal Badge */
+.reach-live-seal {
+  position: absolute;
+  left: 87.49%;
+  top: 21.69%;
+  width: 10.4%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* Visually Hidden Utility for Screen Readers */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.reach-seal-svg {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   animation: rotateSeal 25s infinite linear;
+  transform-origin: center center;
 }
 
-@keyframes rotateSeal {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.seal-text {
+.reach-seal-text {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 1.5px;
   fill: var(--color-forest-green);
 }
 
-.reach-bottom-banner {
+.reach-seal-leaf {
+  position: absolute;
+  width: 38%;
+  height: 38%;
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 3px;
-  color: var(--color-forest-green);
-  margin-top: 24px;
+  justify-content: center;
+  pointer-events: none;
+  animation: leafFloat 4s ease-in-out infinite alternate;
 }
 
-.thin-green-line {
-  width: 60px;
-  height: 1.5px;
+@keyframes leafFloat {
+  0% { transform: scale(0.96) rotate(-2deg); }
+  100% { transform: scale(1.04) rotate(2deg); }
+}
+
+/* Interactive Map Destination Pins */
+.reach-pins-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.reach-interactive-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 50%;
+  outline: none;
+}
+
+.reach-interactive-pin .pin-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background: var(--color-forest-green);
+  box-shadow: 0 0 0 0 rgba(12, 86, 46, 0.55);
+  animation: pinPulse 2.6s infinite cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.reach-interactive-pin:hover .pin-pulse-dot,
+.reach-interactive-pin:focus .pin-pulse-dot {
+  transform: scale(1.5);
+  background: #148045;
+  box-shadow: 0 0 10px rgba(12, 86, 46, 0.8);
+}
+
+/* India Central Origin Hub Pin */
+.reach-interactive-pin.hub {
+  z-index: 15;
+}
+
+.reach-interactive-pin.hub .hub-pulse-core {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--color-forest-green);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(12, 86, 46, 0.9);
+  z-index: 2;
+  transition: transform 0.25s ease;
+}
+
+.reach-interactive-pin.hub:hover .hub-pulse-core,
+.reach-interactive-pin.hub:focus .hub-pulse-core {
+  transform: scale(1.4);
+}
+
+.reach-interactive-pin.hub .hub-sonar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(12, 86, 46, 0.7);
+  pointer-events: none;
+  animation: hubSonar 3s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reach-interactive-pin.hub .hub-sonar-ring.r2 {
+  animation-delay: 1.5s;
+}
+
+@keyframes pinPulse {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(12, 86, 46, 0.6); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(12, 86, 46, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(12, 86, 46, 0); }
+}
+
+@keyframes hubSonar {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+/* Pin Tooltip */
+.reach-pin-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(12, 86, 46, 0.96);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 25;
+}
+
+.reach-pin-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(12, 86, 46, 0.96) transparent transparent transparent;
+}
+
+.reach-pin-tooltip .pin-flag {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.reach-pin-tooltip strong {
+  color: #a8df8e;
+  font-weight: 800;
+}
+
+.reach-interactive-pin:hover .reach-pin-tooltip,
+.reach-interactive-pin:focus .reach-pin-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ============================================================ */
@@ -2422,16 +2504,9 @@ body {
     padding: 20px 18px;
   }
 
-  .reach-content-row {
-    gap: 20px;
-  }
-
-  .reach-stat-column {
-    padding: 20px;
-  }
-
-  .stat-big-number {
-    font-size: 44px;
+  .reach-card-wrapper {
+    width: min(96vw, calc((100vh - 70px) * (1862 / 1240)));
+    border-radius: 22px;
   }
 
   .customer-split-layout {
@@ -2644,30 +2719,25 @@ body {
   }
 
   /* Slide 5 Global Reach */
-  .reach-content-row {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    max-height: 72vh;
-    overflow-y: auto;
-    width: 100%;
+  .global-reach-stage {
+    padding: 16px 12px;
   }
 
-  .reach-header-title h2 {
-    font-size: 26px;
+  .reach-card-wrapper {
+    width: 96vw;
+    max-width: 560px;
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
   }
 
-  .reach-stat-column {
-    width: 100%;
+  .reach-interactive-pin {
+    width: 20px;
+    height: 20px;
   }
 
-  .clean-world-map {
-    max-height: 28vh;
-  }
-
-  .circular-seal-badge {
-    width: 100px;
-    height: 100px;
+  .reach-interactive-pin .pin-pulse-dot {
+    width: 6px;
+    height: 6px;
   }
 
   /* Slide 6 Customer Details */
@@ -2763,8 +2833,7 @@ body {
 /* Subtle modern micro-arrivals when slide becomes active */
 .slide-panel .benefit-block,
 .slide-panel .luxury-product-card,
-.slide-panel .clean-world-map,
-.slide-panel .reach-stat-card,
+.slide-panel .reach-card-wrapper,
 .slide-panel .customer-form-card,
 .slide-panel .clients-card-box {
   opacity: 1;
@@ -2781,7 +2850,7 @@ body {
     opacity: 0.18;
     transform: translateY(14px);
   }
-  .slide-panel:not(.active) .reach-stat-card {
+  .slide-panel:not(.active) .reach-card-wrapper {
     opacity: 0.18;
     transform: translateY(12px);
   }
