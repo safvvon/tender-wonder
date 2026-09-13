@@ -252,6 +252,8 @@ let isWheelIdle = true;
 let wheelIdleTimer = null;
 let wheelDeltaAccumulator = 0;
 let wheelAccumulatorTimer = null;
+let isWheelGestureActive = false;
+let wheelGestureResetTimer = null;
 let lastTransitionEndTime = 0;
 
 function animateScrollTo(targetY, duration = 850, callback) {
@@ -529,10 +531,17 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  if (isStepTransitioning) return;
+  // Active wheel gesture tracking: user must pause before the next scroll gesture can trigger a new slide
+  clearTimeout(wheelGestureResetTimer);
+  wheelGestureResetTimer = setTimeout(() => {
+    isWheelGestureActive = false;
+    wheelDeltaAccumulator = 0;
+  }, 220);
 
-  const timeSinceLastTransition = performance.now() - lastTransitionEndTime;
-  if (timeSinceLastTransition < 350) return;
+  // If currently animating or in cooldown or the current gesture has already triggered a slide stop:
+  if (isStepTransitioning) return;
+  if (performance.now() - lastTransitionEndTime < 350) return;
+  if (isWheelGestureActive) return;
 
   wheelDeltaAccumulator += e.deltaY;
   clearTimeout(wheelAccumulatorTimer);
@@ -543,9 +552,11 @@ function handleGlobalWheel(e) {
   const THRESHOLD = 18;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
+    isWheelGestureActive = true; // Locks this gesture so even a big scroll ends at this stop!
     handleAdvance();
   } else if (wheelDeltaAccumulator <= -THRESHOLD) {
     wheelDeltaAccumulator = 0;
+    isWheelGestureActive = true;
     handleRetreat();
   }
 }
