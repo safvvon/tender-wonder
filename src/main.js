@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 180) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 120) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -199,7 +199,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 180) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 120) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -231,17 +231,11 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 
 // Initial render: starting nothing is there (progress = 0)
 renderHeroText(0.0);
-window.scrollTo(0, 0);
-updateScrollMetrics();
+// In case page was reloaded at a scrolled position, sync immediately:
+setTimeout(onWindowScroll, 50);
 
 let currentScrollAnimationId = null;
 let isStepTransitioning = false;
-let isWheelIdle = true;
-let wheelIdleTimer = null;
-let wheelDeltaAccumulator = 0;
-let wheelAccumulatorTimer = null;
-let isWheelGestureActive = false;
-let wheelGestureResetTimer = null;
 let lastTransitionEndTime = 0;
 
 function animateScrollTo(targetY, duration = null, callback) {
@@ -251,6 +245,14 @@ function animateScrollTo(targetY, duration = null, callback) {
 
   const startY = window.scrollY || window.pageYOffset || 0;
   const distance = targetY - startY;
+
+  if (Math.abs(distance) < 2) {
+    window.scrollTo(0, targetY);
+    isStepTransitioning = false;
+    lastTransitionEndTime = performance.now();
+    if (callback) callback();
+    return;
+  }
 
   // Accessibility: instant scroll if user prefers reduced motion
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -264,16 +266,16 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Natural adaptive duration: ~590ms for adjacent slide, up to 780ms for multi-slide jumps
+  // Snappy, fluid, responsive duration (~380ms for 1 slide jump)
   const actualDuration = duration !== null
     ? duration
-    : Math.min(780, Math.max(560, Math.abs(distance) * 0.32 + 340));
+    : Math.min(490, Math.max(350, Math.abs(distance) * 0.17 + 230));
 
   function tick(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / actualDuration, 1.0);
 
-    if (progress >= 0.992) {
+    if (progress >= 0.995) {
       window.scrollTo(0, targetY);
       currentScrollAnimationId = null;
       isStepTransitioning = false;
@@ -498,6 +500,11 @@ window.addEventListener('keydown', (e) => {
 });
 
 // Wheel Navigation
+let wheelDeltaAccumulator = 0;
+let wheelDecayTimer = null;
+let lastActionTime = 0;
+let isSlideTransitionGestureLocked = false;
+
 function handleGlobalWheel(e) {
   // If scrolling inside an active scrollable dialog / element, let it scroll naturally
   if (isScrollableInside(e.target, e.deltaY)) {
@@ -510,30 +517,70 @@ function handleGlobalWheel(e) {
   }
 
   // Filter out tiny trackpad noise
-  if (Math.abs(e.deltaY) < 1) return;
+  if (Math.abs(e.deltaY) < 1.2) return;
 
-  // Active wheel gesture tracking: user must pause before the next scroll gesture can trigger a new slide
-  clearTimeout(wheelGestureResetTimer);
-  wheelGestureResetTimer = setTimeout(() => {
-    isWheelGestureActive = false;
+  const now = performance.now();
+
+  // Reset accumulator and gesture lock when user pauses scrolling
+  clearTimeout(wheelDecayTimer);
+  wheelDecayTimer = setTimeout(() => {
     wheelDeltaAccumulator = 0;
-  }, 140);
+    isSlideTransitionGestureLocked = false;
+  }, 120);
 
-  // If currently animating or in brief post-animation cooldown:
-  if (isStepTransitioning) return;
-  if (performance.now() - lastTransitionEndTime < 150) return;
-  if (isWheelGestureActive) return;
+  // If transition is actively animating, swallow wheel events until slide settles
+  if (isStepTransitioning) {
+    wheelDeltaAccumulator = 0;
+    return;
+  }
 
+  const cur = getCurrentStop();
+
+  // Slide 2: 3 horizontal bottles staggered entrance on scroll down
+  // Bottles respond smoothly to user scrolling with quick 120ms pacing
+  if (cur === 2 && leftBottlesStep < 3 && e.deltaY > 0) {
+    if (now - lastActionTime >= 120) {
+      stepLeftBottlesForward();
+      lastActionTime = now;
+      wheelDeltaAccumulator = 0;
+    }
+    return;
+  }
+
+  // Slide 2: Reverse bottle stepping on scroll up
+  if (cur === 2 && leftBottlesStep > 0 && e.deltaY < 0) {
+    if (now - lastActionTime >= 120) {
+      stepLeftBottlesBackward();
+      lastActionTime = now;
+      wheelDeltaAccumulator = 0;
+    }
+    return;
+  }
+
+  // Each slide-to-slide jump is 1 gesture: do not cascade through multiple slides in 1 continuous flick
+  if (isSlideTransitionGestureLocked) {
+    return;
+  }
+
+  // Brief debounce after slide transition finishes
+  if (now - lastActionTime < 80) {
+    wheelDeltaAccumulator = 0;
+    return;
+  }
+
+  // Slide transitions: accumulate wheel delta
   wheelDeltaAccumulator += e.deltaY;
 
   const THRESHOLD = 12;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    isWheelGestureActive = true; // Locks this gesture so even a big scroll ends at this stop!
+    lastActionTime = now;
+    isSlideTransitionGestureLocked = true;
     handleAdvance();
   } else if (wheelDeltaAccumulator <= -THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    isWheelGestureActive = true;
+    lastActionTime = now;
+    isSlideTransitionGestureLocked = true;
     handleRetreat();
   }
 }
@@ -568,28 +615,12 @@ window.addEventListener('touchend', (e) => {
   const currentY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : touchStartY;
   const deltaY = touchStartY - currentY;
 
-  const cur = getCurrentStop();
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
-    if (Math.abs(deltaY) > 25) {
-      if (leftBottlesStep < 3) {
-        stepLeftBottlesForward();
-        lastTransitionEndTime = performance.now();
-      }
-      const s2 = document.getElementById('slide-2');
-      const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-      if (Math.abs(window.scrollY - s2Top) > 5) {
-        window.scrollTo(0, s2Top);
-      }
-    }
-    return;
-  }
-
-  if (deltaY > 30) {
+  if (deltaY > 25) {
     handleAdvance();
-  } else if (deltaY < -30) {
+  } else if (deltaY < -25) {
     handleRetreat();
   }
-});
+}, { passive: true });
 
 // ======================================================================
 // 2. HERO 3D BOTTLE EMBEDDED IN SECTION 1 (PRODUCT DETAIL)
