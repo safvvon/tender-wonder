@@ -373,7 +373,7 @@ body {
   transform: translate3d(-140%, 0, 0);
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease-out;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
@@ -459,13 +459,13 @@ body {
 
 /* Staggered entrance when Slide 2 is active */
 #slide-2.active .formula-badge-coconut {
-  animation: badgePopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  animation: badgePopIn 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
 }
 #slide-2.active .formula-badge-palm {
-  animation: badgePopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.28s both;
+  animation: badgePopIn 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
 }
 #slide-2.active .formula-badge-electrolytes {
-  animation: badgePopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+  animation: badgePopIn 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) 0.65s both;
 }
 
 @keyframes badgePopIn {

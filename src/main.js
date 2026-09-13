@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 160) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 240) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -199,7 +199,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 160) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 240) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -266,10 +266,10 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Smooth, elegant, relaxed luxury scroll duration (~580ms - 740ms)
+  // Cinematic, slow, luxurious scroll duration (~980ms - 1300ms)
   const actualDuration = duration !== null
     ? duration
-    : Math.min(740, Math.max(580, Math.abs(distance) * 0.22 + 360));
+    : Math.min(1300, Math.max(980, Math.abs(distance) * 0.45 + 600));
 
   function tick(now) {
     const elapsed = now - startTime;
@@ -534,8 +534,8 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Graceful cooldown (65ms) to ensure smooth slide arrival before next scroll
-  if (now - lastTransitionEndTime < 65) {
+  // Graceful cooldown (95ms) to ensure smooth slide arrival before next scroll
+  if (now - lastTransitionEndTime < 95) {
     wheelDeltaAccumulator = 0;
     return;
   }
@@ -552,7 +552,7 @@ function handleGlobalWheel(e) {
       return;
     }
     // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
-    if (now - lastBottleStepTime < 380) {
+    if (now - lastBottleStepTime < 600) {
       wheelDeltaAccumulator = 0;
       return;
     }
@@ -567,7 +567,7 @@ function handleGlobalWheel(e) {
   // Slide transitions: accumulate wheel delta with measured, smooth threshold
   wheelDeltaAccumulator += e.deltaY;
 
-  const THRESHOLD = 24;
+  const THRESHOLD = 28;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
     if (cur === 0) {
@@ -1019,8 +1019,8 @@ if (heroStage) {
     lastTime = now;
 
     // Damped progress tracking for butter-smooth physical response
-    currentPhase1Progress += (targetPhase1Progress - currentPhase1Progress) * Math.min(1.0, dt * 7.5);
-    currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * Math.min(1.0, dt * 7.5);
+    currentPhase1Progress += (targetPhase1Progress - currentPhase1Progress) * Math.min(1.0, dt * 4.5);
+    currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * Math.min(1.0, dt * 4.5);
     if (Math.abs(targetPhase1Progress - currentPhase1Progress) < 0.0005) {
       currentPhase1Progress = targetPhase1Progress;
     }
@@ -1072,7 +1072,7 @@ if (heroStage) {
     const targetRotY = baseRotY + floatRotY;
     const targetRotZ = baseRotZ + floatRotZ;
 
-    const lerpFactor = Math.min(1.0, dt * 7.5);
+    const lerpFactor = Math.min(1.0, dt * 4.5);
     if (Math.abs(targetX - bottleRig.position.x) < 0.0002) bottleRig.position.x = targetX;
     else bottleRig.position.x += (targetX - bottleRig.position.x) * lerpFactor;
 
