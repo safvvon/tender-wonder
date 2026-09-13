@@ -184,22 +184,30 @@ function setLeftBottlesStep(step) {
 }
 
 function advanceSlide2BottlesOnScroll() {
-  if (leftBottlesStep < 3) {
+  const now = performance.now();
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
     setLeftBottlesStep(leftBottlesStep + 1);
-    lastBottleStepTime = performance.now();
+    lastBottleStepTime = now;
     return true;
   }
   return false;
 }
 
 function stepLeftBottlesForward() {
-  return advanceSlide2BottlesOnScroll();
+  const now = performance.now();
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
+    setLeftBottlesStep(leftBottlesStep + 1);
+    lastBottleStepTime = now;
+    return true;
+  }
+  return false;
 }
 
 function stepLeftBottlesBackward() {
-  if (leftBottlesStep > 0) {
+  const now = performance.now();
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 600) {
     setLeftBottlesStep(leftBottlesStep - 1);
-    lastBottleStepTime = performance.now();
+    lastBottleStepTime = now;
     return true;
   }
   return false;
@@ -421,9 +429,11 @@ function navigateToStop(targetStop) {
     const top = s2 ? s2.offsetTop : vh * 2;
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
-    // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered
-    if (!isLeftBottlesSequenceFinished()) {
-      stepLeftBottlesForward();
+    // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered and 1s delay has elapsed
+    if (!isLeftBottlesSequenceFinished() || performance.now() - lastBottleStepTime < 1000) {
+      if (!isLeftBottlesSequenceFinished()) {
+        stepLeftBottlesForward();
+      }
       const s2 = document.getElementById('slide-2');
       const top = s2 ? s2.offsetTop : vh * 2;
       animateScrollTo(top);
@@ -540,12 +550,17 @@ function handleGlobalWheel(e) {
 
   const cur = getCurrentStop();
 
-  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling
-  // Bottles enter ONLY when user deliberately scrolls (Scroll 1: 1L, Scroll 2: 500ml, Scroll 3: 250ml)
-  // Scrolling up reverses them out. No timer-based automatic cascading.
+  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling with 1s delay
+  // Bottles enter ONLY when user deliberately scrolls, with 1 second (1000ms) delay between entrances.
+  // Scrolling up reverses them out.
   if (cur === 2) {
     if (e.deltaY > 0) {
       if (leftBottlesStep < 3) {
+        // Enforce 1 second delay since last bottle entrance before next bottle can enter
+        if (now - lastBottleStepTime < 1000) {
+          wheelDeltaAccumulator = 0;
+          return;
+        }
         wheelDeltaAccumulator += e.deltaY;
         const BOTTLE_SCROLL_THRESHOLD = 26;
         if (wheelDeltaAccumulator >= BOTTLE_SCROLL_THRESHOLD) {
@@ -554,12 +569,16 @@ function handleGlobalWheel(e) {
         }
         return;
       }
-      // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
-      if (now - lastBottleStepTime < 450) {
+      // All 3 bottles have entered! Enforce 1 second delay before allowing advance to Slide 3
+      if (now - lastBottleStepTime < 1000) {
         wheelDeltaAccumulator = 0;
         return;
       }
     } else if (e.deltaY < 0) {
+      if (now - lastBottleStepTime < 600) {
+        wheelDeltaAccumulator = 0;
+        return;
+      }
       wheelDeltaAccumulator += e.deltaY;
       const BOTTLE_SCROLL_THRESHOLD = -26;
       if (wheelDeltaAccumulator <= BOTTLE_SCROLL_THRESHOLD) {
