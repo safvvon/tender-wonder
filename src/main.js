@@ -2,6 +2,26 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import profileData from './exact_profile.json';
 
+// Always start at starting page (top of Slide 1) on refresh / reload
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+if (window.location.hash) {
+  try {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  } catch (e) {}
+}
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+window.addEventListener('load', () => {
+  window.scrollTo(0, 0);
+  if (typeof updateScrollMetrics === 'function') {
+    updateScrollMetrics();
+  }
+});
+
 // ======================================================================
 // 0. INTRO LOADING SCREEN (INITIAL ASSET LOAD ONLY)
 // ======================================================================
@@ -211,8 +231,8 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 
 // Initial render: starting nothing is there (progress = 0)
 renderHeroText(0.0);
-// In case page was reloaded at a scrolled position, sync immediately:
-setTimeout(onWindowScroll, 50);
+window.scrollTo(0, 0);
+updateScrollMetrics();
 
 let currentScrollAnimationId = null;
 let isStepTransitioning = false;
