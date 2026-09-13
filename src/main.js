@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 350) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -195,7 +195,7 @@ function advanceSlide2BottlesOnScroll() {
 
 function stepLeftBottlesForward() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 350) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -205,7 +205,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 600) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 350) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -272,10 +272,10 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Cinematic, slow, luxurious scroll duration (~980ms - 1300ms)
+  // Luxurious smooth slide transition duration (~680ms - 850ms)
   const actualDuration = duration !== null
     ? duration
-    : Math.min(1300, Math.max(980, Math.abs(distance) * 0.45 + 600));
+    : Math.min(850, Math.max(680, Math.abs(distance) * 0.3 + 420));
 
   function tick(now) {
     const elapsed = now - startTime;
@@ -285,6 +285,7 @@ function animateScrollTo(targetY, duration = null, callback) {
       window.scrollTo(0, targetY);
       currentScrollAnimationId = null;
       isStepTransitioning = false;
+      isFirstScrollLocked = false;
       lastTransitionEndTime = performance.now();
       if (callback) callback();
       return;
@@ -429,11 +430,9 @@ function navigateToStop(targetStop) {
     const top = s2 ? s2.offsetTop : vh * 2;
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
-    // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered and 1s delay has elapsed
-    if (!isLeftBottlesSequenceFinished() || performance.now() - lastBottleStepTime < 1000) {
-      if (!isLeftBottlesSequenceFinished()) {
-        stepLeftBottlesForward();
-      }
+    // If on Slide 2 and 3 bottles haven't finished entering yet, step them in first:
+    if (!isLeftBottlesSequenceFinished()) {
+      stepLeftBottlesForward();
       const s2 = document.getElementById('slide-2');
       const top = s2 ? s2.offsetTop : vh * 2;
       animateScrollTo(top);
@@ -542,45 +541,45 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Graceful cooldown (95ms) to ensure smooth slide arrival before next scroll
-  if (now - lastTransitionEndTime < 95) {
+  // Graceful cooldown (60ms) to ensure smooth slide arrival before next scroll
+  if (now - lastTransitionEndTime < 60) {
     wheelDeltaAccumulator = 0;
     return;
   }
 
   const cur = getCurrentStop();
 
-  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling with 1s delay
-  // Bottles enter ONLY when user deliberately scrolls, with 1 second (1000ms) delay between entrances.
-  // Scrolling up reverses them out.
+  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling
+  // Bottles enter when user scrolls down. Scrolling up reverses them out.
+  // Once all 3 bottles have entered, scrolling down smoothly advances to Slide 3!
   if (cur === 2) {
     if (e.deltaY > 0) {
       if (leftBottlesStep < 3) {
-        // Enforce 1 second delay since last bottle entrance before next bottle can enter
-        if (now - lastBottleStepTime < 1000) {
+        // Comfortable pacing between bottle entrances
+        if (now - lastBottleStepTime < 350) {
           wheelDeltaAccumulator = 0;
           return;
         }
         wheelDeltaAccumulator += e.deltaY;
-        const BOTTLE_SCROLL_THRESHOLD = 26;
+        const BOTTLE_SCROLL_THRESHOLD = 24;
         if (wheelDeltaAccumulator >= BOTTLE_SCROLL_THRESHOLD) {
           wheelDeltaAccumulator = 0;
           stepLeftBottlesForward();
         }
         return;
       }
-      // All 3 bottles have entered! Enforce 1 second delay before allowing advance to Slide 3
-      if (now - lastBottleStepTime < 1000) {
+      // All 3 bottles have entered! Settle briefly (300ms) then allow scrolling down to advance to Slide 3
+      if (now - lastBottleStepTime < 300) {
         wheelDeltaAccumulator = 0;
         return;
       }
     } else if (e.deltaY < 0) {
-      if (now - lastBottleStepTime < 600) {
+      if (now - lastBottleStepTime < 350) {
         wheelDeltaAccumulator = 0;
         return;
       }
       wheelDeltaAccumulator += e.deltaY;
-      const BOTTLE_SCROLL_THRESHOLD = -26;
+      const BOTTLE_SCROLL_THRESHOLD = -24;
       if (wheelDeltaAccumulator <= BOTTLE_SCROLL_THRESHOLD) {
         wheelDeltaAccumulator = 0;
         if (leftBottlesStep > 0) {
@@ -596,7 +595,7 @@ function handleGlobalWheel(e) {
   }
 
   // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
-  // The next scroll down (after brief pause) goes to Slide 2.
+  // The next scroll down goes to Slide 2.
   if (cur === 1 && isFirstScrollLocked && e.deltaY > 0) {
     return;
   }
@@ -604,7 +603,7 @@ function handleGlobalWheel(e) {
   // Slide transitions: accumulate wheel delta with measured, smooth threshold
   wheelDeltaAccumulator += e.deltaY;
 
-  const THRESHOLD = 28;
+  const THRESHOLD = 24;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
     if (cur === 0) {
