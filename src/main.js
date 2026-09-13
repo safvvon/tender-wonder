@@ -103,11 +103,24 @@ function updateScrollMetrics() {
 
   renderHeroText(p1, p2);
 
+  // DONT MOVE THE SECOND PAGE UNTILL THE BOTTLE ALL COMING FROM THE SIDE WHILE SCROLLING
+  if (slide2El && (scrollY >= slide2El.offsetTop - 60 && scrollY <= slide2El.offsetTop + vh * 0.5)) {
+    if (!isLeftBottlesSequenceFinished()) {
+      const s2Top = slide2El.offsetTop;
+      if (Math.abs(scrollY - s2Top) > 2 && !isStepTransitioning) {
+        window.scrollTo(0, s2Top);
+        return;
+      }
+    }
+  }
+
   // Reset left bottles if user scrolls back up to Slide 1
   if (p2 < 0.35 && scrollY < vh * 1.3) {
     resetLeftBottlesSequence();
   } else if (slide3El && scrollY >= slide3El.offsetTop - 60) {
     setLeftBottlesStep(3);
+    isLastBottleSettled = true;
+    canAdvancePastSlide2 = true;
   }
 
   // Update target 3D transform cache when scrolling near slide 2
@@ -156,12 +169,18 @@ function setLeftBottlesStep(step) {
   if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
 
   clearTimeout(lastBottleSettledTimer);
+  clearTimeout(slide2IdleUnlockTimer);
   if (leftBottlesStep === 3) {
     // When the last bottle starts entering, keep slide 2 locked until it arrives & settles
     isLastBottleSettled = false;
+    canAdvancePastSlide2 = false;
     lastBottleSettledTimer = setTimeout(() => {
       isLastBottleSettled = true;
-    }, 900);
+      clearTimeout(slide2IdleUnlockTimer);
+      slide2IdleUnlockTimer = setTimeout(() => {
+        canAdvancePastSlide2 = true;
+      }, 400);
+    }, 850);
   } else {
     isLastBottleSettled = false;
     canAdvancePastSlide2 = false;
@@ -485,19 +504,21 @@ function handleGlobalWheel(e) {
   if (cur === 2 && !isLeftBottlesSequenceFinished()) {
     const s2 = document.getElementById('slide-2');
     const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 5) {
+    if (Math.abs(window.scrollY - s2Top) > 2 && !isStepTransitioning) {
       window.scrollTo(0, s2Top);
     }
 
-    if (e.deltaY > 5 || e.deltaY < -5) {
+    if (e.deltaY > 5) {
       advanceSlide2BottlesOnScroll();
     }
 
-    // Once all 3 bottles have entered and settled, require an idle pause before allowing advance to Slide 3
-    if (leftBottlesStep === 3 && isLastBottleSettled) {
+    // While user is actively scrolling on Slide 2, prevent continuous wheel bleed into Slide 3
+    if (leftBottlesStep === 3) {
       clearTimeout(slide2IdleUnlockTimer);
       slide2IdleUnlockTimer = setTimeout(() => {
-        canAdvancePastSlide2 = true;
+        if (isLastBottleSettled) {
+          canAdvancePastSlide2 = true;
+        }
       }, 450);
     }
     return;
