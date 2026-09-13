@@ -119,8 +119,6 @@ function updateScrollMetrics() {
     resetLeftBottlesSequence();
   } else if (slide3El && scrollY >= slide3El.offsetTop - 60) {
     setLeftBottlesStep(3);
-    isLastBottleSettled = true;
-    canAdvancePastSlide2 = true;
   }
 
   // Update target 3D transform cache when scrolling near slide 2
@@ -153,11 +151,7 @@ function onWindowScroll() {
 // Only after the 3-bottle entry finishes does scrolling down advance to Slide 3.
 // ======================================================================
 let leftBottlesStep = 0; // 0: none, 1: 1L, 2: 500ml, 3: 250ml
-let isLastBottleSettled = false;
-let lastBottleSettledTimer = null;
 let lastBottleStepTime = 0;
-let canAdvancePastSlide2 = false;
-let slide2IdleUnlockTimer = null;
 
 function setLeftBottlesStep(step) {
   leftBottlesStep = Math.max(0, Math.min(3, step));
@@ -167,40 +161,12 @@ function setLeftBottlesStep(step) {
   if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
   if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
   if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
-
-  clearTimeout(lastBottleSettledTimer);
-  clearTimeout(slide2IdleUnlockTimer);
-  if (leftBottlesStep === 3) {
-    // When the last bottle starts entering, keep slide 2 locked until it arrives & settles
-    isLastBottleSettled = false;
-    canAdvancePastSlide2 = false;
-    lastBottleSettledTimer = setTimeout(() => {
-      isLastBottleSettled = true;
-      clearTimeout(slide2IdleUnlockTimer);
-      slide2IdleUnlockTimer = setTimeout(() => {
-        canAdvancePastSlide2 = true;
-      }, 400);
-    }, 850);
-  } else {
-    isLastBottleSettled = false;
-    canAdvancePastSlide2 = false;
-  }
 }
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep === 0) {
-    setLeftBottlesStep(1);
-    lastBottleStepTime = now;
-    return true;
-  }
-  if (leftBottlesStep === 1 && now - lastBottleStepTime >= 280) {
-    setLeftBottlesStep(2);
-    lastBottleStepTime = now;
-    return true;
-  }
-  if (leftBottlesStep === 2 && now - lastBottleStepTime >= 280) {
-    setLeftBottlesStep(3);
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 180) {
+    setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
   }
@@ -211,33 +177,35 @@ function stepLeftBottlesForward() {
   return advanceSlide2BottlesOnScroll();
 }
 
+function stepLeftBottlesBackward() {
+  const now = performance.now();
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 180) {
+    setLeftBottlesStep(leftBottlesStep - 1);
+    lastBottleStepTime = now;
+    return true;
+  }
+  return false;
+}
+
 function resetLeftBottlesSequence() {
-  clearTimeout(lastBottleSettledTimer);
-  clearTimeout(slide2IdleUnlockTimer);
-  isLastBottleSettled = false;
-  canAdvancePastSlide2 = false;
   lastBottleStepTime = 0;
   setLeftBottlesStep(0);
 }
 
-function triggerLeftBottlesSequence() {
-  advanceSlide2BottlesOnScroll();
-}
-
 function isLeftBottlesSequenceFinished() {
-  return leftBottlesStep === 3 && isLastBottleSettled && canAdvancePastSlide2;
+  return leftBottlesStep === 3;
 }
 
 // Expose for testing/debugging
 window.setLeftBottlesStep = setLeftBottlesStep;
 window.stepLeftBottlesForward = stepLeftBottlesForward;
+window.stepLeftBottlesBackward = stepLeftBottlesBackward;
 window.advanceSlide2BottlesOnScroll = advanceSlide2BottlesOnScroll;
-window.triggerLeftBottlesSequence = triggerLeftBottlesSequence;
 window.resetLeftBottlesSequence = resetLeftBottlesSequence;
 window.isLeftBottlesSequenceFinished = isLeftBottlesSequenceFinished;
 window.getLeftBottlesStep = () => leftBottlesStep;
-window.isLastBottleSettled = () => isLastBottleSettled;
-window.canAdvancePastSlide2 = () => canAdvancePastSlide2;
+window.isLastBottleSettled = () => leftBottlesStep === 3;
+window.canAdvancePastSlide2 = () => leftBottlesStep === 3;
 
 window.addEventListener('scroll', onWindowScroll, { passive: true });
 
@@ -320,8 +288,6 @@ window.goToSlide = function(index) {
     resetLeftBottlesSequence();
   } else if (index >= 3) {
     setLeftBottlesStep(3);
-    isLastBottleSettled = true;
-    canAdvancePastSlide2 = true;
   }
 
   const targetElement = document.getElementById(`slide-${index}`);
@@ -432,8 +398,6 @@ function navigateToStop(targetStop) {
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
     setLeftBottlesStep(3);
-    isLastBottleSettled = true;
-    canAdvancePastSlide2 = true;
     const s = document.getElementById(`slide-${targetStop}`);
     if (s) {
       animateScrollTo(s.offsetTop);
@@ -443,18 +407,19 @@ function navigateToStop(targetStop) {
 
 function handleAdvance() {
   const cur = getCurrentStop();
-  // If on Slide 2:
-  // 1) Bring in bottles from the side on scroll
-  // 2) The page STRICTLY STAYS on second page only until all 3 bottles finish their entry!
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
-    advanceSlide2BottlesOnScroll();
+  // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
+  // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
+  if (cur === 2 && leftBottlesStep < 3) {
+    stepLeftBottlesForward();
     const s2 = document.getElementById('slide-2');
     const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 5) {
+    if (Math.abs(window.scrollY - s2Top) > 2) {
       window.scrollTo(0, s2Top);
     }
     return;
   }
+
+  // Once all 3 bottles have come in (or on any other slide), advance to the next slide!
   if (cur < totalSlides) {
     navigateToStop(cur + 1);
   }
@@ -462,15 +427,17 @@ function handleAdvance() {
 
 function handleRetreat() {
   const cur = getCurrentStop();
-  // If on Slide 2, STRICTLY stay on second page only until all 3 bottles finish entry!
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+  // On Slide 2: step bottles back out if visible; once at 0, retreat to Slide 1 center checkpoint
+  if (cur === 2 && leftBottlesStep > 0) {
+    stepLeftBottlesBackward();
     const s2 = document.getElementById('slide-2');
     const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 5) {
+    if (Math.abs(window.scrollY - s2Top) > 2) {
       window.scrollTo(0, s2Top);
     }
     return;
   }
+
   if (cur > 0) {
     navigateToStop(cur - 1);
   }
@@ -497,20 +464,6 @@ function isScrollableInside(target, deltaY) {
 
 // Keyboard Navigation
 window.addEventListener('keydown', (e) => {
-  const cur = getCurrentStop();
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
-    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'ArrowUp' || e.key === 'PageUp') {
-      e.preventDefault();
-      advanceSlide2BottlesOnScroll();
-      const s2 = document.getElementById('slide-2');
-      const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-      if (Math.abs(window.scrollY - s2Top) > 5) {
-        window.scrollTo(0, s2Top);
-      }
-    }
-    return;
-  }
-
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
     e.preventDefault();
     if (!isStepTransitioning) {
@@ -539,52 +492,21 @@ function handleGlobalWheel(e) {
   // Filter out tiny trackpad noise
   if (Math.abs(e.deltaY) < 1) return;
 
-  const cur = getCurrentStop();
-
-  // STRICT SLIDE 2 LOCK: STAY ON SECOND PAGE ONLY UNTIL 3 BOTTLE ENTRY FINISHES
-  // While scrolling on Slide 2, user scrolling brings all 3 bottles in from the side!
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
-    const s2 = document.getElementById('slide-2');
-    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
-    if (Math.abs(window.scrollY - s2Top) > 1 && !isStepTransitioning) {
-      window.scrollTo(0, s2Top);
-    }
-
-    if (e.deltaY > 5) {
-      advanceSlide2BottlesOnScroll();
-    }
-
-    // While user is actively scrolling on Slide 2, prevent continuous wheel bleed into Slide 3
-    if (leftBottlesStep === 3) {
-      clearTimeout(slide2IdleUnlockTimer);
-      slide2IdleUnlockTimer = setTimeout(() => {
-        if (isLastBottleSettled) {
-          canAdvancePastSlide2 = true;
-        }
-      }, 450);
-    }
-    return;
-  }
-
   // Active wheel gesture tracking: user must pause before the next scroll gesture can trigger a new slide
   clearTimeout(wheelGestureResetTimer);
   wheelGestureResetTimer = setTimeout(() => {
     isWheelGestureActive = false;
     wheelDeltaAccumulator = 0;
-  }, 380);
+  }, 140);
 
-  // If currently animating or in cooldown or the current gesture has already triggered a slide stop:
+  // If currently animating or in brief post-animation cooldown:
   if (isStepTransitioning) return;
-  if (performance.now() - lastTransitionEndTime < 400) return;
+  if (performance.now() - lastTransitionEndTime < 150) return;
   if (isWheelGestureActive) return;
 
   wheelDeltaAccumulator += e.deltaY;
-  clearTimeout(wheelAccumulatorTimer);
-  wheelAccumulatorTimer = setTimeout(() => {
-    wheelDeltaAccumulator = 0;
-  }, 180);
 
-  const THRESHOLD = 18;
+  const THRESHOLD = 12;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
     isWheelGestureActive = true; // Locks this gesture so even a big scroll ends at this stop!
