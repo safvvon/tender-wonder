@@ -796,7 +796,7 @@ body {
 
 .process-stage-item[data-stage="1"].active .v-water-ripple {
   animation: vWaterRippleExpand 2.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
-  transform-origin: 160px 145px;
+  transform-origin: 160px 116px;
 }
 .process-stage-item[data-stage="1"].active .v-water-ripple.r1 { animation-delay: 0.88s; }
 .process-stage-item[data-stage="1"].active .v-water-ripple.r2 { animation-delay: 1.04s; }
