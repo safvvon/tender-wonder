@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 70) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 100) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -199,7 +199,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 70) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 100) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -392,19 +392,23 @@ function getCurrentStop() {
   if (scrollY < vh * 0.45) return 0;
   if (scrollY < vh * 1.45) return 1;
 
-  for (let i = 2; i <= totalSlides; i++) {
+  for (let i = 2; i < totalSlides; i++) {
     const s = document.getElementById(`slide-${i}`);
-    if (s) {
-      const top = s.offsetTop;
-      const nextS = document.getElementById(`slide-${i + 1}`);
-      const nextTop = nextS ? nextS.offsetTop : top + vh;
-      if (scrollY >= top - 80 && scrollY < nextTop - 80) {
+    const nextS = document.getElementById(`slide-${i + 1}`);
+    if (s && nextS) {
+      const mid = (s.offsetTop + nextS.offsetTop) / 2;
+      if (scrollY < mid) {
+        return i;
+      }
+    } else if (s) {
+      if (scrollY < s.offsetTop + vh * 0.5) {
         return i;
       }
     }
   }
   return totalSlides;
 }
+window.getCurrentStop = getCurrentStop;
 
 function navigateToStop(targetStop) {
   const vh = window.innerHeight || 800;
@@ -419,6 +423,14 @@ function navigateToStop(targetStop) {
     const top = s2 ? s2.offsetTop : vh * 2;
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
+    // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered
+    if (!isLeftBottlesSequenceFinished()) {
+      stepLeftBottlesForward();
+      const s2 = document.getElementById('slide-2');
+      const top = s2 ? s2.offsetTop : vh * 2;
+      animateScrollTo(top);
+      return;
+    }
     setLeftBottlesStep(3);
     const s = document.getElementById(`slide-${targetStop}`);
     if (s) {
@@ -431,7 +443,7 @@ function handleAdvance() {
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
-  if (cur === 2 && leftBottlesStep < 3) {
+  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
     stepLeftBottlesForward();
     const s2 = document.getElementById('slide-2');
     const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
@@ -531,11 +543,19 @@ function handleGlobalWheel(e) {
   const cur = getCurrentStop();
 
   // Slide 2: 3 horizontal bottles staggered entrance on scroll down
-  // Zero waiting: each scroll down brings in the next bottle immediately!
-  if (cur === 2 && leftBottlesStep < 3 && e.deltaY > 0) {
-    stepLeftBottlesForward();
-    wheelDeltaAccumulator = 0;
-    return;
+  // While on Slide 2: scrolling down brings in Bottle 1, Bottle 2, Bottle 3 in sequence.
+  // ONLY after all 3 bottles have arrived and settled will scrolling down advance to Slide 3.
+  if (cur === 2 && e.deltaY > 0) {
+    if (leftBottlesStep < 3) {
+      stepLeftBottlesForward();
+      wheelDeltaAccumulator = 0;
+      return;
+    }
+    // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
+    if (now - lastBottleStepTime < 240) {
+      wheelDeltaAccumulator = 0;
+      return;
+    }
   }
 
   // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
