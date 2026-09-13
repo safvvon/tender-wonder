@@ -184,10 +184,9 @@ function setLeftBottlesStep(step) {
 }
 
 function advanceSlide2BottlesOnScroll() {
-  const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 240) {
+  if (leftBottlesStep < 3) {
     setLeftBottlesStep(leftBottlesStep + 1);
-    lastBottleStepTime = now;
+    lastBottleStepTime = performance.now();
     return true;
   }
   return false;
@@ -198,10 +197,9 @@ function stepLeftBottlesForward() {
 }
 
 function stepLeftBottlesBackward() {
-  const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 240) {
+  if (leftBottlesStep > 0) {
     setLeftBottlesStep(leftBottlesStep - 1);
-    lastBottleStepTime = now;
+    lastBottleStepTime = performance.now();
     return true;
   }
   return false;
@@ -542,18 +540,38 @@ function handleGlobalWheel(e) {
 
   const cur = getCurrentStop();
 
-  // Slide 2: 3 horizontal bottles staggered entrance on scroll down
-  // While on Slide 2: scrolling down brings in Bottle 1, Bottle 2, Bottle 3 in sequence.
-  // ONLY after all 3 bottles have arrived and settled will scrolling down advance to Slide 3.
-  if (cur === 2 && e.deltaY > 0) {
-    if (leftBottlesStep < 3) {
-      stepLeftBottlesForward();
-      wheelDeltaAccumulator = 0;
-      return;
-    }
-    // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
-    if (now - lastBottleStepTime < 600) {
-      wheelDeltaAccumulator = 0;
+  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling
+  // Bottles enter ONLY when user deliberately scrolls (Scroll 1: 1L, Scroll 2: 500ml, Scroll 3: 250ml)
+  // Scrolling up reverses them out. No timer-based automatic cascading.
+  if (cur === 2) {
+    if (e.deltaY > 0) {
+      if (leftBottlesStep < 3) {
+        wheelDeltaAccumulator += e.deltaY;
+        const BOTTLE_SCROLL_THRESHOLD = 26;
+        if (wheelDeltaAccumulator >= BOTTLE_SCROLL_THRESHOLD) {
+          wheelDeltaAccumulator = 0;
+          stepLeftBottlesForward();
+        }
+        return;
+      }
+      // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
+      if (now - lastBottleStepTime < 450) {
+        wheelDeltaAccumulator = 0;
+        return;
+      }
+    } else if (e.deltaY < 0) {
+      wheelDeltaAccumulator += e.deltaY;
+      const BOTTLE_SCROLL_THRESHOLD = -26;
+      if (wheelDeltaAccumulator <= BOTTLE_SCROLL_THRESHOLD) {
+        wheelDeltaAccumulator = 0;
+        if (leftBottlesStep > 0) {
+          stepLeftBottlesBackward();
+          return;
+        } else {
+          handleRetreat();
+          return;
+        }
+      }
       return;
     }
   }
