@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 100) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 160) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -199,7 +199,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 100) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 160) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -266,10 +266,10 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Fast, snappy, zero-wait duration (~275ms for 1 slide jump)
+  // Smooth, elegant, relaxed luxury scroll duration (~580ms - 740ms)
   const actualDuration = duration !== null
     ? duration
-    : Math.min(380, Math.max(260, Math.abs(distance) * 0.12 + 180));
+    : Math.min(740, Math.max(580, Math.abs(distance) * 0.22 + 360));
 
   function tick(now) {
     const elapsed = now - startTime;
@@ -526,7 +526,7 @@ function handleGlobalWheel(e) {
   wheelDecayTimer = setTimeout(() => {
     wheelDeltaAccumulator = 0;
     isFirstScrollLocked = false;
-  }, 100);
+  }, 140);
 
   // If transition is actively animating, swallow wheel events until slide arrives
   if (isStepTransitioning) {
@@ -534,8 +534,8 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Ultra-short cooldown (35ms) to ensure transition completion without forcing user to wait
-  if (now - lastTransitionEndTime < 35) {
+  // Graceful cooldown (65ms) to ensure smooth slide arrival before next scroll
+  if (now - lastTransitionEndTime < 65) {
     wheelDeltaAccumulator = 0;
     return;
   }
@@ -552,7 +552,7 @@ function handleGlobalWheel(e) {
       return;
     }
     // All 3 bottles have entered! Guard against advancing to Slide 3 in the same gesture
-    if (now - lastBottleStepTime < 240) {
+    if (now - lastBottleStepTime < 380) {
       wheelDeltaAccumulator = 0;
       return;
     }
@@ -564,10 +564,10 @@ function handleGlobalWheel(e) {
     return;
   }
 
-  // Slide transitions: accumulate wheel delta with responsive, instant pickup
+  // Slide transitions: accumulate wheel delta with measured, smooth threshold
   wheelDeltaAccumulator += e.deltaY;
 
-  const THRESHOLD = 10;
+  const THRESHOLD = 24;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
     if (cur === 0) {
