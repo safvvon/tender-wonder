@@ -373,7 +373,7 @@ body {
   transform: translate3d(-140%, 0, 0);
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out;
+  transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease-out;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }

@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 120) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 70) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -199,7 +199,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 120) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 70) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -266,16 +266,16 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Snappy, fluid, responsive duration (~380ms for 1 slide jump)
+  // Fast, snappy, zero-wait duration (~275ms for 1 slide jump)
   const actualDuration = duration !== null
     ? duration
-    : Math.min(490, Math.max(350, Math.abs(distance) * 0.17 + 230));
+    : Math.min(380, Math.max(260, Math.abs(distance) * 0.12 + 180));
 
   function tick(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / actualDuration, 1.0);
 
-    if (progress >= 0.995) {
+    if (progress >= 0.99) {
       window.scrollTo(0, targetY);
       currentScrollAnimationId = null;
       isStepTransitioning = false;
@@ -502,8 +502,7 @@ window.addEventListener('keydown', (e) => {
 // Wheel Navigation
 let wheelDeltaAccumulator = 0;
 let wheelDecayTimer = null;
-let lastActionTime = 0;
-let isSlideTransitionGestureLocked = false;
+let isFirstScrollLocked = false;
 
 function handleGlobalWheel(e) {
   // If scrolling inside an active scrollable dialog / element, let it scroll naturally
@@ -517,19 +516,25 @@ function handleGlobalWheel(e) {
   }
 
   // Filter out tiny trackpad noise
-  if (Math.abs(e.deltaY) < 1.2) return;
+  if (Math.abs(e.deltaY) < 1.0) return;
 
   const now = performance.now();
 
-  // Reset accumulator and gesture lock when user pauses scrolling
+  // Reset accumulator and first scroll lock when user pauses
   clearTimeout(wheelDecayTimer);
   wheelDecayTimer = setTimeout(() => {
     wheelDeltaAccumulator = 0;
-    isSlideTransitionGestureLocked = false;
-  }, 120);
+    isFirstScrollLocked = false;
+  }, 100);
 
-  // If transition is actively animating, swallow wheel events until slide settles
+  // If transition is actively animating, swallow wheel events until slide arrives
   if (isStepTransitioning) {
+    wheelDeltaAccumulator = 0;
+    return;
+  }
+
+  // Ultra-short cooldown (35ms) to ensure transition completion without forcing user to wait
+  if (now - lastTransitionEndTime < 35) {
     wheelDeltaAccumulator = 0;
     return;
   }
@@ -537,50 +542,38 @@ function handleGlobalWheel(e) {
   const cur = getCurrentStop();
 
   // Slide 2: 3 horizontal bottles staggered entrance on scroll down
-  // Bottles respond smoothly to user scrolling with quick 120ms pacing
+  // Zero waiting: each scroll down brings in the next bottle immediately!
   if (cur === 2 && leftBottlesStep < 3 && e.deltaY > 0) {
-    if (now - lastActionTime >= 120) {
-      stepLeftBottlesForward();
-      lastActionTime = now;
-      wheelDeltaAccumulator = 0;
-    }
+    stepLeftBottlesForward();
+    wheelDeltaAccumulator = 0;
     return;
   }
 
   // Slide 2: Reverse bottle stepping on scroll up
   if (cur === 2 && leftBottlesStep > 0 && e.deltaY < 0) {
-    if (now - lastActionTime >= 120) {
-      stepLeftBottlesBackward();
-      lastActionTime = now;
-      wheelDeltaAccumulator = 0;
-    }
-    return;
-  }
-
-  // Each slide-to-slide jump is 1 gesture: do not cascade through multiple slides in 1 continuous flick
-  if (isSlideTransitionGestureLocked) {
-    return;
-  }
-
-  // Brief debounce after slide transition finishes
-  if (now - lastActionTime < 80) {
+    stepLeftBottlesBackward();
     wheelDeltaAccumulator = 0;
     return;
   }
 
-  // Slide transitions: accumulate wheel delta
+  // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
+  // The next scroll (after brief pause) goes to Slide 2.
+  if (cur === 1 && isFirstScrollLocked) {
+    return;
+  }
+
+  // Slide transitions: accumulate wheel delta with responsive, instant pickup
   wheelDeltaAccumulator += e.deltaY;
 
-  const THRESHOLD = 12;
+  const THRESHOLD = 10;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    lastActionTime = now;
-    isSlideTransitionGestureLocked = true;
+    if (cur === 0) {
+      isFirstScrollLocked = true;
+    }
     handleAdvance();
   } else if (wheelDeltaAccumulator <= -THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    lastActionTime = now;
-    isSlideTransitionGestureLocked = true;
     handleRetreat();
   }
 }
