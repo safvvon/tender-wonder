@@ -422,61 +422,176 @@ window.getCurrentStop = getCurrentStop;
 
 // ======================================================================
 // SLIDE 3: "FROM COCONUT TO BOTTLE" INTERACTIVE PROCESS ENGINE
-// 7 Sequential Stages + Stage 8 (Final Reveal Screen)
-// 01 Coconut Cutting -> 02 Bottle Cleaning -> 03 Water Filling ->
-// 04 Controlled Heating -> 05 Micro Lab -> 06 Packaging ->
-// 07 Loading & Dispatch -> 08 Final Reveal ("FROM NATURE. THROUGH CARE. TO YOU.")
+// 9 Sequential Stages + Stage 10 (Final Reveal Screen)
+// Coconut Cutting -> Bottle Cleaning -> Water Filling ->
+// Sealing -> Controlled Heating -> Labeling ->
+// Micro Lab (268 Quality Tests Passed) -> Packaging ->
+// Loading & Dispatch -> Final Reveal ("FROM NATURE. THROUGH CARE. TO YOU.")
 // ======================================================================
 let currentProcessStep = 1;
 let lastProcessStepTime = 0;
 
+const PROCESS_STEPS = {
+  1: {
+    heading: "Coconut Cutting",
+    desc: "Fresh tender coconuts are carefully selected and opened under hygienic processing conditions."
+  },
+  2: {
+    heading: "Bottle Cleaning",
+    desc: "Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity."
+  },
+  3: {
+    heading: "Coconut Water Filling",
+    desc: "Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals."
+  },
+  4: {
+    heading: "Sealing",
+    desc: "Precision airtight capping and hermetic sealing prevent exposure to preserve natural taste and freshness."
+  },
+  5: {
+    heading: "Controlled Heating",
+    desc: "Regulated temperature treatment retains natural flavor profile and nutritional integrity."
+  },
+  6: {
+    heading: "Labeling",
+    desc: "High-speed sleeve application and thermal contour labeling ensure perfect bottle presentation."
+  },
+  7: {
+    heading: "268 Quality Tests Passed",
+    desc: "Tender Wonder Coconut Water has successfully passed 268 rigorous laboratory tests, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust."
+  },
+  8: {
+    heading: "Packaging",
+    desc: "Protective boxing and packing prepare each batch securely for safe transit."
+  },
+  9: {
+    heading: "Loading & Dispatch",
+    desc: "Efficient distribution ensures fresh tender coconut water reaches destinations swiftly."
+  },
+  10: {
+    heading: "From Nature. Through Care. To You.",
+    desc: "A carefully controlled journey from fresh tender coconut to a finished product."
+  }
+};
+
 const PROCESS_DESCRIPTIONS = {
-  1: "01 COCONUT CUTTING — Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.",
-  2: "02 BOTTLE CLEANING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
-  3: "03 COCONUT WATER FILLING — Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals.",
-  4: "04 CONTROLLED HEATING — Regulated temperature treatment retains natural flavor profile and nutritional integrity.",
-  5: "05 MICRO LABORATORY — Quality testing and micro-analysis confirm purity standards and safety before sealing.",
-  6: "06 PACKAGING — Secure capping, labeling, and protective boxing prepare each batch for safe transit.",
-  7: "07 LOADING & DISPATCH — Efficient distribution ensures fresh tender coconut water reaches destinations swiftly.",
-  8: "FROM NATURE. THROUGH CARE. TO YOU. — A carefully controlled journey from fresh tender coconut to a finished product."
+  1: "COCONUT CUTTING — Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.",
+  2: "BOTTLE CLEANING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
+  3: "COCONUT WATER FILLING — Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals.",
+  4: "SEALING — Precision airtight capping and hermetic sealing prevent exposure to preserve natural taste and freshness.",
+  5: "CONTROLLED HEATING — Regulated temperature treatment retains natural flavor profile and nutritional integrity.",
+  6: "LABELING — High-speed sleeve application and thermal contour labeling ensure perfect bottle presentation.",
+  7: "268 QUALITY TESTS PASSED — Tender Wonder Coconut Water has successfully passed 268 rigorous laboratory tests, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust.",
+  8: "PACKAGING — Protective boxing and packing prepare each batch securely for safe transit.",
+  9: "LOADING & DISPATCH — Efficient distribution ensures fresh tender coconut water reaches destinations swiftly.",
+  10: "FROM NATURE. THROUGH CARE. TO YOU. — A carefully controlled journey from fresh tender coconut to a finished product."
 };
 
 function setProcessStep(step) {
-  currentProcessStep = Math.max(1, Math.min(8, step));
+  currentProcessStep = Math.max(1, Math.min(10, step));
 
   // 1. Stage visual items
   const stageItems = document.querySelectorAll('#process-viewport .process-stage-item');
   stageItems.forEach(item => {
     const s = parseInt(item.dataset.stage, 10);
-    item.classList.toggle('active', s === currentProcessStep);
+    const isActive = s === currentProcessStep;
+    item.classList.toggle('active', isActive);
+
+    const vid = item.querySelector('video.stage-process-video');
+    if (vid) {
+      if (isActive) {
+        vid.currentTime = 0;
+        const p = vid.play();
+        if (p !== undefined) p.catch(() => {});
+      } else {
+        vid.pause();
+      }
+    }
   });
 
   // 2. Timeline nodes
   const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
   nodeItems.forEach(node => {
     const nodeStep = parseInt(node.dataset.step, 10);
-    node.classList.toggle('active', currentProcessStep <= 7 ? nodeStep === currentProcessStep : nodeStep === 7);
+    node.classList.toggle('active', currentProcessStep <= 9 ? nodeStep === currentProcessStep : nodeStep === 9);
     node.classList.toggle('completed', nodeStep < currentProcessStep);
   });
 
-  // 3. Continuous progress track fill bar
-  const trackFill = document.getElementById('process-track-fill');
-  if (trackFill) {
-    const pct = ((Math.min(currentProcessStep, 7) - 1) / 6) * 100;
-    trackFill.style.width = `${pct}%`;
-  }
+  // 3. Continuous progress track fill bar (centers perfectly on active node dot)
+  updateProcessTrackFill();
 
-  // 4. Dynamic Description text
+  // 4. Dynamic Heading and Description text (No numbers, heading with description below)
+  const headingEl = document.getElementById('process-desc-heading');
   const descEl = document.getElementById('process-desc-text');
-  if (descEl) {
-    descEl.style.opacity = '0';
-    setTimeout(() => {
-      descEl.textContent = PROCESS_DESCRIPTIONS[currentProcessStep] || '';
-      descEl.style.opacity = '1';
-    }, 160);
+  const cardEl = document.querySelector('.process-desc-card');
+  const stepData = PROCESS_STEPS[currentProcessStep];
+  if (stepData) {
+    if (headingEl) headingEl.textContent = stepData.heading;
+    if (descEl) descEl.textContent = stepData.desc;
   }
 }
 
+function updateProcessTrackFill() {
+  const trackFill = document.getElementById('process-track-fill');
+  const trackBg = document.querySelector('.process-track-bg');
+  const timelineBar = document.querySelector('.process-timeline-bar');
+  const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
+  if (!trackFill || !timelineBar || !nodeItems.length) return;
+
+  const barRect = timelineBar.getBoundingClientRect();
+  const firstDot = nodeItems[0].querySelector('.node-dot');
+  const lastDot = nodeItems[nodeItems.length - 1].querySelector('.node-dot');
+  if (!firstDot || !lastDot) return;
+
+  const firstDotRect = firstDot.getBoundingClientRect();
+  const lastDotRect = lastDot.getBoundingClientRect();
+
+  // If bounding rects haven't rendered yet (e.g. 0 width), use fallback formula
+  if (barRect.width === 0 || firstDotRect.width === 0) {
+    const activeStep = Math.min(Math.max(currentProcessStep, 1), 9);
+    const pct = (activeStep - 1) / 8;
+    trackFill.style.left = '39px';
+    trackFill.style.width = `calc((100% - 78px) * ${pct})`;
+    trackFill.classList.toggle('has-progress', pct > 0);
+    if (trackBg) {
+      trackBg.style.left = '39px';
+      trackBg.style.right = '39px';
+      trackBg.style.width = 'auto';
+    }
+    return;
+  }
+
+  // Exact pixel positions measured directly from the DOM
+  const startX = (firstDotRect.left + firstDotRect.width / 2) - barRect.left;
+  const endX = (lastDotRect.left + lastDotRect.width / 2) - barRect.left;
+  const centerY = (firstDotRect.top + firstDotRect.height / 2) - barRect.top;
+
+  // Background track spanning from center of dot 1 to center of dot 9
+  if (trackBg) {
+    trackBg.style.left = `${startX}px`;
+    trackBg.style.width = `${endX - startX}px`;
+    trackBg.style.right = 'auto';
+    trackBg.style.top = `${centerY - 1.5}px`;
+  }
+
+  // Active step fill: terminates precisely at the center of the active dot
+  const activeStep = Math.min(Math.max(currentProcessStep, 1), 9);
+  const activeNode = nodeItems[activeStep - 1];
+  const activeDot = activeNode ? activeNode.querySelector('.node-dot') : null;
+
+  if (activeDot) {
+    const activeDotRect = activeDot.getBoundingClientRect();
+    const currentX = (activeDotRect.left + activeDotRect.width / 2) - barRect.left;
+    const fillWidth = Math.max(0, currentX - startX);
+
+    trackFill.style.left = `${startX}px`;
+    trackFill.style.width = `${fillWidth}px`;
+    trackFill.style.top = `${centerY - 1.5}px`;
+    trackFill.classList.toggle('has-progress', fillWidth > 0);
+  }
+}
+
+window.updateProcessTrackFill = updateProcessTrackFill;
 window.setProcessStep = setProcessStep;
 window.getProcessStep = () => currentProcessStep;
 
@@ -498,6 +613,14 @@ function initProcessControls() {
       lastProcessStepTime = performance.now();
     });
   }
+
+  window.addEventListener('resize', () => {
+    updateProcessTrackFill();
+  });
+
+  requestAnimationFrame(() => {
+    updateProcessTrackFill();
+  });
 }
 
 function navigateToStop(targetStop) {
@@ -529,6 +652,9 @@ function navigateToStop(targetStop) {
     const s = document.getElementById(`slide-${targetStop}`);
     if (s) {
       animateScrollTo(s.offsetTop);
+      if (targetStop === 3) {
+        setTimeout(() => updateProcessTrackFill(), 350);
+      }
     }
   }
 }
@@ -547,15 +673,10 @@ function handleAdvance() {
     return;
   }
 
-  // On Slide 3: step through stages 1 to 8 before advancing to Slide 4
-  if (cur === 3 && currentProcessStep < 8) {
+  // On Slide 3: step through stages 1 to 10 before advancing to Slide 4
+  if (cur === 3 && currentProcessStep < 10) {
     setProcessStep(currentProcessStep + 1);
     lastProcessStepTime = performance.now();
-    const s3 = document.getElementById('slide-3');
-    const s3Top = s3 ? s3.offsetTop : window.innerHeight * 3;
-    if (Math.abs(window.scrollY - s3Top) > 2) {
-      window.scrollTo(0, s3Top);
-    }
     return;
   }
 
@@ -570,11 +691,6 @@ function handleRetreat() {
   if (cur === 3 && currentProcessStep > 1) {
     setProcessStep(currentProcessStep - 1);
     lastProcessStepTime = performance.now();
-    const s3 = document.getElementById('slide-3');
-    const s3Top = s3 ? s3.offsetTop : window.innerHeight * 3;
-    if (Math.abs(window.scrollY - s3Top) > 2) {
-      window.scrollTo(0, s3Top);
-    }
     return;
   }
   if (cur > 0) {
@@ -703,10 +819,10 @@ function handleGlobalWheel(e) {
     }
   }
 
-  // Slide 3: 7 Stages Process Journey scrubbed via scroll
+  // Slide 3: 9 Stages Process Journey + Stage 10 Reveal scrubbed via scroll
   if (cur === 3) {
     if (e.deltaY > 0) {
-      if (currentProcessStep < 8) {
+      if (currentProcessStep < 10) {
         if (now - lastProcessStepTime < 380) {
           wheelDeltaAccumulator = 0;
           return;
@@ -720,7 +836,7 @@ function handleGlobalWheel(e) {
         }
         return;
       }
-      // Reached Stage 8 (Final Reveal)! Allow brief pause before advancing down to Slide 4
+      // Reached Stage 10 (Final Reveal)! Allow brief pause before advancing down to Slide 4
       if (now - lastProcessStepTime < 500) {
         wheelDeltaAccumulator = 0;
         return;
@@ -965,15 +1081,15 @@ if (heroStage) {
   const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
   const texLoader = new THREE.TextureLoader();
-  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=17', (t) => {
+  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=19', (t) => {
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = THREE.RepeatWrapping;
     t.wrapT = THREE.ClampToEdgeWrapping;
-    t.offset.x = -0.117; // Front face (Tender WONDER, 2 coconuts, Net qty. 1 L) centered at camera angle
+    t.offset.x = -0.102; // Perfectly centered front face (Tender WONDER, coconuts, Net qty. 1 L)
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
   labelAlbedoTex.wrapS = THREE.RepeatWrapping;
-  labelAlbedoTex.offset.x = -0.117;
+  labelAlbedoTex.offset.x = -0.102;
   window.labelAlbedoTex = labelAlbedoTex;
 
   const sleeveMat = new THREE.MeshStandardMaterial({
