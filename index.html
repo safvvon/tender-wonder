@@ -201,765 +201,70 @@
             <!-- Stage 01: Coconut Cutting -->
             <div class="process-stage-item active" data-stage="1">
               <div class="stage-visual-box stage-1-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-1" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Organic 3D Coconut Spherical Shading -->
-                      <radialGradient id="coconHuskGradRealistic" cx="35%" cy="30%" r="70%">
-                        <stop offset="0%" stop-color="#6EE7B7"/>
-                        <stop offset="18%" stop-color="#34D399"/>
-                        <stop offset="45%" stop-color="#10B981"/>
-                        <stop offset="75%" stop-color="#059669"/>
-                        <stop offset="92%" stop-color="#047857"/>
-                        <stop offset="100%" stop-color="#064E3B"/>
-                      </radialGradient>
-                      <!-- Mesocarp Husk Fibers Gradient -->
-                      <linearGradient id="huskFibersGrad" x1="110" y1="85" x2="210" y2="145" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#FEF3C7"/>
-                        <stop offset="35%" stop-color="#FDE68A"/>
-                        <stop offset="70%" stop-color="#D97706"/>
-                        <stop offset="100%" stop-color="#92400E"/>
-                      </linearGradient>
-                      <!-- Pure Coconut Endosperm (Meat) Layer -->
-                      <linearGradient id="coconMeatGradRealistic" x1="120" y1="90" x2="200" y2="140" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#FFFFFF"/>
-                        <stop offset="65%" stop-color="#F0FDF4"/>
-                        <stop offset="100%" stop-color="#DCFCE7"/>
-                      </linearGradient>
-                      <!-- Translucent Crystalline Coconut Water Pool -->
-                      <radialGradient id="coconWaterPoolGrad" cx="45%" cy="45%" r="55%">
-                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-                        <stop offset="35%" stop-color="#ECFDF5" stop-opacity="0.88"/>
-                        <stop offset="70%" stop-color="#A7F3D0" stop-opacity="0.85"/>
-                        <stop offset="100%" stop-color="#34D399" stop-opacity="0.92"/>
-                      </radialGradient>
-                      <!-- Cold-Rolled Carbon Stainless Steel Blade Gradient -->
-                      <linearGradient id="macheteSteelGrad" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#F8FAFC"/>
-                        <stop offset="25%" stop-color="#E2E8F0"/>
-                        <stop offset="55%" stop-color="#CBD5E1"/>
-                        <stop offset="85%" stop-color="#94A3B8"/>
-                        <stop offset="100%" stop-color="#64748B"/>
-                      </linearGradient>
-                      <!-- Rosewood Ergonomic Handle -->
-                      <linearGradient id="rosewoodHandleGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#78350F"/>
-                        <stop offset="50%" stop-color="#451A03"/>
-                        <stop offset="100%" stop-color="#260C03"/>
-                      </linearGradient>
-                      <!-- Blade Edge Glint Filter -->
-                      <filter id="bladeImpactGlow" x="-20%" y="-30%" width="140%" height="160%">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                      </filter>
-                    </defs>
-
-                    <!-- Natural Ground Contact Shadow with Ambient Occlusion -->
-                    <ellipse cx="160" cy="204" rx="72" ry="12" fill="rgba(6,78,59,0.14)"/>
-                    <ellipse cx="160" cy="203" rx="46" ry="7" fill="rgba(6,78,59,0.2)"/>
-
-                    <!-- Background Tropical Palm Leaf Motifs -->
-                    <g class="v-palm-backdrop" opacity="0.22">
-                      <path d="M45 185 C55 105, 105 75, 160 95" stroke="#064E3B" stroke-width="2.5" stroke-linecap="round"/>
-                      <path d="M80 145 C68 128, 52 128, 42 118" stroke="#064E3B" stroke-width="1.8"/>
-                      <path d="M102 132 C96 112, 84 112, 75 96" stroke="#064E3B" stroke-width="1.8"/>
-                      <path d="M128 126 C128 104, 122 98, 115 82" stroke="#064E3B" stroke-width="1.8"/>
-                      <path d="M152 120 C158 98, 152 92, 152 76" stroke="#064E3B" stroke-width="1.8"/>
-                    </g>
-
-                    <!-- Realistic Coconut Assembly (Reacts with elastic recoil to blade chop) -->
-                    <g class="v-coconut-assembly">
-                      <!-- Organic 3-Lobed Tender Coconut Silhouette -->
-                      <g class="v-coconut-body">
-                        <!-- Main 3D Shaded Coconut Shell -->
-                        <path d="M94 115 C88 162, 112 203, 160 204 C208 203, 232 162, 226 115 C220 88, 202 76, 160 76 C118 76, 100 88, 94 115 Z" 
-                              fill="url(#coconHuskGradRealistic)" stroke="#064E3B" stroke-width="2"/>
-                        <!-- Natural Surface Ribs / Striations -->
-                        <path d="M112 110 C108 145, 124 185, 160 200" stroke="rgba(255,255,255,0.22)" stroke-width="2" fill="none"/>
-                        <path d="M208 110 C212 145, 196 185, 160 200" stroke="rgba(6,78,59,0.3)" stroke-width="2.5" fill="none"/>
-                        <path d="M160 82 L160 198" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="8 4" fill="none"/>
-                        <!-- Stem Calyx Base at Bottom -->
-                        <ellipse cx="160" cy="201" rx="9" ry="3.5" fill="#047857"/>
-                        <circle cx="160" cy="201" r="2" fill="#064E3B"/>
-                      </g>
-
-                      <!-- Cut Section Cross-Section Anatomy (Exposed upon severing) -->
-                      <g class="v-cut-surface">
-                        <!-- Outer Fibrous Mesocarp Husk Layer -->
-                        <ellipse cx="160" cy="116" rx="55" ry="24" fill="url(#huskFibersGrad)" stroke="#92400E" stroke-width="1.2"/>
-                        <!-- Individual Husk Fiber Striations -->
-                        <line x1="115" y1="116" x2="128" y2="116" stroke="#B45309" stroke-width="1.2"/>
-                        <line x1="192" y1="116" x2="205" y2="116" stroke="#B45309" stroke-width="1.2"/>
-                        <line x1="130" y1="102" x2="140" y2="108" stroke="#B45309" stroke-width="1.2"/>
-                        <line x1="180" y1="124" x2="190" y2="130" stroke="#B45309" stroke-width="1.2"/>
-                        
-                        <!-- Succulent Pearlescent Coconut Meat (Endosperm) Layer -->
-                        <ellipse cx="160" cy="116" rx="46" ry="19" fill="url(#coconMeatGradRealistic)" stroke="#A7F3D0" stroke-width="1"/>
-                        
-                        <!-- Crystal-Clear Water Pool Cavity -->
-                        <ellipse cx="160" cy="116" rx="38" ry="15" fill="url(#coconWaterPoolGrad)"/>
-                        <!-- Specular Highlight on Water Surface -->
-                        <ellipse cx="152" cy="112" rx="14" ry="4" fill="#FFFFFF" opacity="0.75"/>
-                        
-                        <!-- Dynamic Surface Tension Ripple Rings (Trigger on cut) -->
-                        <ellipse class="v-water-ripple r1" cx="160" cy="116" rx="20" ry="8" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
-                        <ellipse class="v-water-ripple r2" cx="160" cy="116" rx="32" ry="12" stroke="#A7F3D0" stroke-width="1.2" fill="none"/>
-                      </g>
-
-                      <!-- Severed Top Husk Crown (Flips & Tilts open realistically on strike) -->
-                      <g class="v-coconut-lid">
-                        <path d="M105 114 C112 85, 142 68, 160 68 C178 68, 208 85, 215 114 C190 122, 130 122, 105 114 Z" 
-                              fill="url(#coconHuskGradRealistic)" stroke="#064E3B" stroke-width="1.8"/>
-                        <!-- Top Stem Button -->
-                        <rect x="157" y="58" width="6" height="12" rx="2" fill="#047857"/>
-                        <!-- Calyx Petals -->
-                        <ellipse cx="160" cy="68" rx="8" ry="3" fill="#064E3B"/>
-                      </g>
-                    </g>
-
-                    <!-- Authentic Coconut Billhook Machete / Cleaver (Realistic Chopping Physics) -->
-                    <g class="v-cutting-knife">
-                      <!-- Ergonomic Rosewood Handle with Brass Rivets -->
-                      <g class="v-machete-handle" transform="translate(196, 6)">
-                        <path d="M0 8 C4 4, 18 2, 28 0 C32 10, 32 18, 26 26 C16 23, 4 18, 0 16 Z" fill="url(#rosewoodHandleGrad)" stroke="#1F2937" stroke-width="1.2"/>
-                        <!-- Brass Rivets -->
-                        <circle cx="8" cy="11" r="2" fill="#F59E0B" stroke="#78350F" stroke-width="0.8"/>
-                        <circle cx="16" cy="13" r="2" fill="#F59E0B" stroke="#78350F" stroke-width="0.8"/>
-                        <circle cx="23" cy="14" r="2" fill="#F59E0B" stroke="#78350F" stroke-width="0.8"/>
-                        <!-- Steel Bolster / Guard -->
-                        <rect x="-4" y="6" width="6" height="14" rx="1.5" fill="#94A3B8" stroke="#475569" stroke-width="1"/>
-                      </g>
-
-                      <!-- Curved High-Carbon Stainless Steel Blade -->
-                      <g class="v-machete-blade">
-                        <!-- Main Blade Body with Curved Spine & Beveled Belly -->
-                        <path d="M52 38 L194 14 L196 24 L72 58 C62 58, 54 48, 52 38 Z" fill="url(#macheteSteelGrad)" stroke="#334155" stroke-width="1.5"/>
-                        <!-- Razor-Sharp Beveled Cutting Edge -->
-                        <path d="M54 40 L194 16 L195 19 L66 52 C58 50, 54 44, 54 40 Z" fill="#F8FAFC"/>
-                        <!-- Blade Fuller Groove (Weight reduction channel) -->
-                        <line x1="78" y1="46" x2="182" y2="21" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
-                        <!-- Dynamic Razor Glint Sheen Line -->
-                        <line x1="58" y1="44" x2="190" y2="18" stroke="#FFFFFF" stroke-width="2" filter="url(#bladeImpactGlow)" class="v-blade-sheen"/>
-                      </g>
-                    </g>
-
-                    <!-- Explosive Ballistic Water Splash Droplets (Parabolic trajectories) -->
-                    <g class="v-splash-droplets">
-                      <circle class="v-drop drop-1" cx="135" cy="108" r="3.2" fill="#FFFFFF"/>
-                      <circle class="v-drop drop-2" cx="185" cy="108" r="3.4" fill="#E0F2FE"/>
-                      <circle class="v-drop drop-3" cx="160" cy="102" r="4.0" fill="#FFFFFF"/>
-                      <circle class="v-drop drop-4" cx="120" cy="116" r="2.8" fill="#BAE6FD"/>
-                      <circle class="v-drop drop-5" cx="200" cy="116" r="3.0" fill="#E0F2FE"/>
-                      <circle class="v-drop drop-6" cx="145" cy="104" r="2.4" fill="#FFFFFF"/>
-                      <circle class="v-drop drop-7" cx="175" cy="104" r="2.6" fill="#BAE6FD"/>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_01_coconut_cutting.mp4" autoplay loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
             <!-- Stage 02: Bottle Cleaning -->
             <div class="process-stage-item" data-stage="2">
               <div class="stage-visual-box stage-2-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-2" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- 3D Cylindrical Translucent Glass Gradient -->
-                      <linearGradient id="bottleGlass3D" x1="140" y1="0" x2="180" y2="0" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-                        <stop offset="12%" stop-color="#BAE6FD" stop-opacity="0.45"/>
-                        <stop offset="40%" stop-color="#F0FDF4" stop-opacity="0.2"/>
-                        <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.4"/>
-                        <stop offset="85%" stop-color="#38BDF8" stop-opacity="0.35"/>
-                        <stop offset="100%" stop-color="#0284C7" stop-opacity="0.75"/>
-                      </linearGradient>
-                      <!-- Conical Atomized Water Jet Gradient -->
-                      <linearGradient id="mistFanGrad" x1="0%" y1="50%" x2="100%" y2="50%">
-                        <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.85"/>
-                        <stop offset="60%" stop-color="#7DD3FC" stop-opacity="0.4"/>
-                        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-                      </linearGradient>
-                      <!-- Brushed Stainless Steel Nozzle Gradient -->
-                      <linearGradient id="stainlessNozzleGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#CBD5E1"/>
-                        <stop offset="50%" stop-color="#64748B"/>
-                        <stop offset="100%" stop-color="#334155"/>
-                      </linearGradient>
-                    </defs>
-
-                    <!-- Natural Ground Contact Shadow -->
-                    <ellipse cx="160" cy="200" rx="36" ry="8" fill="rgba(6,78,59,0.12)"/>
-
-                    <!-- Industrial Ultrasonic Wash Manifolds (Left & Right) -->
-                    <g class="v-wash-nozzle left-nozzle">
-                      <!-- Wall Mounting Flange & Bracket -->
-                      <rect x="36" y="96" width="12" height="26" rx="2" fill="#475569" stroke="#1E293B" stroke-width="1.2"/>
-                      <!-- Stainless Steel Jet Manifold Body -->
-                      <rect x="48" y="100" width="34" height="18" rx="3" fill="url(#stainlessNozzleGrad)" stroke="#1E293B" stroke-width="1.5"/>
-                      <!-- Brass Hex Fitting Nut -->
-                      <polygon points="82,99 90,104 90,114 82,119 82,99" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
-                      <!-- Micro-Machined Spray Nozzle Orifice -->
-                      <path d="M90 105 L98 109 L90 113 Z" fill="#E2E8F0"/>
-                      
-                      <!-- Conical Atomized Fan Mist Jet (Left) -->
-                      <polygon points="98,109 146,76 148,142" fill="url(#mistFanGrad)" class="v-spray-fan sf-left"/>
-                      <!-- High-Velocity Micro-Needle Streams -->
-                      <path class="v-spray-stream stream-l1" d="M98 107 L145 115" stroke="#38BDF8" stroke-width="2.2" stroke-dasharray="6 3"/>
-                      <path class="v-spray-stream stream-l2" d="M98 109 L147 134" stroke="#0284C7" stroke-width="1.8" stroke-dasharray="5 3"/>
-                      <path class="v-spray-stream stream-l3" d="M98 111 L144 86" stroke="#38BDF8" stroke-width="1.8" stroke-dasharray="5 3"/>
-                    </g>
-
-                    <g class="v-wash-nozzle right-nozzle">
-                      <!-- Wall Mounting Flange & Bracket -->
-                      <rect x="272" y="96" width="12" height="26" rx="2" fill="#475569" stroke="#1E293B" stroke-width="1.2"/>
-                      <!-- Stainless Steel Jet Manifold Body -->
-                      <rect x="238" y="100" width="34" height="18" rx="3" fill="url(#stainlessNozzleGrad)" stroke="#1E293B" stroke-width="1.5"/>
-                      <!-- Brass Hex Fitting Nut -->
-                      <polygon points="238,99 230,104 230,114 238,119 238,99" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
-                      <!-- Micro-Machined Spray Nozzle Orifice -->
-                      <path d="M230 105 L222 109 L230 113 Z" fill="#E2E8F0"/>
-                      
-                      <!-- Conical Atomized Fan Mist Jet (Right) -->
-                      <polygon points="222,109 174,76 172,142" fill="url(#mistFanGrad)" transform="scale(-1, 1) translate(-394, 0)" class="v-spray-fan sf-right"/>
-                      <!-- High-Velocity Micro-Needle Streams -->
-                      <path class="v-spray-stream stream-r1" d="M222 107 L175 115" stroke="#38BDF8" stroke-width="2.2" stroke-dasharray="6 3"/>
-                      <path class="v-spray-stream stream-r2" d="M222 109 L173 134" stroke="#0284C7" stroke-width="1.8" stroke-dasharray="5 3"/>
-                      <path class="v-spray-stream stream-r3" d="M222 111 L176 86" stroke="#38BDF8" stroke-width="1.8" stroke-dasharray="5 3"/>
-                    </g>
-
-                    <!-- 3D Cylindrical Transparent Glass Bottle (1000ml Authentic Profile) -->
-                    <g class="v-clean-bottle">
-                      <!-- Knurled Emerald Cap -->
-                      <rect x="151" y="24" width="18" height="16" rx="3" fill="#047857" stroke="#064E3B" stroke-width="1.5"/>
-                      <!-- Cap Vertical Grip Ridges -->
-                      <line x1="154" y1="26" x2="154" y2="38" stroke="rgba(255,255,255,0.45)" stroke-width="1.2"/>
-                      <line x1="160" y1="26" x2="160" y2="38" stroke="rgba(255,255,255,0.45)" stroke-width="1.2"/>
-                      <line x1="166" y1="26" x2="166" y2="38" stroke="rgba(255,255,255,0.45)" stroke-width="1.2"/>
-                      <!-- Neck Screw Threads & Collar -->
-                      <rect x="153" y="40" width="14" height="6" fill="#CBD5E1" stroke="#94A3B8" stroke-width="1"/>
-                      <rect x="151" y="46" width="18" height="4" rx="1.5" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1"/>
-
-                      <!-- Main Glass Bottle Body with Realistic Refractive Gradients -->
-                      <path d="M153 50 L153 62 L142 84 L142 192 C142 198, 178 198, 178 192 L178 84 L167 62 L167 50 Z" 
-                            fill="url(#bottleGlass3D)" stroke="#0284C7" stroke-width="1.8"/>
-                      <!-- Concave Push-Up Punt Base -->
-                      <path d="M148 193 C154 188, 166 188, 172 193" stroke="rgba(2,132,199,0.6)" stroke-width="1.5" fill="none"/>
-                      
-                      <!-- Vertical Glass Specular Highlights (Left and Right) -->
-                      <line x1="145" y1="88" x2="145" y2="188" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
-                      <line x1="147" y1="92" x2="147" y2="180" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
-                      <line x1="175" y1="88" x2="175" y2="188" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-
-                      <!-- Authentic Tender Wonder Brand Label -->
-                      <rect x="144" y="106" width="32" height="48" rx="2" fill="rgba(255,255,255,0.92)" stroke="#064E3B" stroke-width="1"/>
-                      <text x="160" y="124" font-size="5" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">TENDER</text>
-                      <text x="160" y="132" font-size="4.2" font-weight="800" fill="#047857" text-anchor="middle" font-family="sans-serif">WONDER</text>
-                      <line x1="150" y1="136" x2="170" y2="136" stroke="#10B981" stroke-width="0.8"/>
-                      <circle cx="160" cy="142" r="2.2" fill="#10B981"/>
-
-                      <!-- Sliding Water Droplets Trickling Down Glass Curvature -->
-                      <g class="v-trickle-drops">
-                        <ellipse class="v-trickle-drop d1" cx="147" cy="94" rx="1.5" ry="3" fill="#FFFFFF"/>
-                        <ellipse class="v-trickle-drop d2" cx="173" cy="115" rx="1.5" ry="3.2" fill="#BAE6FD"/>
-                        <ellipse class="v-trickle-drop d3" cx="146" cy="140" rx="1.8" ry="3.5" fill="#FFFFFF"/>
-                        <ellipse class="v-trickle-drop d4" cx="174" cy="155" rx="1.4" ry="2.8" fill="#BAE6FD"/>
-                      </g>
-                    </g>
-
-                    <!-- Swirling Sanitizing Vapor Clouds & Rings -->
-                    <ellipse class="v-mist-ring ring-1" cx="160" cy="120" rx="42" ry="18" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="8 6" fill="none"/>
-                    <ellipse class="v-mist-ring ring-2" cx="160" cy="150" rx="48" ry="20" stroke="#7DD3FC" stroke-width="1.2" stroke-dasharray="10 8" fill="none"/>
-
-                    <!-- Prismatic Caustic Sparkle Stars -->
-                    <g class="v-sparkles">
-                      <path class="v-star star-1" d="M142 80 L144 84 L148 84 L145 87 L146 91 L142 88 L138 91 L139 87 L136 84 L140 84 Z" fill="#38BDF8"/>
-                      <path class="v-star star-2" d="M178 72 L180 75 L184 75 L181 77 L182 81 L178 78 L174 81 L175 77 L172 75 L176 75 Z" fill="#BAE6FD"/>
-                      <path class="v-star star-3" d="M174 168 L175 171 L179 171 L176 173 L177 176 L174 174 L171 176 L172 173 L169 171 L173 171 Z" fill="#38BDF8"/>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_02_bottle_cleaning.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
             <!-- Stage 03: Coconut Water Filling -->
             <div class="process-stage-item" data-stage="3">
               <div class="stage-visual-box stage-3-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-3" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Sanitary 316L Polished Stainless Valve Gradient -->
-                      <linearGradient id="stainlessValve" x1="120" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#94A3B8"/>
-                        <stop offset="25%" stop-color="#F1F5F9"/>
-                        <stop offset="60%" stop-color="#CBD5E1"/>
-                        <stop offset="85%" stop-color="#64748B"/>
-                        <stop offset="100%" stop-color="#475569"/>
-                      </linearGradient>
-                      <!-- Laminar Flow Liquid Stream Gradient -->
-                      <linearGradient id="pourStreamGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-                        <stop offset="35%" stop-color="#6EE7B7" stop-opacity="0.9"/>
-                        <stop offset="70%" stop-color="#34D399" stop-opacity="0.85"/>
-                        <stop offset="100%" stop-color="#059669" stop-opacity="0.95"/>
-                      </linearGradient>
-                      <!-- Volumetric Rising Coconut Water Depth -->
-                      <linearGradient id="fillingLiquidGrad" x1="0" y1="120" x2="0" y2="192" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#6EE7B7" stop-opacity="0.88"/>
-                        <stop offset="40%" stop-color="#34D399" stop-opacity="0.92"/>
-                        <stop offset="80%" stop-color="#059669" stop-opacity="0.95"/>
-                        <stop offset="100%" stop-color="#064E3B" stop-opacity="0.98"/>
-                      </linearGradient>
-                    </defs>
-
-                    <!-- Natural Ground Contact Shadow -->
-                    <ellipse cx="160" cy="200" rx="36" ry="8" fill="rgba(6,78,59,0.12)"/>
-
-                    <!-- Food-Grade 316L Automated Sanitary Filling Dispenser -->
-                    <g class="v-filler-nozzle">
-                      <!-- Sanitary Pipe & Tri-Clamp Ferrule -->
-                      <rect x="146" y="0" width="28" height="12" fill="url(#stainlessValve)" stroke="#1E293B" stroke-width="1.5"/>
-                      <rect x="142" y="10" width="36" height="4" rx="2" fill="#64748B"/>
-                      <!-- Actuator Cylinder Housing -->
-                      <rect x="134" y="14" width="52" height="24" rx="4" fill="url(#stainlessValve)" stroke="#1E293B" stroke-width="1.8"/>
-                      <!-- Sanitary Diving Nozzle Neck -->
-                      <rect x="148" y="38" width="24" height="14" fill="#94A3B8" stroke="#334155" stroke-width="1.2"/>
-                      <!-- Polished Nozzle Dispense Tip -->
-                      <path d="M154 52 L166 52 L164 64 L156 64 Z" fill="#E2E8F0" stroke="#475569" stroke-width="1"/>
-                      <!-- Flow Rate Indicator LED -->
-                      <circle cx="174" cy="26" r="3.5" fill="#10B981" class="v-flow-led"/>
-                    </g>
-
-                    <!-- Laminar Flow Liquid Stream (Diving into bottle) -->
-                    <g class="v-stream-wrap">
-                      <path class="v-pour-stream" d="M157 62 L157 126 L163 126 L163 62 Z" fill="url(#pourStreamGrad)"/>
-                      <!-- Internal Velocity Ripples -->
-                      <line x1="160" y1="64" x2="160" y2="124" stroke="rgba(255,255,255,0.85)" stroke-width="1.4" stroke-dasharray="8 4" class="v-stream-velocity"/>
-                    </g>
-
-                    <!-- 3D Glass Bottle Silhouette with Volumetric Rising Liquid -->
-                    <g class="v-fill-bottle">
-                      <!-- Outer Glass Silhouette -->
-                      <path d="M153 52 L153 64 L142 86 L142 192 C142 200, 178 200, 178 192 L178 86 L167 64 L167 52 Z" 
-                            fill="rgba(255,255,255,0.78)" stroke="#064E3B" stroke-width="2"/>
-
-                      <!-- Volumetric Rising Liquid Inside Bottle with Wave Surface -->
-                      <g class="v-rising-liquid-group">
-                        <!-- Deeper Liquid Body -->
-                        <path class="v-liquid-body" d="M143 192 L143 124 Q152 118, 160 124 T177 124 L177 192 Z" fill="url(#fillingLiquidGrad)"/>
-                        <!-- Oscillating Double-Layer Waves -->
-                        <path class="v-liquid-back-wave" d="M143 124 Q152 118, 160 124 T177 124" stroke="#047857" stroke-width="2.4" fill="none"/>
-                        <path class="v-liquid-wave" d="M143 125 Q152 122, 160 125 T177 125" stroke="#34D399" stroke-width="1.8" fill="none"/>
-                        <!-- Impact Foaming Meniscus at Stream Jet Entry -->
-                        <ellipse class="v-impact-foam" cx="160" cy="124" rx="10" ry="4" fill="#FFFFFF" opacity="0.9"/>
-                      </g>
-
-                      <!-- Micro-Bubbles Rising with Brownian Motion -->
-                      <g class="v-bubble-swarm">
-                        <circle class="v-bubble b1" cx="152" cy="164" r="2.2" fill="rgba(255,255,255,0.92)"/>
-                        <circle class="v-bubble b2" cx="166" cy="152" r="2.8" fill="rgba(255,255,255,0.92)"/>
-                        <circle class="v-bubble b3" cx="155" cy="138" r="1.8" fill="rgba(255,255,255,0.92)"/>
-                        <circle class="v-bubble b4" cx="168" cy="174" r="2.4" fill="rgba(255,255,255,0.92)"/>
-                        <circle class="v-bubble b5" cx="160" cy="182" r="1.9" fill="rgba(255,255,255,0.92)"/>
-                      </g>
-
-                      <!-- Glass Bottle Label Overlay -->
-                      <rect x="144" y="132" width="32" height="42" fill="rgba(255,255,255,0.94)" stroke="#064E3B" stroke-width="1" rx="2"/>
-                      <text x="160" y="152" font-size="5" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">100% PURE</text>
-                      <text x="160" y="160" font-size="4.2" font-weight="800" fill="#047857" text-anchor="middle" font-family="sans-serif">COCONUT</text>
-                    </g>
-
-                    <!-- Real-Time Volume Telemetry HUD Pill (Comfortable padding) -->
-                    <g class="v-fill-hud" transform="translate(186, 88)">
-                      <rect x="0" y="0" width="116" height="28" rx="14" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.8"/>
-                      <circle cx="14" cy="14" r="4.5" fill="#10B981" class="v-hud-pulse-dot"/>
-                      <text x="25" y="18" font-size="8" font-weight="900" fill="#064E3B" font-family="sans-serif">FILL: 1000ml</text>
-                      <text x="84" y="18" font-size="7" font-weight="800" fill="#10B981" font-family="sans-serif">99.8%</text>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_03_water_filling.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
-            <!-- Stage 04: Controlled Heating -->
+            <!-- Stage 04: Sealing -->
             <div class="process-stage-item" data-stage="4">
               <div class="stage-visual-box stage-4-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-4" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Thermal Pasteurization Chamber Wall Gradient -->
-                      <linearGradient id="heatChamberGrad" x1="0" y1="200" x2="0" y2="30" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.15"/>
-                        <stop offset="45%" stop-color="#EF4444" stop-opacity="0.22"/>
-                        <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.08"/>
-                      </linearGradient>
-                      <!-- Quartz Infrared Glowing Heating Tubes Gradient -->
-                      <linearGradient id="infraredTubeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#FEF08A"/>
-                        <stop offset="30%" stop-color="#F59E0B"/>
-                        <stop offset="70%" stop-color="#EF4444"/>
-                        <stop offset="100%" stop-color="#7F1D1D"/>
-                      </linearGradient>
-                      <!-- Radiant Thermal Glow Filter -->
-                      <filter id="infraredGlow" x="-30%" y="-20%" width="160%" height="140%">
-                        <feGaussianBlur stdDeviation="4" result="blur"/>
-                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                      </filter>
-                    </defs>
-
-                    <!-- Natural Ground Contact Shadow -->
-                    <ellipse cx="160" cy="200" rx="36" ry="8" fill="rgba(6,78,59,0.12)"/>
-
-                    <!-- Insulated Stainless Steel Heating Chamber Enclosure -->
-                    <g class="v-thermal-chamber">
-                      <!-- Outer Chamber Vault Shell -->
-                      <rect x="120" y="28" width="80" height="172" rx="18" fill="url(#heatChamberGrad)" stroke="#F59E0B" stroke-width="2"/>
-                      <rect x="124" y="32" width="72" height="164" rx="14" stroke="#EF4444" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.6"/>
-                      
-                      <!-- Flanked Quartz Infrared Resistance Heating Tubes -->
-                      <g class="v-infrared-tubes" filter="url(#infraredGlow)">
-                        <!-- Left Quartz Infrared Tube with Helical Resistance Coils -->
-                        <path class="v-ir-tube tube-l" d="M129 46 Q125 65, 129 85 T129 125 T129 165 T129 185" stroke="url(#infraredTubeGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <!-- Right Quartz Infrared Tube with Helical Resistance Coils -->
-                        <path class="v-ir-tube tube-r" d="M191 46 Q195 65, 191 85 T191 125 T191 165 T191 185" stroke="url(#infraredTubeGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                      </g>
-
-                      <!-- Sinusoidal Thermal Convection Heat Wave Ribbons -->
-                      <g class="v-convection-currents">
-                        <path class="v-thermal-wave tw1" d="M136 170 Q130 140, 136 110 T136 50" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-                        <path class="v-thermal-wave tw2" d="M184 170 Q190 140, 184 110 T184 50" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-                        <path class="v-thermal-wave tw3" d="M132 155 Q126 125, 132 95 T132 45" stroke="#F59E0B" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-                        <path class="v-thermal-wave tw4" d="M188 155 Q194 125, 188 95 T188 45" stroke="#F59E0B" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-                      </g>
-                    </g>
-
-                    <!-- Bottle Silhouette Inside Chamber Under Temperature Control -->
-                    <g class="v-heated-bottle">
-                      <!-- Knurled Emerald Cap -->
-                      <rect x="151" y="24" width="18" height="16" rx="3" fill="#047857" stroke="#064E3B" stroke-width="1.5"/>
-                      <!-- Bottle Glass Body -->
-                      <path d="M153 40 L153 62 L142 84 L142 192 C142 198, 178 198, 178 192 L178 84 L167 62 L167 40 Z" 
-                            fill="rgba(255,255,255,0.85)" stroke="#064E3B" stroke-width="2"/>
-                      <!-- Stabilized Liquid Core with Amber-Emerald Thermal Luminescence -->
-                      <path class="v-liquid-thermal" d="M144 192 L144 86 L176 86 L176 192 Z" fill="url(#fillingLiquidGrad)" opacity="0.6"/>
-                      
-                      <!-- Label Overlay -->
-                      <rect x="144" y="112" width="32" height="44" rx="2" fill="rgba(255,255,255,0.92)" stroke="#064E3B" stroke-width="1"/>
-                      <text x="160" y="130" font-size="5" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">TENDER</text>
-                      <text x="160" y="138" font-size="4.2" font-weight="800" fill="#047857" text-anchor="middle" font-family="sans-serif">WONDER</text>
-                    </g>
-
-                    <!-- High-Precision Digital PID Thermostatic Readout HUD Badge -->
-                    <g transform="translate(216, 72)">
-                      <g class="v-temp-badge">
-                        <rect x="0" y="0" width="88" height="52" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="2"/>
-                        <circle cx="14" cy="18" r="4.5" fill="#EF4444" class="v-temp-spark"/>
-                        <text x="24" y="22" font-size="14" font-weight="900" fill="#EF4444" font-family="sans-serif">72.0°C</text>
-                        <text x="44" y="34" font-size="6.5" font-weight="900" fill="#B45309" text-anchor="middle" font-family="sans-serif">STABILIZED</text>
-                        <text x="44" y="43" font-size="5.5" font-weight="700" fill="#64748B" text-anchor="middle" font-family="sans-serif">INFRARED</text>
-                      </g>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_04_sealing.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
-            <!-- Stage 05: Micro Laboratory -->
+            <!-- Stage 05: Controlled Heating -->
             <div class="process-stage-item" data-stage="5">
               <div class="stage-visual-box stage-5-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-5" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Collimated Laser Beam Gradient -->
-                      <linearGradient id="laserBeamGrad5" x1="120" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#10B981" stop-opacity="0.1"/>
-                        <stop offset="50%" stop-color="#34D399" stop-opacity="0.95"/>
-                        <stop offset="100%" stop-color="#10B981" stop-opacity="0.1"/>
-                      </linearGradient>
-                      <filter id="laserBeamGlow5" x="-20%" y="-30%" width="140%" height="160%">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                      </filter>
-                    </defs>
-
-                    <!-- Natural Ground Contact Shadow -->
-                    <ellipse cx="160" cy="200" rx="36" ry="8" fill="rgba(6,78,59,0.12)"/>
-
-                    <!-- Detailed 3D Molecular Lattice (Coconut Electrolytes & Lauric Acid) -->
-                    <g class="v-molecule-lattice" transform="translate(18, 48)">
-                      <!-- Molecular Chemical Hexagonal Bonds -->
-                      <polygon points="50,40 68,30 86,40 86,60 68,70 50,60" fill="rgba(52,211,153,0.15)" stroke="#10B981" stroke-width="2"/>
-                      <polygon points="68,70 86,80 86,100 68,110 50,100 50,80" fill="rgba(16,185,129,0.2)" stroke="#059669" stroke-width="2"/>
-                      <!-- Molecular Atoms (Potassium K+, Sodium Na+, Magnesium Mg2+) -->
-                      <circle cx="50" cy="40" r="5" fill="#10B981" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="68" cy="30" r="6" fill="#34D399" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="86" cy="40" r="5" fill="#10B981" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="86" cy="60" r="5.5" fill="#059669" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="68" cy="70" r="7" fill="#10B981" stroke="#064E3B" stroke-width="2"/>
-                      <circle cx="50" cy="60" r="5" fill="#34D399" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="86" cy="80" r="5" fill="#10B981" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="86" cy="100" r="5" fill="#34D399" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="68" cy="110" r="6" fill="#059669" stroke="#064E3B" stroke-width="1.5"/>
-                      <circle cx="50" cy="100" r="5" fill="#10B981" stroke="#064E3B" stroke-width="1.5"/>
-                      <!-- Traveling Energy Packet Signals along Bonds -->
-                      <circle class="v-mol-pulse p1" cx="68" cy="30" r="2.5" fill="#FFFFFF"/>
-                      <circle class="v-mol-pulse p2" cx="86" cy="60" r="2.5" fill="#FFFFFF"/>
-                      <circle class="v-mol-pulse p3" cx="68" cy="70" r="3" fill="#FFFFFF"/>
-                      <circle class="v-mol-pulse p4" cx="50" cy="100" r="2.5" fill="#FFFFFF"/>
-                    </g>
-
-                    <!-- High-Precision Optical Laser Scanner Assembly -->
-                    <g class="v-laser-scanner">
-                      <!-- Vertical Optical Scanner Guide Rails (Left and Right) -->
-                      <line x1="134" y1="36" x2="134" y2="194" stroke="#475569" stroke-width="1.8" stroke-dasharray="4 3"/>
-                      <line x1="186" y1="36" x2="186" y2="194" stroke="#475569" stroke-width="1.8" stroke-dasharray="4 3"/>
-                      
-                      <!-- Collimated Neon Laser Scan Plane with Optical Flare (Sweeps vertically) -->
-                      <g class="v-laser-scanner-beam" filter="url(#laserBeamGlow5)">
-                        <rect x="122" y="112" width="76" height="4" rx="2" fill="url(#laserBeamGrad5)"/>
-                        <circle cx="160" cy="114" r="3.5" fill="#FFFFFF"/>
-                        <!-- Scanner Alignment Pointers -->
-                        <polygon points="126,114 132,110 132,118" fill="#10B981"/>
-                        <polygon points="194,114 188,110 188,118" fill="#10B981"/>
-                      </g>
-                    </g>
-
-                    <!-- Bottle Silhouette Under Micro Analysis -->
-                    <g class="v-lab-bottle">
-                      <rect x="151" y="24" width="18" height="16" rx="3" fill="#047857" stroke="#064E3B" stroke-width="1.5"/>
-                      <path d="M153 40 L153 62 L142 84 L142 192 C142 198, 178 198, 178 192 L178 84 L167 62 L167 40 Z" 
-                            fill="rgba(255,255,255,0.92)" stroke="#064E3B" stroke-width="2"/>
-                      <rect x="144" y="116" width="32" height="44" rx="2" fill="rgba(255,255,255,0.95)" stroke="#064E3B" stroke-width="1"/>
-                      <text x="160" y="134" font-size="5" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">TENDER</text>
-                      <text x="160" y="142" font-size="4.2" font-weight="800" fill="#047857" text-anchor="middle" font-family="sans-serif">WONDER</text>
-                      <circle cx="160" cy="150" r="2" fill="#10B981"/>
-                    </g>
-
-                    <!-- Real-Time Optical Spectrometer HUD & QC Telemetry Stack -->
-                    <g class="v-hud-stack" transform="translate(196, 38)">
-                      <!-- Dynamic Oscilloscope Waveform Display -->
-                      <rect x="0" y="0" width="106" height="30" rx="5" fill="#064E3B" stroke="#10B981" stroke-width="1.4"/>
-                      <!-- Oscillating Harmonic Spectral Waveform Graph -->
-                      <path class="v-hud-waveform" d="M8 15 Q20 5, 32 15 T56 15 T80 15 T98 15" stroke="#34D399" stroke-width="2" fill="none" stroke-dasharray="4 2"/>
-                      <circle cx="92" cy="15" r="2.5" fill="#10B981"/>
-
-                      <!-- Stacked QC Telemetry Inspection Cards -->
-                      <g transform="translate(0, 36)">
-                        <g class="v-hud-card card-1">
-                          <rect x="0" y="0" width="106" height="24" rx="5" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.4"/>
-                          <circle cx="12" cy="12" r="3.5" fill="#10B981"/>
-                          <text x="22" y="15" font-size="7.5" font-weight="900" fill="#064E3B" font-family="sans-serif">99.98% PURE</text>
-                        </g>
-                      </g>
-
-                      <g transform="translate(0, 66)">
-                        <g class="v-hud-card card-2">
-                          <rect x="0" y="0" width="106" height="24" rx="5" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.4"/>
-                          <circle cx="12" cy="12" r="3.5" fill="#059669"/>
-                          <text x="22" y="15" font-size="7.5" font-weight="900" fill="#059669" font-family="sans-serif">QC: PASSED ✓</text>
-                        </g>
-                      </g>
-
-                      <g transform="translate(0, 96)">
-                        <g class="v-hud-card card-3">
-                          <rect x="0" y="0" width="106" height="24" rx="5" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.4"/>
-                          <circle cx="12" cy="12" r="3.5" fill="#10B981"/>
-                          <text x="22" y="15" font-size="6.5" font-weight="900" fill="#064E3B" font-family="sans-serif">NO ADDED SUGAR</text>
-                        </g>
-                      </g>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_05_controlled_heating.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
-            <!-- Stage 06: Packaging -->
+            <!-- Stage 06: Labeling -->
             <div class="process-stage-item" data-stage="6">
               <div class="stage-visual-box stage-6-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-6" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Steel Conveyor Track Gradient -->
-                      <linearGradient id="conveyorTrackGrad" x1="0" y1="162" x2="0" y2="182" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#475569"/>
-                        <stop offset="40%" stop-color="#1E293B"/>
-                        <stop offset="100%" stop-color="#0F172A"/>
-                      </linearGradient>
-                      <!-- Heavy Duty Pneumatic Piston Gradient -->
-                      <linearGradient id="pistonGrad" x1="140" y1="0" x2="180" y2="0" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#64748B"/>
-                        <stop offset="35%" stop-color="#F1F5F9"/>
-                        <stop offset="70%" stop-color="#CBD5E1"/>
-                        <stop offset="100%" stop-color="#334155"/>
-                      </linearGradient>
-                    </defs>
-
-                    <!-- Industrial Automated Slat Chain Conveyor Base -->
-                    <g class="v-conveyor-base">
-                      <!-- Structural Support Legs -->
-                      <rect x="68" y="180" width="12" height="26" fill="#334155"/>
-                      <rect x="240" y="180" width="12" height="26" fill="#334155"/>
-                      <ellipse cx="160" cy="208" rx="110" ry="8" fill="rgba(15,23,42,0.12)"/>
-
-                      <!-- Main Conveyor Bed with Stainless Track Slats -->
-                      <rect x="34" y="162" width="252" height="18" rx="5" fill="url(#conveyorTrackGrad)" stroke="#0F172A" stroke-width="1.8"/>
-                      <!-- Moving Linked Track Slats -->
-                      <line x1="42" y1="171" x2="278" y2="171" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="14 10" class="v-conveyor-dashes"/>
-
-                      <!-- 5 Synchronous Steel Roller Gears with Hub Pins -->
-                      <g class="v-conveyor-gears">
-                        <g transform="translate(56, 180)"><g class="v-gear-wheel"><circle cx="0" cy="0" r="7.5" fill="#475569" stroke="#1E293B" stroke-width="1.5"/><circle cx="0" cy="0" r="2.5" fill="#CBD5E1"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#E2E8F0" stroke-width="1"/></g></g>
-                        <g transform="translate(108, 180)"><g class="v-gear-wheel"><circle cx="0" cy="0" r="7.5" fill="#475569" stroke="#1E293B" stroke-width="1.5"/><circle cx="0" cy="0" r="2.5" fill="#CBD5E1"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#E2E8F0" stroke-width="1"/></g></g>
-                        <g transform="translate(160, 180)"><g class="v-gear-wheel"><circle cx="0" cy="0" r="7.5" fill="#475569" stroke="#1E293B" stroke-width="1.5"/><circle cx="0" cy="0" r="2.5" fill="#CBD5E1"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#E2E8F0" stroke-width="1"/></g></g>
-                        <g transform="translate(212, 180)"><g class="v-gear-wheel"><circle cx="0" cy="0" r="7.5" fill="#475569" stroke="#1E293B" stroke-width="1.5"/><circle cx="0" cy="0" r="2.5" fill="#CBD5E1"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#E2E8F0" stroke-width="1"/></g></g>
-                        <g transform="translate(264, 180)"><g class="v-gear-wheel"><circle cx="0" cy="0" r="7.5" fill="#475569" stroke="#1E293B" stroke-width="1.5"/><circle cx="0" cy="0" r="2.5" fill="#CBD5E1"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#E2E8F0" stroke-width="1"/></g></g>
-                      </g>
-                    </g>
-
-                    <!-- Heavy-Duty Pneumatic Robotic Capping Arm (Snaps down with damping bounce) -->
-                    <g class="v-capping-arm">
-                      <!-- Heavy Pneumatic Cylinder Top Housing -->
-                      <rect x="144" y="8" width="32" height="26" rx="4" fill="url(#pistonGrad)" stroke="#1E293B" stroke-width="1.8"/>
-                      <!-- Chrome Piston Rod -->
-                      <rect x="156" y="34" width="8" height="28" fill="#CBD5E1" stroke="#64748B" stroke-width="1"/>
-                      <!-- Capping Chuck Head with Mechanical Grippers -->
-                      <path d="M144 62 L176 62 L171 74 L149 74 Z" fill="#047857" stroke="#064E3B" stroke-width="1.8"/>
-                    </g>
-
-                    <!-- Packaging Pack with 3 Bottles Moving in Kraft Carton -->
-                    <g class="v-carton-crate">
-                      <!-- Bottle 1 (Left) -->
-                      <g transform="translate(108, 65)">
-                        <rect x="8" y="0" width="12" height="8" rx="2" fill="#047857"/>
-                        <path d="M10 8 L10 16 L2 28 L2 96 C2 100, 26 100, 26 96 L26 28 L18 16 L18 8 Z" fill="rgba(255,255,255,0.92)" stroke="#064E3B" stroke-width="1.5"/>
-                        <rect x="4" y="38" width="20" height="26" fill="#10B981" opacity="0.3"/>
-                      </g>
-
-                      <!-- Bottle 2 (Center - Active Capping Station) -->
-                      <g transform="translate(146, 65)">
-                        <rect x="8" y="0" width="12" height="8" rx="2" fill="#047857"/>
-                        <path d="M10 8 L10 16 L2 28 L2 96 C2 100, 26 100, 26 96 L26 28 L18 16 L18 8 Z" fill="rgba(255,255,255,0.96)" stroke="#064E3B" stroke-width="1.6"/>
-                        <rect x="4" y="38" width="20" height="26" fill="#FFFFFF" stroke="#064E3B" stroke-width="1"/>
-                        <text x="14" y="52" font-size="4" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">TENDER</text>
-                      </g>
-
-                      <!-- Bottle 3 (Right) -->
-                      <g transform="translate(184, 65)">
-                        <rect x="8" y="0" width="12" height="8" rx="2" fill="#047857"/>
-                        <path d="M10 8 L10 16 L2 28 L2 96 C2 100, 26 100, 26 96 L26 28 L18 16 L18 8 Z" fill="rgba(255,255,255,0.92)" stroke="#064E3B" stroke-width="1.5"/>
-                        <rect x="4" y="38" width="20" height="26" fill="#10B981" opacity="0.3"/>
-                      </g>
-
-                      <!-- Eco Kraft Corrugated Shipping Carton Tray with Batch Label -->
-                      <path d="M94 138 L226 138 L222 165 L98 165 Z" fill="#D97706" opacity="0.45" stroke="#B45309" stroke-width="1.8"/>
-                      <rect x="116" y="145" width="88" height="16" rx="4" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.2"/>
-                      <text x="160" y="156" font-size="7.5" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">SEALED &amp; BOXED</text>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_06_labeling.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
-            <!-- Stage 07: Loading & Dispatch -->
+            <!-- Stage 07: 268 Quality Tests Passed -->
             <div class="process-stage-item" data-stage="7">
               <div class="stage-visual-box stage-7-visual">
-                <div class="vector-stage-wrap">
-                  <svg class="process-vector-svg svg-stage-7" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <!-- Volumetric Forward Headlight Beam Gradient -->
-                      <linearGradient id="headlightBeam" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.85"/>
-                        <stop offset="60%" stop-color="#FEF08A" stop-opacity="0.25"/>
-                        <stop offset="100%" stop-color="#FEF08A" stop-opacity="0"/>
-                      </linearGradient>
-                      <!-- Truck Cab Shading -->
-                      <linearGradient id="truckCabGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#047857"/>
-                        <stop offset="60%" stop-color="#064E3B"/>
-                        <stop offset="100%" stop-color="#022C22"/>
-                      </linearGradient>
-                    </defs>
-
-                    <!-- Asphalt Road Track Base with High-Velocity Speed Dashes -->
-                    <g class="v-dispatch-road">
-                      <rect x="10" y="174" width="300" height="10" fill="#1E293B"/>
-                      <line x1="10" y1="174" x2="310" y2="174" stroke="#0F172A" stroke-width="2"/>
-                      <line x1="10" y1="179" x2="310" y2="179" stroke="#F8FAFC" stroke-width="2" stroke-dasharray="16 12" class="v-road-dashes"/>
-                    </g>
-
-                    <!-- Commercial Cold-Chain Freight Logistics Truck (Realistic Suspension Bounces) -->
-                    <g class="v-logistics-truck">
-                      <!-- Refrigerated Cargo Container -->
-                      <rect x="60" y="64" width="138" height="88" rx="5" fill="#FFFFFF" stroke="#064E3B" stroke-width="2"/>
-                      <!-- Rooftop Refrigeration Unit (Reefer Cold Chain) -->
-                      <rect x="68" y="52" width="46" height="12" rx="3" fill="#CBD5E1" stroke="#475569" stroke-width="1.2"/>
-                      <rect x="74" y="56" width="34" height="4" fill="#64748B"/>
-                      <!-- Tender Wonder Signature Green Ribbon Banner -->
-                      <rect x="61" y="112" width="136" height="13" fill="#10B981"/>
-                      <text x="129" y="96" font-size="11" font-weight="900" fill="#064E3B" text-anchor="middle" font-family="sans-serif">TENDER WONDER</text>
-                      <text x="129" y="122" font-size="7.5" font-weight="800" fill="#FFFFFF" text-anchor="middle" font-family="sans-serif">FRESH COCONUT WATER</text>
-
-                      <!-- Aerodynamic Truck Driver Cab -->
-                      <path d="M198 86 L234 86 L252 116 L252 152 L198 152 Z" fill="url(#truckCabGrad)" stroke="#022C22" stroke-width="2"/>
-                      <!-- Aerodynamic Tinted Windshield Glass with Caustic Glint -->
-                      <path d="M204 91 L230 91 L244 114 L204 114 Z" fill="#BAE6FD" opacity="0.88"/>
-                      <line x1="208" y1="94" x2="224" y2="111" stroke="#FFFFFF" stroke-width="1.5" opacity="0.8"/>
-                      <!-- Chrome Side Mirror -->
-                      <rect x="200" y="106" width="4" height="14" rx="1.5" fill="#E2E8F0" stroke="#475569" stroke-width="0.8"/>
-                      <!-- Chrome Front Grille & Bumper -->
-                      <rect x="248" y="130" width="4" height="18" fill="#CBD5E1"/>
-                      <!-- Headlight & Volumetric Forward Light Cone -->
-                      <rect x="249" y="132" width="4" height="10" rx="2" fill="#FBBF24"/>
-                      <polygon points="253,132 315,116 315,168 253,142" fill="url(#headlightBeam)" class="v-headlight-beam"/>
-
-                      <!-- Left Axle Heavy-Duty Wheel Assembly -->
-                      <g class="v-truck-wheel-mount" transform="translate(100, 160)">
-                        <g class="v-truck-wheel">
-                          <circle cx="0" cy="0" r="16" fill="#0F172A" stroke="#334155" stroke-width="2.5"/>
-                          <circle cx="0" cy="0" r="11" fill="#1E293B"/>
-                          <circle cx="0" cy="0" r="6" fill="#94A3B8"/>
-                          <!-- 8-Spoke Alloy Rim Pattern -->
-                          <line x1="-10" y1="0" x2="10" y2="0" stroke="#E2E8F0" stroke-width="1.6"/>
-                          <line x1="0" y1="-10" x2="0" y2="10" stroke="#E2E8F0" stroke-width="1.6"/>
-                          <line x1="-7" y1="-7" x2="7" y2="7" stroke="#E2E8F0" stroke-width="1.2"/>
-                          <line x1="-7" y1="7" x2="7" y2="-7" stroke="#E2E8F0" stroke-width="1.2"/>
-                        </g>
-                      </g>
-
-                      <!-- Right Axle Heavy-Duty Wheel Assembly -->
-                      <g class="v-truck-wheel-mount" transform="translate(222, 160)">
-                        <g class="v-truck-wheel">
-                          <circle cx="0" cy="0" r="16" fill="#0F172A" stroke="#334155" stroke-width="2.5"/>
-                          <circle cx="0" cy="0" r="11" fill="#1E293B"/>
-                          <circle cx="0" cy="0" r="6" fill="#94A3B8"/>
-                          <!-- 8-Spoke Alloy Rim Pattern -->
-                          <line x1="-10" y1="0" x2="10" y2="0" stroke="#E2E8F0" stroke-width="1.6"/>
-                          <line x1="0" y1="-10" x2="0" y2="10" stroke="#E2E8F0" stroke-width="1.6"/>
-                          <line x1="-7" y1="-7" x2="7" y2="7" stroke="#E2E8F0" stroke-width="1.2"/>
-                          <line x1="-7" y1="7" x2="7" y2="-7" stroke="#E2E8F0" stroke-width="1.2"/>
-                        </g>
-                      </g>
-                    </g>
-
-                    <!-- Aerodynamic Wind Slipstream Vortex Lines -->
-                    <g class="v-speed-lines">
-                      <line x1="20" y1="74" x2="52" y2="74" stroke="#10B981" stroke-width="2" stroke-linecap="round" class="v-wind w1"/>
-                      <line x1="12" y1="96" x2="46" y2="96" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" class="v-wind w2"/>
-                      <line x1="24" y1="118" x2="54" y2="118" stroke="#10B981" stroke-width="2" stroke-linecap="round" class="v-wind w3"/>
-                    </g>
-
-                    <!-- Dispatch Status Telemetry Badge -->
-                    <g class="v-dispatch-badge" transform="translate(192, 32)">
-                      <rect x="0" y="0" width="116" height="26" rx="13" fill="#064E3B"/>
-                      <text x="58" y="17" font-size="7.5" font-weight="900" fill="#FFFFFF" text-anchor="middle" font-family="sans-serif">READY FOR DISPATCH →</text>
-                    </g>
-                  </svg>
-                </div>
+                <video class="stage-process-video" src="/video/process_step_07_micro_lab.mp4" loop muted playsinline preload="auto"></video>
               </div>
             </div>
 
-            <!-- Stage 08: Final Reveal Screen -->
-            <div class="process-stage-item final-reveal-stage" data-stage="8">
+            <!-- Stage 08: Packaging -->
+            <div class="process-stage-item" data-stage="8">
+              <div class="stage-visual-box stage-8-visual">
+                <video class="stage-process-video" src="/video/process_step_08_packaging.mp4" loop muted playsinline preload="auto"></video>
+              </div>
+            </div>
+
+            <!-- Stage 09: Loading & Dispatch -->
+            <div class="process-stage-item" data-stage="9">
+              <div class="stage-visual-box stage-9-visual">
+                <video class="stage-process-video" src="/video/process_step_09_dispatch.mp4" loop muted playsinline preload="auto"></video>
+              </div>
+            </div>
+
+            <!-- Stage 10: Final Reveal Screen -->
+            <div class="process-stage-item final-reveal-stage" data-stage="10">
               <div class="stage-visual-box final-reveal-visual">
+                <video class="stage-process-video reveal-bg-video" src="/video/process_step_10_final_reveal.mp4" loop muted playsinline preload="auto"></video>
                 <div class="reveal-content-wrap">
                   <div class="reveal-brand-vector">
                     <svg class="process-vector-svg svg-stage-8" viewBox="0 0 140 140" width="110" height="110" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1028,27 +333,36 @@
                 </div>
                 <div class="process-node-item" data-step="4">
                   <div class="node-bullet"><span class="node-num">04</span><span class="node-dot"></span></div>
-                  <div class="node-label">Heating</div>
+                  <div class="node-label">Sealing</div>
                 </div>
                 <div class="process-node-item" data-step="5">
                   <div class="node-bullet"><span class="node-num">05</span><span class="node-dot"></span></div>
-                  <div class="node-label">Micro Lab</div>
+                  <div class="node-label">Heating</div>
                 </div>
                 <div class="process-node-item" data-step="6">
                   <div class="node-bullet"><span class="node-num">06</span><span class="node-dot"></span></div>
-                  <div class="node-label">Packaging</div>
+                  <div class="node-label">Labeling</div>
                 </div>
                 <div class="process-node-item" data-step="7">
                   <div class="node-bullet"><span class="node-num">07</span><span class="node-dot"></span></div>
-                  <div class="node-label">Loading &amp; Dispatch</div>
+                  <div class="node-label">Quality Tests</div>
+                </div>
+                <div class="process-node-item" data-step="8">
+                  <div class="node-bullet"><span class="node-num">08</span><span class="node-dot"></span></div>
+                  <div class="node-label">Packaging</div>
+                </div>
+                <div class="process-node-item" data-step="9">
+                  <div class="node-bullet"><span class="node-num">09</span><span class="node-dot"></span></div>
+                  <div class="node-label">Dispatch</div>
                 </div>
               </div>
             </div>
 
             <!-- Dynamic Description Card -->
             <div class="process-desc-viewport">
-              <div class="process-desc-text" id="process-desc-text">
-                Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.
+              <div class="process-desc-card">
+                <h3 class="process-desc-heading" id="process-desc-heading">Coconut Cutting</h3>
+                <p class="process-desc-text" id="process-desc-text">Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.</p>
               </div>
             </div>
           </div>
