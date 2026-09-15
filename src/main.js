@@ -105,7 +105,7 @@ function updateScrollMetrics() {
 
     // Update active slide indicator and 3D stage visibility
     if (heroStage) {
-      const visible = s2Rect.bottom > vh * 0.15 && scrollY < (vh * 3.6);
+      const visible = s2Rect.bottom > vh * 0.15 && (!slide3El || scrollY < slide3El.offsetTop - 50);
       if (isHeroStageVisible !== visible) {
         isHeroStageVisible = visible;
         heroStage.style.opacity = visible ? '1' : '0';
