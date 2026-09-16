@@ -185,7 +185,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 450) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -195,7 +195,7 @@ function advanceSlide2BottlesOnScroll() {
 
 function stepLeftBottlesForward() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 1000) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 450) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -1081,15 +1081,15 @@ if (heroStage) {
   const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
   const texLoader = new THREE.TextureLoader();
-  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=19', (t) => {
+  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=20', (t) => {
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = THREE.RepeatWrapping;
     t.wrapT = THREE.ClampToEdgeWrapping;
-    t.offset.x = -0.102; // Perfectly centered front face (Tender WONDER, coconuts, Net qty. 1 L)
+    t.offset.x = -0.045; // Perfectly centered front face (Tender WONDER logo, Arabic text, coconut splash)
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   });
   labelAlbedoTex.wrapS = THREE.RepeatWrapping;
-  labelAlbedoTex.offset.x = -0.102;
+  labelAlbedoTex.offset.x = -0.045;
   window.labelAlbedoTex = labelAlbedoTex;
 
   const sleeveMat = new THREE.MeshStandardMaterial({
