@@ -1088,7 +1088,7 @@ if (heroStage) {
   const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
   const texLoader = new THREE.TextureLoader();
-  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=20', (t) => {
+  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=21', (t) => {
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = THREE.RepeatWrapping;
     t.wrapT = THREE.ClampToEdgeWrapping;
@@ -1217,12 +1217,14 @@ if (heroStage) {
   bottleMeshGroup.add(capMesh);
   // Center meshes relative to pivot so all rotations naturally pivot around center of mass
   bottleMeshGroup.position.set(0, -BOTTLE_CENTER_Y, 0);
+  window.bottleMeshGroup = bottleMeshGroup;
 
   // Outer Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
   bottleRig.position.set(0, BOTTLE_CENTER_Y, 0);
   bottleRig.add(bottleMeshGroup);
   scene.add(bottleRig);
+  window.bottleRig = bottleRig;
 
   // Settle at Center: Upright, centered, raised slightly for harmonious typography alignment
   const SETTLE_Y = BOTTLE_CENTER_Y + 0.022;
