@@ -251,11 +251,10 @@ body {
 
 .bg-word {
   font-family: var(--font-display);
-  font-size: clamp(80px, 14vw, 210px);
+  font-size: clamp(135px, 22vw, 320px);
   font-weight: 900;
-  line-height: 0.82;
+  line-height: 0.80;
   letter-spacing: -2px;
-  text-transform: uppercase;
   color: rgba(12, 86, 46, 0.06);
   text-shadow: none !important;
   will-change: transform, opacity;
