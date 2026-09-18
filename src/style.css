@@ -251,27 +251,31 @@ body {
 
 .bg-word {
   font-family: var(--font-display);
-  font-size: clamp(135px, 22vw, 320px);
+  font-size: clamp(80px, 14vw, 210px);
   font-weight: 900;
-  line-height: 0.80;
+  line-height: 0.82;
   letter-spacing: -2px;
+  text-transform: uppercase;
   color: rgba(12, 86, 46, 0.06);
   text-shadow: none !important;
   will-change: transform, opacity;
   transition: none !important;
 }
 
-.word-pure {
+.word-pure,
+.word-taste {
   transform: translate3d(120vw, 0, 0);
   opacity: 0;
 }
 
-.word-tender {
+.word-tender,
+.word-natures {
   transform: translate3d(-120vw, 0, 0);
   opacity: 0;
 }
 
-.word-drink {
+.word-drink,
+.word-wonder {
   transform: translate3d(120vw, 0, 0);
   opacity: 0;
 }
@@ -2318,17 +2322,18 @@ body {
 
 .client-logo-img.logo-f-mart,
 .client-logo-slot.f-mart-slot .client-logo-img {
-  max-height: 106px;
-  max-width: 140px;
-  transform: scale(1.28);
+  max-height: 78px;
+  max-width: 110px;
+  transform: none;
+}
+
+.client-logo-img.logo-safari,
+.client-logo-img.logo-nesto {
+  max-height: 82px;
 }
 
 .client-logo-slot:hover .client-logo-img {
   filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.13)) brightness(1.05);
-}
-
-.client-logo-slot.f-mart-slot:hover .client-logo-img {
-  transform: scale(1.42);
 }
 
 
@@ -3035,9 +3040,14 @@ body {
 
   .client-logo-img.logo-f-mart,
   .client-logo-slot.f-mart-slot .client-logo-img {
-    max-height: 70px;
-    max-width: 95px;
-    transform: scale(1.24);
+    max-height: 52px;
+    max-width: 80px;
+    transform: none;
+  }
+
+  .client-logo-img.logo-safari,
+  .client-logo-img.logo-nesto {
+    max-height: 54px;
   }
 
   /* Navigation elements */

@@ -145,11 +145,11 @@
   },
   {
     "id": "21_safari_mall",
-    "name": "SAFARI MALL",
+    "name": "SAFARI",
     "src": "/clients/21_safari_mall.png",
-    "width": 1597,
-    "height": 497,
-    "aspect": "3.21"
+    "width": 724,
+    "height": 1002,
+    "aspect": "0.72"
   },
   {
     "id": "22_mall_mart",
@@ -158,5 +158,13 @@
     "width": 926,
     "height": 280,
     "aspect": "3.31"
+  },
+  {
+    "id": "23_nesto",
+    "name": "NESTO",
+    "src": "/clients/23_nesto.png",
+    "width": 258,
+    "height": 319,
+    "aspect": "0.81"
   }
 ]

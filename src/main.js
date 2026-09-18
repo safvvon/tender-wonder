@@ -53,9 +53,9 @@ const loadInterval = setInterval(() => {
 let currentSlide = 1;
 const totalSlides = 7;
 
-const pureWord = document.querySelector('.word-pure');
-const tenderWord = document.querySelector('.word-tender');
-const drinkWord = document.querySelector('.word-drink');
+const pureWord = document.querySelector('.word-pure, .word-taste');
+const tenderWord = document.querySelector('.word-tender, .word-natures');
+const drinkWord = document.querySelector('.word-drink, .word-wonder');
 
 function renderHeroText(progress1, progress2 = 0) {
   if (!pureWord || !tenderWord || !drinkWord) return;
@@ -386,7 +386,7 @@ document.addEventListener('click', (e) => {
 // ======================================================================
 // UNIFIED BULLETPROOF SLIDE NAVIGATION ENGINE
 // Stop 0: Slide 1 Top (0vh)
-// Stop 1: Slide 1 Center Checkpoint (100vh) - "PURE TENDER DRINK" + 3D Bottle
+// Stop 1: Slide 1 Center Checkpoint (100vh) - "TASTE NATURE’S WONDER" + 3D Bottle
 // Stop 2: Slide 2 (New Collection) - 3D Bottle docked + 3 Left Bottles Staggered
 // Stop 3: Slide 3 (The Product)
 // Stop 4: Slide 4 (Catalog)
