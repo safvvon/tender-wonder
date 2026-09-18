@@ -105,11 +105,18 @@ function updateScrollMetrics() {
 
     // Update active slide indicator and 3D stage visibility
     if (heroStage) {
-      const visible = s2Rect.bottom > vh * 0.15 && (!slide3El || scrollY < slide3El.offsetTop - 50);
-      if (isHeroStageVisible !== visible) {
-        isHeroStageVisible = visible;
-        heroStage.style.opacity = visible ? '1' : '0';
+      let stageOpacity = 0;
+      if (slide2El) {
+        if (scrollY <= slide2El.offsetTop) {
+          stageOpacity = (s2Rect.bottom > vh * 0.15) ? 1 : 0;
+        } else {
+          // Leaving Slide 2 towards Slide 3: cleanly fade out so bottle never lingers on Slide 3
+          const exitProgress = Math.min(1, Math.max(0, (scrollY - slide2El.offsetTop) / (vh * 0.35)));
+          stageOpacity = 1 - exitProgress;
+        }
       }
+      heroStage.style.opacity = stageOpacity > 0.01 ? stageOpacity.toFixed(3) : '0';
+      const visible = stageOpacity > 0.05;
       heroStage.style.pointerEvents = (visible && (p1 > 0.5 || p2 > 0.5)) ? 'auto' : 'none';
 
       if (s2Rect.top <= vh * 0.5 && s2Rect.bottom > vh * 0.5) {
@@ -124,13 +131,11 @@ function updateScrollMetrics() {
   renderHeroText(p1, p2);
 
   // DONT MOVE THE SECOND PAGE UNTILL THE BOTTLE ALL COMING FROM THE SIDE WHILE SCROLLING
-  if (slide2El && (scrollY >= slide2El.offsetTop - 60 && scrollY <= slide2El.offsetTop + vh * 0.5)) {
-    if (!isLeftBottlesSequenceFinished()) {
-      const s2Top = slide2El.offsetTop;
-      if (Math.abs(scrollY - s2Top) > 2 && !isStepTransitioning) {
-        window.scrollTo(0, s2Top);
-        return;
-      }
+  if (slide2El && !isLeftBottlesSequenceFinished() && (scrollY >= slide2El.offsetTop - 60 && scrollY <= slide2El.offsetTop + vh * 0.5)) {
+    const s2Top = slide2El.offsetTop;
+    if (Math.abs(scrollY - s2Top) > 2 && !isStepTransitioning) {
+      window.scrollTo(0, s2Top);
+      return;
     }
   }
 
@@ -185,7 +190,7 @@ function setLeftBottlesStep(step) {
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 450) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 260) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -195,7 +200,7 @@ function advanceSlide2BottlesOnScroll() {
 
 function stepLeftBottlesForward() {
   const now = performance.now();
-  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 450) {
+  if (leftBottlesStep < 3 && now - lastBottleStepTime >= 260) {
     setLeftBottlesStep(leftBottlesStep + 1);
     lastBottleStepTime = now;
     return true;
@@ -205,7 +210,7 @@ function stepLeftBottlesForward() {
 
 function stepLeftBottlesBackward() {
   const now = performance.now();
-  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 600) {
+  if (leftBottlesStep > 0 && now - lastBottleStepTime >= 260) {
     setLeftBottlesStep(leftBottlesStep - 1);
     lastBottleStepTime = now;
     return true;
@@ -645,11 +650,8 @@ function navigateToStop(targetStop) {
     const top = s2 ? s2.offsetTop : vh * 2;
     animateScrollTo(top);
   } else if (targetStop >= 3 && targetStop <= totalSlides) {
-    // Under no circumstances allow advancing past Slide 2 until all 3 bottles have entered and 1s delay has elapsed
-    if (cur === 2 && (!isLeftBottlesSequenceFinished() || performance.now() - lastBottleStepTime < 1000)) {
-      if (!isLeftBottlesSequenceFinished()) {
-        stepLeftBottlesForward();
-      }
+    if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+      stepLeftBottlesForward();
       const s2 = document.getElementById('slide-2');
       const top = s2 ? s2.offsetTop : vh * 2;
       animateScrollTo(top);
@@ -781,37 +783,32 @@ function handleGlobalWheel(e) {
 
   const cur = getCurrentStop();
 
-  // Slide 2: 3 horizontal bottles entrance strictly according to user scrolling with 1s delay
-  // Bottles enter ONLY when user deliberately scrolls, with 1 second (1000ms) delay between entrances.
-  // Scrolling up reverses them out.
+  // Slide 2: 3 horizontal bottles entrance according to user scrolling
+  // Bottles enter cleanly with responsive cooldown (260ms).
+  // Once all 3 bottles are on screen, scrolling down directly advances to Slide 3.
   if (cur === 2) {
     if (e.deltaY > 0) {
       if (leftBottlesStep < 3) {
-        // Enforce 1 second delay since last bottle entrance before next bottle can enter
-        if (now - lastBottleStepTime < 1000) {
+        if (now - lastBottleStepTime < 260) {
           wheelDeltaAccumulator = 0;
           return;
         }
         wheelDeltaAccumulator += e.deltaY;
-        const BOTTLE_SCROLL_THRESHOLD = 26;
+        const BOTTLE_SCROLL_THRESHOLD = 20;
         if (wheelDeltaAccumulator >= BOTTLE_SCROLL_THRESHOLD) {
           wheelDeltaAccumulator = 0;
           stepLeftBottlesForward();
         }
         return;
       }
-      // All 3 bottles have entered! Enforce 1 second delay before allowing advance to Slide 3
-      if (now - lastBottleStepTime < 1000) {
-        wheelDeltaAccumulator = 0;
-        return;
-      }
+      // All 3 bottles have entered! Allow natural advance to Slide 3 immediately
     } else if (e.deltaY < 0) {
-      if (now - lastBottleStepTime < 600) {
+      if (now - lastBottleStepTime < 260) {
         wheelDeltaAccumulator = 0;
         return;
       }
       wheelDeltaAccumulator += e.deltaY;
-      const BOTTLE_SCROLL_THRESHOLD = -26;
+      const BOTTLE_SCROLL_THRESHOLD = -20;
       if (wheelDeltaAccumulator <= BOTTLE_SCROLL_THRESHOLD) {
         wheelDeltaAccumulator = 0;
         if (leftBottlesStep > 0) {
