@@ -72,14 +72,6 @@
     "aspect": "2.54"
   },
   {
-    "id": "10_blue_mart",
-    "name": "BLUE MART",
-    "src": "/clients/10_blue_mart.png",
-    "width": 1326,
-    "height": 452,
-    "aspect": "2.93"
-  },
-  {
     "id": "11_noon",
     "name": "NOON",
     "src": "/clients/11_noon.png",
@@ -94,14 +86,6 @@
     "width": 1326,
     "height": 548,
     "aspect": "2.42"
-  },
-  {
-    "id": "13_grand_mart",
-    "name": "GRAND MART",
-    "src": "/clients/13_grand_mart.png",
-    "width": 1326,
-    "height": 1210,
-    "aspect": "1.10"
   },
   {
     "id": "14_grandiose",
@@ -147,9 +131,9 @@
     "id": "19_f_mart",
     "name": "F MART",
     "src": "/clients/19_f_mart.png",
-    "width": 1452,
-    "height": 1882,
-    "aspect": "0.77"
+    "width": 914,
+    "height": 1106,
+    "aspect": "0.83"
   },
   {
     "id": "20_enoc",
@@ -166,5 +150,13 @@
     "width": 1597,
     "height": 497,
     "aspect": "3.21"
+  },
+  {
+    "id": "22_mall_mart",
+    "name": "MALL MART",
+    "src": "/clients/22_mall_mart.png",
+    "width": 926,
+    "height": 280,
+    "aspect": "3.31"
   }
 ]

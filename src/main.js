@@ -423,8 +423,8 @@ window.getCurrentStop = getCurrentStop;
 // ======================================================================
 // SLIDE 3: "FROM COCONUT TO BOTTLE" INTERACTIVE PROCESS ENGINE
 // 9 Sequential Stages + Stage 10 (Final Reveal Screen)
-// Coconut Cutting -> Bottle Cleaning -> Water Filling ->
-// Sealing -> Controlled Heating -> Labeling ->
+// Coconut Cutting -> Bottle Washing -> Water Filling ->
+// Sealing -> Pasteurization -> Labeling ->
 // Micro Lab (268 Quality Tests Passed) -> Packaging ->
 // Loading & Dispatch -> Final Reveal ("FROM NATURE. THROUGH CARE. TO YOU.")
 // ======================================================================
@@ -437,7 +437,7 @@ const PROCESS_STEPS = {
     desc: "Fresh tender coconuts are carefully selected and opened under hygienic processing conditions."
   },
   2: {
-    heading: "Bottle Cleaning",
+    heading: "Bottle Washing",
     desc: "Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity."
   },
   3: {
@@ -449,8 +449,8 @@ const PROCESS_STEPS = {
     desc: "Precision airtight capping and hermetic sealing prevent exposure to preserve natural taste and freshness."
   },
   5: {
-    heading: "Controlled Heating",
-    desc: "Regulated temperature treatment retains natural flavor profile and nutritional integrity."
+    heading: "PASTEURIZATION",
+    desc: "Carefully controlled heat treatment helps ensure product safety and extend shelf life while preserving the coconut water’s natural taste and quality."
   },
   6: {
     heading: "Labeling",
@@ -458,7 +458,8 @@ const PROCESS_STEPS = {
   },
   7: {
     heading: "268 Quality Tests Passed",
-    desc: "Tender Wonder Coconut Water has successfully passed 268 rigorous laboratory tests, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust."
+    desc: "Tender Wonder Coconut Water has successfully passed 268 rigorous laboratory tests, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust.",
+    descHtml: "Tender Wonder Coconut Water has successfully passed <strong class=\"highlight-268-num\">268 rigorous laboratory tests</strong>, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust."
   },
   8: {
     heading: "Packaging",
@@ -476,10 +477,10 @@ const PROCESS_STEPS = {
 
 const PROCESS_DESCRIPTIONS = {
   1: "COCONUT CUTTING — Fresh tender coconuts are carefully selected and opened under hygienic processing conditions.",
-  2: "BOTTLE CLEANING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
+  2: "BOTTLE WASHING — Bottles undergo thorough sanitization and precision rinsing to ensure absolute purity.",
   3: "COCONUT WATER FILLING — Direct sterile transfer fills bottles cleanly while preserving natural freshness and minerals.",
   4: "SEALING — Precision airtight capping and hermetic sealing prevent exposure to preserve natural taste and freshness.",
-  5: "CONTROLLED HEATING — Regulated temperature treatment retains natural flavor profile and nutritional integrity.",
+  5: "PASTEURIZATION — Carefully controlled heat treatment helps ensure product safety and extend shelf life while preserving the coconut water’s natural taste and quality.",
   6: "LABELING — High-speed sleeve application and thermal contour labeling ensure perfect bottle presentation.",
   7: "268 QUALITY TESTS PASSED — Tender Wonder Coconut Water has successfully passed 268 rigorous laboratory tests, confirming its quality, purity, and safety. Refresh naturally with coconut water you can trust.",
   8: "PACKAGING — Protective boxing and packing prepare each batch securely for safe transit.",
@@ -527,7 +528,13 @@ function setProcessStep(step) {
   const stepData = PROCESS_STEPS[currentProcessStep];
   if (stepData) {
     if (headingEl) headingEl.textContent = stepData.heading;
-    if (descEl) descEl.textContent = stepData.desc;
+    if (descEl) {
+      if (stepData.descHtml) descEl.innerHTML = stepData.descHtml;
+      else descEl.textContent = stepData.desc;
+    }
+  }
+  if (cardEl) {
+    cardEl.classList.toggle('highlight-stage-7', currentProcessStep === 7);
   }
 }
 
