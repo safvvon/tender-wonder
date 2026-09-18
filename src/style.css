@@ -251,7 +251,7 @@ body {
 
 .bg-word {
   font-family: var(--font-display);
-  font-size: clamp(135px, 22vw, 320px);
+  font-size: clamp(105px, 17vw, 250px);
   font-weight: 900;
   line-height: 0.80;
   letter-spacing: -2px;
