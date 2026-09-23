@@ -979,6 +979,11 @@ if (heroStage) {
   controls.autoRotate = false;
   controls.autoRotateSpeed = 0.8;
   controls.enableZoom = false; // Disable wheel zoom so mousewheel scrolls pages smoothly!
+  // Frontal hero azimuth constraints: camera remains in frontal perspective where bottle is always foreground
+  controls.minAzimuthAngle = -Math.PI / 4;
+  controls.maxAzimuthAngle = Math.PI / 4;
+  controls.minPolarAngle = Math.PI / 2.8;
+  controls.maxPolarAngle = Math.PI / 1.8;
   window.controls = controls;
   window.camera = camera;
   window.scene = scene;
@@ -1241,10 +1246,16 @@ if (heroStage) {
   bottleMeshGroup.position.set(0, -BOTTLE_CENTER_Y, 0);
   window.bottleMeshGroup = bottleMeshGroup;
 
+  // Interactive Rig for independent mouse rotation around center of mass
+  const bottleInteractiveRig = new THREE.Group();
+  bottleInteractiveRig.name = 'BottleInteractiveRig';
+  bottleInteractiveRig.add(bottleMeshGroup);
+  window.bottleInteractiveRig = bottleInteractiveRig;
+
   // Outer Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
   bottleRig.position.set(0, BOTTLE_CENTER_Y, 0);
-  bottleRig.add(bottleMeshGroup);
+  bottleRig.add(bottleInteractiveRig);
   scene.add(bottleRig);
   window.bottleRig = bottleRig;
 
@@ -1281,11 +1292,11 @@ if (heroStage) {
   const coconutRig = new THREE.Group();
   coconutRig.name = 'TenderCoconutBilateralMasterRig';
 
-  const COCONUT_LEFT_X = -0.094;
-  const COCONUT_RIGHT_X = +0.046; // Snug against right flank of bottle
-  const COCONUT_SIDE_Y = 0.0620;  // Exact ground plane baseline matching bottle base at Y=0.0620
-  const COCONUT_SIDE_Z = -0.038;  // Snug slightly behind bottle sides
-  const COCONUT_BASE_SCALE = 0.53;
+  const COCONUT_LEFT_X = -0.082;  // Balanced snug tuck behind bottle's left contour
+  const COCONUT_RIGHT_X = +0.024; // Balanced snug tuck behind bottle's right contour
+  const COCONUT_SIDE_Y = 0.0616;  // Exact ground plane baseline matching bottle base at Y=0.0616
+  const COCONUT_SIDE_Z = -0.118;  // Strictly behind bottle: guarantees every vertex is behind bottle back wall
+  const COCONUT_BASE_SCALE = 0.56;
 
   const coconutRigLeft = new THREE.Group();
   coconutRigLeft.name = 'TenderCoconutLeftRig';
@@ -1297,23 +1308,38 @@ if (heroStage) {
   coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
   coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
 
-  // Trio relative offsets:
-  // Left Pair: Coconut 2 nestled close to bottle left side, Coconut 1 to the left
-  const C1_TRIO_POS = new THREE.Vector3(-0.130, 0.000, -0.020);
-  const C2_TRIO_POS = new THREE.Vector3(+0.012, 0.000, +0.015);
-  // Right Coconut: lying on its side, tucked snug to bottle right side behind it
-  const C3_TRIO_POS = new THREE.Vector3(0.000, 0.000, 0.000);
+  // Bilateral Duo Composition:
+  // Left: Coconut 2 (Cut Open with fresh white meat dome, tucked behind bottle left)
+  // Right: Coconut 3 (Horizontal body on side with graceful vertical stalk, tucked behind bottle right)
+  c1Left.visible = false;
 
-  c1Left.position.copy(C1_TRIO_POS);
-  c2Center.position.copy(C2_TRIO_POS);
-  c3Right.position.copy(C3_TRIO_POS);
+  const c2InteractiveRig = new THREE.Group();
+  c2InteractiveRig.name = 'C2InteractiveRig';
+  c2Center.position.set(0.000, 0.000, 0.000);
+  c2Center.rotation.set(0.02, 0.20, 0.00);
+  c2InteractiveRig.add(c2Center);
 
-  coconutRigLeft.add(c1Left);
-  coconutRigLeft.add(c2Center);
-  coconutRigRight.add(c3Right);
+  const c3InteractiveRig = new THREE.Group();
+  c3InteractiveRig.name = 'C3InteractiveRig';
+  c3Right.position.set(0.000, 0.000, 0.000);
+  c3Right.rotation.set(0.00, 0.12, 0.00);
+  c3InteractiveRig.add(c3Right);
+
+  coconutRigLeft.add(c2InteractiveRig);
+  coconutRigRight.add(c3InteractiveRig);
 
   coconutRig.add(coconutRigLeft);
   coconutRig.add(coconutRigRight);
+
+  window.c2InteractiveRig = c2InteractiveRig;
+  window.c3InteractiveRig = c3InteractiveRig;
+
+  // Guarantee bottle is always rendered in front of coconuts
+  bottleRig.renderOrder = 20;
+  bottleRig.traverse(c => { if (c.isMesh) c.renderOrder = 20; });
+  coconutRig.renderOrder = 5;
+  coconutRig.traverse(c => { if (c.isMesh) c.renderOrder = 5; });
+
   scene.add(coconutRig);
 
   window.coconutRig = coconutRig;
@@ -1323,117 +1349,174 @@ if (heroStage) {
   window.c2Center = c2Center;
   window.c3Right = c3Right;
 
-  let active3DModel = 'trio'; // 'trio' | 'c1-left' | 'c2-center' | 'c3-right'
-  c1Left.visible = true;
+  // ====================================================================
+  // INDEPENDENT MOUSE CONTROLLER (Separate 3D Control for Bottle & Coconuts)
+  // Allows users to drag and inspect Bottle, Left Coconut, or Right Coconut separately!
+  // ====================================================================
+  const raycaster = new THREE.Raycaster();
+  const mouseCoords = new THREE.Vector2();
+
+  let activeDragObject = null; // 'bottle' | 'c2' | 'c3' | null
+  let isPointerDownOnObject = false;
+  let lastPointerPos = { x: 0, y: 0 };
+
+  const bottleVel = { x: 0, y: 0 };
+  const c2Vel = { x: 0, y: 0 };
+  const c3Vel = { x: 0, y: 0 };
+
+  function getHitObject(clientX, clientY) {
+    if (!renderer || !camera) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouseCoords.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    mouseCoords.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouseCoords, camera);
+
+    const candidates = [];
+    if (bottleMeshGroup && bottleMeshGroup.visible) {
+      bottleMeshGroup.traverse(child => {
+        if (child.isMesh) {
+          child.userData.hitTarget = 'bottle';
+          candidates.push(child);
+        }
+      });
+    }
+    if (coconutRig && coconutRig.visible) {
+      if (coconutRigLeft && coconutRigLeft.visible && c2Center) {
+        c2Center.traverse(child => {
+          if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
+            child.userData.hitTarget = 'c2';
+            candidates.push(child);
+          }
+        });
+      }
+      if (coconutRigRight && coconutRigRight.visible && c3Right) {
+        c3Right.traverse(child => {
+          if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
+            child.userData.hitTarget = 'c3';
+            candidates.push(child);
+          }
+        });
+      }
+    }
+
+    const hits = raycaster.intersectObjects(candidates, false);
+    if (hits.length > 0) {
+      return hits[0].object.userData.hitTarget;
+    }
+    return null;
+  }
+
+  const canvasEl = renderer.domElement;
+
+  canvasEl.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const hit = getHitObject(e.clientX, e.clientY);
+    if (hit) {
+      activeDragObject = hit;
+      isPointerDownOnObject = true;
+      lastPointerPos = { x: e.clientX, y: e.clientY };
+      if (controls) controls.enabled = false;
+      canvasEl.classList.add('is-dragging');
+      if (canvasEl.setPointerCapture) {
+        try { canvasEl.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    } else {
+      activeDragObject = null;
+      isPointerDownOnObject = false;
+      if (controls) controls.enabled = true;
+    }
+  });
+
+  canvasEl.addEventListener('pointermove', (e) => {
+    if (isPointerDownOnObject && activeDragObject) {
+      const dx = e.clientX - lastPointerPos.x;
+      const dy = e.clientY - lastPointerPos.y;
+      lastPointerPos = { x: e.clientX, y: e.clientY };
+
+      const SENSITIVITY = 0.007;
+      if (activeDragObject === 'bottle') {
+        bottleVel.y += dx * SENSITIVITY;
+        bottleVel.x += dy * SENSITIVITY;
+      } else if (activeDragObject === 'c2') {
+        c2Vel.y += dx * SENSITIVITY;
+        c2Vel.x += dy * SENSITIVITY;
+      } else if (activeDragObject === 'c3') {
+        c3Vel.y += dx * SENSITIVITY;
+        c3Vel.x += dy * SENSITIVITY;
+      }
+    } else if (!isPointerDownOnObject) {
+      const hit = getHitObject(e.clientX, e.clientY);
+      if (hit) {
+        canvasEl.style.cursor = 'grab';
+      } else {
+        canvasEl.style.cursor = 'default';
+      }
+    }
+  });
+
+  function handlePointerRelease(e) {
+    if (isPointerDownOnObject) {
+      isPointerDownOnObject = false;
+      activeDragObject = null;
+      if (controls) controls.enabled = true;
+      canvasEl.classList.remove('is-dragging');
+      const hit = getHitObject(e.clientX, e.clientY);
+      canvasEl.style.cursor = hit ? 'grab' : 'default';
+      if (canvasEl.releasePointerCapture) {
+        try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    }
+  }
+
+  canvasEl.addEventListener('pointerup', handlePointerRelease);
+  canvasEl.addEventListener('pointercancel', handlePointerRelease);
+
+  // Double click resets the clicked object's orientation back to showcase default
+  canvasEl.addEventListener('dblclick', (e) => {
+    const hit = getHitObject(e.clientX, e.clientY);
+    if (hit === 'bottle' && bottleInteractiveRig) {
+      bottleInteractiveRig.rotation.set(0, 0, 0);
+      bottleVel.x = 0; bottleVel.y = 0;
+    } else if (hit === 'c2' && c2InteractiveRig) {
+      c2InteractiveRig.rotation.set(0, 0, 0);
+      c2Vel.x = 0; c2Vel.y = 0;
+    } else if (hit === 'c3' && c3InteractiveRig) {
+      c3InteractiveRig.rotation.set(0, 0, 0);
+      c3Vel.x = 0; c3Vel.y = 0;
+    }
+  });
+
+  let active3DModel = 'duo';
+  c1Left.visible = false;
   c2Center.visible = true;
   c3Right.visible = true;
   coconutRigLeft.visible = true;
   coconutRigRight.visible = true;
   bottleMeshGroup.visible = true; // BOTTLE IS ALWAYS VISIBLE WITH ITS PREVIOUS MOTION!
 
-  const modelDescriptions = {
-    'trio': '1L Cold-Pressed Bottle • Reference Trio: Coconuts Snug Beside and Behind Bottle Sides',
-    'c1-left': '1L Bottle • 01 Left Whole: Rounded Ovoid, Curved Stem & Blunt Cut Tip',
-    'c2-center': '1L Bottle • 02 Center Open: Machete Facets, Spongy White Husk & Fresh Dome',
-    'c3-right': '1L Bottle • 03 Right Whole: Oblong Body on Side with Segmented Vertical Stalk'
-  };
-
-  const pillBtns = document.querySelectorAll('.pill-model-btn:not(.btn-export-obj)');
-  const descChipText = document.getElementById('model-desc-text');
-  const exportBtn = document.getElementById('btn-export-obj');
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.exportCoconutOBJ(active3DModel);
-    });
-  }
-
   function set3DModel(modelType) {
     active3DModel = modelType;
-
-    pillBtns.forEach(btn => {
-      if (btn.dataset.model === modelType) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    if (descChipText && modelDescriptions[modelType]) {
-      descChipText.textContent = modelDescriptions[modelType];
-    }
-
     coconutRig.visible = true;
     bottleMeshGroup.visible = true;
 
-    if (modelType === 'trio') {
-      coconutRigLeft.visible = true;
-      coconutRigRight.visible = true;
-      c1Left.visible = true;
-      c2Center.visible = true;
-      c3Right.visible = true;
-      c1Left.position.copy(C1_TRIO_POS);
-      c2Center.position.copy(C2_TRIO_POS);
-      c3Right.position.copy(C3_TRIO_POS);
-      coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
-      coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
-      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
-      coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
-      coconutRigLeft.rotation.set(0, 0, 0);
-      coconutRigRight.rotation.set(0, 0, 0);
-    } else if (modelType === 'c1-left') {
-      coconutRigLeft.visible = true;
-      coconutRigRight.visible = false;
-      c1Left.visible = true;
-      c2Center.visible = false;
-      c3Right.visible = false;
-      c1Left.position.set(0, 0, 0); // Centered solo inspection
-      coconutRigLeft.position.set(COCONUT_LEFT_X - 0.05, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
-      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
-      coconutRigLeft.rotation.set(0, 0, 0);
-    } else if (modelType === 'c2-center') {
-      coconutRigLeft.visible = true;
-      coconutRigRight.visible = false;
-      c1Left.visible = false;
-      c2Center.visible = true;
-      c3Right.visible = false;
-      c2Center.position.set(0, 0, 0); // Centered solo inspection
-      coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
-      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
-      coconutRigLeft.rotation.set(0, 0, 0);
-    } else if (modelType === 'c3-right') {
-      coconutRigLeft.visible = false;
-      coconutRigRight.visible = true;
-      c1Left.visible = false;
-      c2Center.visible = false;
-      c3Right.visible = true;
-      c3Right.position.set(-0.105, 0, 0); // Centered solo inspection
-      coconutRigRight.position.set(0.0, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
-      coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
-      coconutRigRight.rotation.set(0, 0, 0);
-    }
-  }
-
-
-  pillBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const m = btn.dataset.model;
-      if (m) {
-        set3DModel(m);
-      }
-    });
-  });
-
-  const btnReplayAnim = document.getElementById('btn-replay-anim');
-  if (btnReplayAnim) {
-    btnReplayAnim.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (typeof window.replayBottleAnimation === 'function') {
-        window.replayBottleAnimation();
-      }
-    });
+    coconutRigLeft.visible = true;
+    coconutRigRight.visible = true;
+    c1Left.visible = false;
+    c2Center.visible = true;
+    c3Right.visible = true;
+    c2Center.position.set(0.000, 0.000, 0.000);
+    c2Center.rotation.set(0.02, 0.20, 0.00);
+    c3Right.position.set(0.000, 0.000, 0.000);
+    c3Right.rotation.set(0.00, 0.12, 0.00);
+    if (bottleInteractiveRig) { bottleInteractiveRig.rotation.set(0, 0, 0); bottleVel.x = 0; bottleVel.y = 0; }
+    if (c2InteractiveRig) { c2InteractiveRig.rotation.set(0, 0, 0); c2Vel.x = 0; c2Vel.y = 0; }
+    if (c3InteractiveRig) { c3InteractiveRig.rotation.set(0, 0, 0); c3Vel.x = 0; c3Vel.y = 0; }
+    coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+    coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+    coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
+    coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
+    coconutRigLeft.rotation.set(0, 0, 0);
+    coconutRigRight.rotation.set(0, 0, 0);
   }
 
   window.set3DModel = set3DModel;
@@ -1463,7 +1546,7 @@ if (heroStage) {
   // Initial ascent entrance coordinates
   const START_Y = SETTLE_Y - 0.40; // Coming from down below the viewport
   const START_X = 0.04;            // Subtle diagonal arc
-  const START_Z = -0.08;
+  const START_Z = 0.0;             // Foreground Z plane: bottle never starts behind coconuts
 
   // Rotation while down: tilted and rotated around central axis (cinematic animation)
   const START_ROTX = 0.16;         // ~9° forward pitch
@@ -1485,18 +1568,21 @@ if (heroStage) {
     bottleRig.rotation.set(SETTLE_ROTX, SETTLE_ROTY, SETTLE_ROTZ);
     bottleRig.scale.setScalar(1.0);
     bottleMeshGroup.visible = true;
+    if (bottleInteractiveRig) { bottleInteractiveRig.rotation.set(0, 0, 0); bottleVel.x = 0; bottleVel.y = 0; }
+    if (c2InteractiveRig) { c2InteractiveRig.rotation.set(0, 0, 0); c2Vel.x = 0; c2Vel.y = 0; }
+    if (c3InteractiveRig) { c3InteractiveRig.rotation.set(0, 0, 0); c3Vel.x = 0; c3Vel.y = 0; }
     if (coconutRig) {
       coconutRig.visible = true;
       coconutRig.scale.setScalar(1.0);
       coconutRig.position.set(0, 0, 0);
       if (coconutRigLeft) {
-        coconutRigLeft.visible = active3DModel !== 'c3-right';
-        coconutRigLeft.scale.setScalar(active3DModel === 'trio' ? COCONUT_BASE_SCALE : COCONUT_BASE_SCALE * 1.25);
+        coconutRigLeft.visible = true;
+        coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
         coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
       }
       if (coconutRigRight) {
-        coconutRigRight.visible = active3DModel === 'trio' || active3DModel === 'c3-right';
-        coconutRigRight.scale.setScalar(active3DModel === 'trio' ? COCONUT_BASE_SCALE : COCONUT_BASE_SCALE * 1.25);
+        coconutRigRight.visible = true;
+        coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
         coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
       }
     }
@@ -1545,8 +1631,8 @@ if (heroStage) {
 
     if (!slide2TargetEl) {
       cachedSlide2Slot = {
-        x: halfW * 0.54,
-        y: BOTTLE_CENTER_Y,
+        x: halfW * 0.50,
+        y: BOTTLE_CENTER_Y + 0.045,
         z: -0.02,
         scale: 0.76
       };
@@ -1560,10 +1646,10 @@ if (heroStage) {
     const normX = (slotCenterX - vw / 2) / (vw / 2);
     const normY = -(slotCenterY - vh / 2) / (vh / 2);
 
-    // Shift bottle reach position slightly to the left side as requested
-    const leftOffset = -halfW * 0.025;
+    // Calibrated reach position: elevated slightly up and shifted inward towards center
+    const leftOffset = -halfW * 0.065;
     const worldX = normX * halfW + leftOffset;
-    const worldY = 0.155 + normY * halfH;
+    const worldY = 0.195 + normY * halfH;
 
     const slotH = rect.height > 60 ? rect.height : vh * 0.68;
     const computedScale = (slotH / vh) / (0.302 / (2 * halfH));
@@ -1672,25 +1758,46 @@ if (heroStage) {
     bottleMeshGroup.visible = true;
 
     if (coconutRig) {
-      // Modulate scale by ease1 (arrival) and ease2 (docking out on Slide 2)
-      // When user clicks a specific coconut model for solo inspection, it is always full scale
-      const coconutFade = (active3DModel !== 'trio') ? 1.0 : (ease1 * Math.max(0, 1.0 - ease2 * 2.2));
+      // 1. Entrance arrival scale on Slide 1: scales in naturally as bottle ascends
+      // Once reached the place (ease1 = 1.0), scale stays permanently at full COCONUT_BASE_SCALE
+      const coconutScale = Math.min(1.0, ease1);
 
-      if (coconutFade > 0.001) {
+      // Coconuts belong strictly to Slide 1 and do NOT go to the next slide
+      // When scrolling past Slide 1 (scrollY > vh), coconuts stay anchored to Slide 1 and scroll up off-screen with it
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const vh = window.innerHeight || 800;
+      const camDist = camera ? camera.position.z : 0.76;
+      const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
+      const visibleHeight = 2 * camDist * Math.tan(fovRad / 2);
+
+      const slide1ExitOffset = Math.max(0, scrollY - vh);
+      const exitScrollY = (slide1ExitOffset / vh) * visibleHeight;
+
+      // When Slide 1 has scrolled away or user reaches Slide 2, hide coconuts completely
+      const isPastSlide1 = (slide1ExitOffset >= vh * 0.95) || (slide2El && slide2El.getBoundingClientRect().top <= vh * 0.1);
+
+      if (coconutScale > 0.001 && !isPastSlide1) {
         coconutRig.visible = true;
-        coconutRig.scale.setScalar(coconutFade);
+        coconutRig.scale.setScalar(1.0);
+        if (coconutRigLeft) coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * coconutScale);
+        if (coconutRigRight) coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE * coconutScale);
 
-        // Gentle organic breathing and subtle idle perspective sway
+        // Position:
+        // Entrance: rise synchronously with bottle from below
+        // Settled: stay there at baseline with subtle organic breathing
+        // Scroll exit: scroll naturally UP with Slide 1, exiting off the top
+        const entranceY = (p1Y - SETTLE_Y);
         const breathY = Math.sin(now * 0.0016 + 0.8) * 0.0035;
-        coconutRig.position.y = breathY;
+        coconutRig.position.y = entranceY + breathY + exitScrollY;
+        coconutRig.position.z = p1Z;
 
-        // Symmetrical subtle slow ambient sway (+/- 3°) so reference photo composition remains front and center
-        const idleSwayY = Math.sin(now * 0.0008) * 0.05;
+        // Symmetrical subtle slow ambient sway (+/- 0.8°) so reference photo composition remains front and center
+        const idleSwayY = Math.sin(now * 0.0006) * 0.015;
         if (coconutRigLeft) coconutRigLeft.rotation.y = idleSwayY;
         if (coconutRigRight) coconutRigRight.rotation.y = -idleSwayY;
 
         // Natural photographic eye-level pitch
-        const targetPitch = (active3DModel === 'c2-center') ? 0.06 : 0.04;
+        const targetPitch = 0.02;
         if (coconutRigLeft) coconutRigLeft.rotation.x = THREE.MathUtils.lerp(coconutRigLeft.rotation.x, targetPitch, dt * 3.5);
         if (coconutRigRight) coconutRigRight.rotation.x = THREE.MathUtils.lerp(coconutRigRight.rotation.x, targetPitch, dt * 3.5);
 
@@ -1705,6 +1812,31 @@ if (heroStage) {
       } else {
         coconutRig.visible = false;
       }
+    }
+
+    // ================================================================
+    // INDEPENDENT MOUSE ROTATION PHYSICS (Inertia & Smooth Damping)
+    // ================================================================
+    if (bottleInteractiveRig) {
+      bottleInteractiveRig.rotation.y += bottleVel.y;
+      bottleInteractiveRig.rotation.x += bottleVel.x;
+      bottleInteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottleInteractiveRig.rotation.x));
+      bottleVel.y *= 0.91;
+      bottleVel.x *= 0.91;
+    }
+    if (c2InteractiveRig) {
+      c2InteractiveRig.rotation.y += c2Vel.y;
+      c2InteractiveRig.rotation.x += c2Vel.x;
+      c2InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, c2InteractiveRig.rotation.x));
+      c2Vel.y *= 0.91;
+      c2Vel.x *= 0.91;
+    }
+    if (c3InteractiveRig) {
+      c3InteractiveRig.rotation.y += c3Vel.y;
+      c3InteractiveRig.rotation.x += c3Vel.x;
+      c3InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, c3InteractiveRig.rotation.x));
+      c3Vel.y *= 0.91;
+      c3Vel.x *= 0.91;
     }
 
     if (controls && controls.enabled) controls.update();

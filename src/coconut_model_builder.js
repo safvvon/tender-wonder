@@ -1013,9 +1013,9 @@ export class CoconutModelBuilder {
 
     group.add(bodyRig);
 
-    // Ground Contact Shadow
-    const shadow = this.createGroundShadow(0.16);
-    shadow.position.y = 0.001;
+    // Ground Contact Shadow (tightened to resting base, behind bottle plane)
+    const shadow = this.createGroundShadow(0.11);
+    shadow.position.set(0, 0.001, -0.015);
     group.add(shadow);
 
     return group;
@@ -1042,7 +1042,8 @@ export class CoconutModelBuilder {
       const v = j / heightSegs;
       const t = 1.0 - v; // j=0 at crown, j=heightSegs at base
       const yBase = t * totalHeight;
-      const baseR = getBroadAnatomicalRadius(t, maxR, 0.016);
+      const { rAvg } = sampleReferenceProfile(t, maxR);
+      const baseR = rAvg;
 
       for (let i = 0; i <= radialSegs; i++) {
         const u = i / radialSegs;
@@ -1081,7 +1082,7 @@ export class CoconutModelBuilder {
 
     // 1. Cap top crown pole (j=0, top ring at y=totalHeight) - smooth rounded dome tip
     const topCenterIdx = positions.length / 3;
-    positions.push(0, totalHeight + 0.002, 0);
+    positions.push(0, totalHeight, 0);
     uvs.push(0.5, 0.0);
     const crownRingBase = 0;
     for (let i = 0; i < radialSegs; i++) {
@@ -1110,9 +1111,14 @@ export class CoconutModelBuilder {
     bodyMesh.receiveShadow = true;
     bodyRig.add(bodyMesh);
 
-    // 3. Botanical 6-Lobed Calyx Rosette seated directly on the crown (seamless fit)
-    const calyxMesh = this.createRealisticCalyxRosette(new THREE.Vector3(0, totalHeight + 0.002, 0), 0.038, 0.010);
+    // 3. Botanical 6-Lobed Calyx Rosette seated directly on the crown (matching Coconut 1)
+    const calyxMesh = this.createRealisticCalyxRosette(new THREE.Vector3(0, totalHeight + 0.001, 0), 0.044, 0.012);
     bodyRig.add(calyxMesh);
+
+    // 4. Reference-Accurate Dual-Stem Assembly (Pedicel + Vertical Stalk) seated inside bodyRig
+    // All components share the exact same rigid coordinate space
+    const stalkGroup = this.createDistinctiveVerticalStalk(totalHeight);
+    bodyRig.add(stalkGroup);
 
     // Tilted flank orientation: body rests horizontally with crown pointing to the right
     const TILT_Z = -1.28; // ~73° tilt to the right (+X)
@@ -1122,52 +1128,112 @@ export class CoconutModelBuilder {
     bodyRig.position.set(0, 0.042, 0); // resting stably on ground
     group.add(bodyRig);
 
-    // Precise crown attachment position and normal in group space using exact Euler transform
-    const crownApexLocal = new THREE.Vector3(0, totalHeight + 0.002, 0);
-    const crownPos = crownApexLocal.clone()
-      .applyEuler(new THREE.Euler(PITCH_X, 0, TILT_Z, 'XYZ'))
-      .add(bodyRig.position);
-
-    const crownNormal = new THREE.Vector3(0, 1, 0)
-      .applyEuler(new THREE.Euler(PITCH_X, 0, TILT_Z, 'XYZ'))
-      .normalize();
-
-    // DISTINCTIVE TALL SEGMENTED VERTICAL STALK
-    // Emerging naturally from right calyx socket and gracefully curving straight UP (+Y)
-    const stalkGroup = this.createDistinctiveVerticalStalk(crownPos, crownNormal);
-    group.add(stalkGroup);
-
-    // Ground Contact Shadow centered under the resting body
-    const shadow = this.createGroundShadow(0.18);
-    shadow.position.set(0.095, 0.001, 0);
+    // Ground Contact Shadow centered under the resting body (behind bottle plane)
+    const shadow = this.createGroundShadow(0.12);
+    shadow.position.set(0.085, 0.001, -0.015);
     group.add(shadow);
 
     return group;
   }
 
-  // Distinctive Tall Segmented Vertical Green Stalk for Coconut 3
-  createDistinctiveVerticalStalk(crownPos, crownNormal) {
+  // Reference-Accurate Dual-Stem Crown Architecture for Coconut 3 (matching Coconut 1)
+  // Part A: Short Cut Pedicel Branch with fresh circular white spongy pith face
+  // Part B: Distinctive Tall Segmented Vertical Green Stalk rising gracefully UP (+Y)
+  createDistinctiveVerticalStalk(totalHeight = 0.232) {
     const stalkGroup = new THREE.Group();
     stalkGroup.name = 'VerticalGreenStalkGroup';
 
-    // Tall slender vertical stalk rising straight UP (+Y)
-    const stalkHeight = 0.132;  // ~13.2 cm tall vertical stalk matching reference photo
-    const stalkRadius = 0.0048; // base radius tapering to ~3 mm
+    const pedMat = new THREE.MeshStandardMaterial({
+      map: this.textures.pedicelBark,
+      roughness: 0.72,
+      metalness: 0.0
+    });
+    const pithMat = new THREE.MeshStandardMaterial({
+      map: this.textures.pithCut,
+      roughness: 0.82,
+      metalness: 0.0
+    });
+
+    // -------------------------------------------------------------
+    // Part A: Short Cut Pedicel Branch with white pith cut face
+    // Perfectly centered in calyx collar socket, completely sealing the opening
+    // -------------------------------------------------------------
+    const ped0 = new THREE.Vector3(0, totalHeight - 0.003, 0);
+    const ped1 = new THREE.Vector3(0.004, totalHeight + 0.012, 0.012);
+    const ped2 = new THREE.Vector3(0.008, totalHeight + 0.024, 0.022);
+    const pedCurve = new THREE.CatmullRomCurve3([ped0, ped1, ped2]);
+
+    const pedSegs = 18, pedRadSegs = 20;
+    const pedPos = [], pedUV = [], pedIdx = [];
+    const rxBase = 0.0094, rzBase = 0.0088;
+
+    for (let j = 0; j <= pedSegs; j++) {
+      const v = j / pedSegs;
+      const center = pedCurve.getPointAt(v);
+      const tangent = pedCurve.getTangentAt(v);
+      let normal = new THREE.Vector3(-tangent.y, tangent.x, 0).normalize();
+      if (normal.lengthSq() < 0.1) normal = new THREE.Vector3(0, 0, 1);
+      const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
+      const taper = 1.0 - v * 0.12;
+      // Socket flare seals collar ring from below
+      const flare = (v < 0.2) ? (1.0 + 0.35 * Math.pow((0.2 - v) / 0.2, 2.0)) : 1.0;
+
+      for (let i = 0; i <= pedRadSegs; i++) {
+        const u = i / pedRadSegs;
+        const phi = u * Math.PI * 2.0;
+        const lx = Math.cos(phi) * rxBase * taper * flare;
+        const lz = Math.sin(phi) * rzBase * taper * flare;
+        const p = center.clone().addScaledVector(normal, lx).addScaledVector(binormal, lz);
+        pedPos.push(p.x, p.y, p.z);
+        pedUV.push(u, v * 1.5);
+      }
+    }
+
+    for (let j = 0; j < pedSegs; j++) {
+      for (let i = 0; i < pedRadSegs; i++) {
+        const a = j * (pedRadSegs + 1) + i;
+        const b = (j + 1) * (pedRadSegs + 1) + i;
+        const c = (j + 1) * (pedRadSegs + 1) + (i + 1);
+        const d = j * (pedRadSegs + 1) + (i + 1);
+        pushQuadCCW(pedIdx, a, b, c, d);
+      }
+    }
+
+    const pedGeo = new THREE.BufferGeometry();
+    pedGeo.setAttribute('position', new THREE.Float32BufferAttribute(pedPos, 3));
+    pedGeo.setAttribute('uv', new THREE.Float32BufferAttribute(pedUV, 2));
+    pedGeo.setIndex(new THREE.Uint32BufferAttribute(pedIdx, 1));
+    pedGeo.computeVertexNormals();
+
+    const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+    pedMesh.castShadow = true;
+    stalkGroup.add(pedMesh);
+
+    // Flat angled cut face showing fresh spongy pale pith & thin green cortex rim
+    const tipCenterP = pedCurve.getPointAt(1.0);
+    const tipTangentP = pedCurve.getTangentAt(1.0);
+    const pithGeo = new THREE.CircleGeometry(rxBase * (1.0 - 0.12) * 0.95, 32);
+    const pithMesh = new THREE.Mesh(pithGeo, pithMat);
+    pithMesh.position.copy(tipCenterP);
+    pithMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tipTangentP);
+    stalkGroup.add(pithMesh);
+
+    // -------------------------------------------------------------
+    // Part B: Distinctive Tall Segmented Vertical Green Stalk
+    // Smooth, organic, continuous upward arch in world space (NO right-angle elbow!)
+    // -------------------------------------------------------------
+    const stalkRadius = 0.0048;
     const radialSegs = 24;
     const heightSegs = 72;
 
-    // Spline curve: starts inside calyx socket along crownNormal, then curves gracefully to vertical +Y
-    const p0 = crownPos.clone().addScaledVector(crownNormal, -0.003); // inside calyx collar
-    const p1 = crownPos.clone().addScaledVector(crownNormal, 0.015);  // emerging from collar
-    const p2 = crownPos.clone().addScaledVector(crownNormal, 0.030).add(new THREE.Vector3(0, 0.024, 0)); // smooth bend
-    const p3 = new THREE.Vector3(crownPos.x + 0.008, crownPos.y + stalkHeight * 0.65, crownPos.z + 0.002);
-    const p4 = new THREE.Vector3(crownPos.x + 0.005, crownPos.y + stalkHeight, crownPos.z);
+    const s0 = new THREE.Vector3(0.0012, totalHeight - 0.0045, -0.0037);
+    const s1 = new THREE.Vector3(-0.0204, totalHeight + 0.0228, -0.0011);
+    const s2 = new THREE.Vector3(-0.0499, totalHeight + 0.0358, -0.0030);
+    const s3 = new THREE.Vector3(-0.0881, totalHeight + 0.0347, -0.0114);
+    const s4 = new THREE.Vector3(-0.1270, totalHeight + 0.0422, -0.0181);
 
-    const curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3, p4]);
-
-    const stalkPositions = [];
-    const stalkUVs = [];
-    const stalkIndices = [];
+    const curve = new THREE.CatmullRomCurve3([s0, s1, s2, s3, s4]);
+    const stalkPositions = [], stalkUVs = [], stalkIndices = [];
 
     for (let j = 0; j <= heightSegs; j++) {
       const v = j / heightSegs;
@@ -1178,31 +1244,19 @@ export class CoconutModelBuilder {
       if (normal.lengthSq() < 0.1) normal = new THREE.Vector3(0, 0, 1);
       const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
 
-      // 8 alternate floral node notches along vertical spikelet
       const nodePhase = v * Math.PI * 14.0;
-      const isNodeBand = Math.pow(Math.max(0, Math.sin(nodePhase)), 3.5);
-      const nodeBulge = 1.0 + 0.13 * isNodeBand;
-
-      // Flared woody base collar that merges into the calyx center
+      const nodeBulge = 1.0 + 0.13 * Math.pow(Math.max(0, Math.sin(nodePhase)), 3.5);
       const baseFlare = (v < 0.16) ? (1.0 + 0.55 * Math.pow((0.16 - v) / 0.16, 2.0)) : 1.0;
-
-      // Natural upward taper to slender tip
       const taper = 1.0 - v * 0.38;
       const r = stalkRadius * nodeBulge * taper * baseFlare;
 
       for (let i = 0; i <= radialSegs; i++) {
         const u = i / radialSegs;
         const phi = u * Math.PI * 2.0;
-
-        // Longitudinal fibrous grooves of woody bark
         const fluting = 1.0 + 0.03 * Math.cos(phi * 4.0);
         const lx = Math.cos(phi) * r * fluting;
         const lz = Math.sin(phi) * r * fluting;
-
-        const p = center.clone()
-          .addScaledVector(normal, lx)
-          .addScaledVector(binormal, lz);
-
+        const p = center.clone().addScaledVector(normal, lx).addScaledVector(binormal, lz);
         stalkPositions.push(p.x, p.y, p.z);
         stalkUVs.push(u, v * 2.5);
       }
@@ -1214,12 +1268,10 @@ export class CoconutModelBuilder {
         const b = (j + 1) * (radialSegs + 1) + i;
         const c = (j + 1) * (radialSegs + 1) + (i + 1);
         const d = j * (radialSegs + 1) + (i + 1);
-
         pushQuadCCW(stalkIndices, a, b, c, d);
       }
     }
 
-    // Cap bottom base of stalk (watertight solid stem)
     const baseCenterIdx = stalkPositions.length / 3;
     const b0 = curve.getPointAt(0);
     stalkPositions.push(b0.x, b0.y, b0.z);
@@ -1234,13 +1286,7 @@ export class CoconutModelBuilder {
     stalkGeo.setIndex(new THREE.Uint32BufferAttribute(stalkIndices, 1));
     stalkGeo.computeVertexNormals();
 
-    const stalkMat = new THREE.MeshStandardMaterial({
-      map: this.textures.pedicelBark,
-      roughness: 0.72,
-      metalness: 0.0
-    });
-
-    const stalkMesh = new THREE.Mesh(stalkGeo, stalkMat);
+    const stalkMesh = new THREE.Mesh(stalkGeo, pedMat);
     stalkMesh.castShadow = true;
     stalkGroup.add(stalkMesh);
 
@@ -1249,12 +1295,7 @@ export class CoconutModelBuilder {
     const tipTangent = curve.getTangentAt(1.0);
     const tipRadius = stalkRadius * (1.0 - 0.38);
     const capGeo = new THREE.CircleGeometry(tipRadius, 24);
-    const capMat = new THREE.MeshStandardMaterial({
-      map: this.textures.pithCut,
-      roughness: 0.82,
-      metalness: 0.0
-    });
-    const capMesh = new THREE.Mesh(capGeo, capMat);
+    const capMesh = new THREE.Mesh(capGeo, pithMat);
     capMesh.position.copy(tipCenter);
     capMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tipTangent);
     stalkGroup.add(capMesh);
