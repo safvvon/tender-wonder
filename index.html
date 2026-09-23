@@ -96,6 +96,71 @@
             <div class="bg-word word-tender word-natures">NATURE’S</div>
             <div class="bg-word word-drink word-wonder">WONDER</div>
           </div>
+
+          <!-- Subtle Luxury Scroll Prompt (Active at scrollY = 0, fades on user scroll) -->
+          <div class="hero-scroll-prompt" id="hero-scroll-prompt" aria-hidden="true">
+            <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+            <span>Scroll to Experience</span>
+          </div>
+
+          <!-- Interactive 3D Model Studio Showcase Controls -->
+          <div class="hero-3d-showcase-bar" id="hero-3d-switcher" aria-label="3D Model Viewer Controls">
+            <div class="switcher-pills-wrap">
+              <button type="button" class="pill-model-btn active" data-model="trio" id="btn-model-trio" title="Reference Trio: 3 Independent Tender Coconuts (Left, Center Cut, Right Stalk)">
+                <span class="pill-glow-indicator"></span>
+                <span class="pill-icon">🌴</span>
+                <span class="pill-title">Reference Trio</span>
+                <span class="pill-tag">3 Models</span>
+              </button>
+
+              <button type="button" class="pill-model-btn" data-model="c1-left" id="btn-model-c1" title="Coconut 1: Left Back Whole Coconut with Curved Stem">
+                <span class="pill-glow-indicator"></span>
+                <span class="pill-icon">🥥</span>
+                <span class="pill-title">01 Left Whole</span>
+                <span class="pill-tag">Curved Stem</span>
+              </button>
+
+              <button type="button" class="pill-model-btn" data-model="c2-center" id="btn-model-c2" title="Coconut 2: Center Machete-Faceted Open Coconut with Meat & Water">
+                <span class="pill-glow-indicator"></span>
+                <span class="pill-icon">✨</span>
+                <span class="pill-title">02 Center Open</span>
+                <span class="pill-tag">Faceted White</span>
+              </button>
+
+              <button type="button" class="pill-model-btn" data-model="c3-right" id="btn-model-c3" title="Coconut 3: Right Coconut on Side with Tall Segmented Vertical Stalk">
+                <span class="pill-glow-indicator"></span>
+                <span class="pill-icon">🌿</span>
+                <span class="pill-title">03 Right Stalk</span>
+                <span class="pill-tag">Vertical Stalk</span>
+              </button>
+
+              <button type="button" class="pill-model-btn btn-replay-anim" id="btn-replay-anim" title="Replay Cinematic Starting Movement">
+                <span class="pill-icon">↺</span>
+                <span class="pill-title">Replay Intro</span>
+                <span class="pill-tag">Animation</span>
+              </button>
+
+              <button type="button" class="pill-model-btn btn-export-obj" id="btn-export-obj" title="Download Active 3D Model as Standard .OBJ file">
+                <span class="pill-icon">📥</span>
+                <span class="pill-title">Export OBJ</span>
+                <span class="pill-tag">Download</span>
+              </button>
+            </div>
+
+            <!-- Studio Meta Badge & Interactive Rotate Hint -->
+            <div class="hero-3d-meta-strip">
+              <div class="meta-hint-chip">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="meta-spin-icon">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>360° Studio &bull; Drag to Inspect</span>
+              </div>
+              <div class="meta-desc-chip" id="model-desc-chip">
+                <span class="chip-dot"></span>
+                <span class="chip-text" id="model-desc-text">1L Cold-Pressed Bottle &bull; Fresh Tender Coconut on Side</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Snap Checkpoint at 100vh (exact point where text reaches center) -->
@@ -419,7 +484,7 @@
                 class="reach-card-backdrop"
                 width="945" 
                 height="527"
-                loading="lazy"
+                loading="eager"
                 decoding="async"
               >
 

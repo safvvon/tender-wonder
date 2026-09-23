@@ -279,6 +279,234 @@ body {
   opacity: 0;
 }
 
+/* ============================================================ */
+/* SUBTLE SCROLL PROMPT (SCROLL TO EXPERIENCE)                   */
+/* ============================================================ */
+.hero-scroll-prompt {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 15;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-mouse {
+  width: 24px;
+  height: 38px;
+  border-radius: 999px;
+  border: 2px solid rgba(43, 97, 24, 0.45);
+  position: relative;
+  box-shadow: 0 4px 14px rgba(43, 97, 24, 0.08);
+}
+
+.scroll-wheel {
+  width: 4px;
+  height: 7px;
+  background: #2b6118;
+  border-radius: 2px;
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollWheelBounce 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scrollWheelBounce {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  60% { transform: translate(-50%, 12px); opacity: 0; }
+  61% { transform: translate(-50%, 0); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.hero-scroll-prompt span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.2px;
+  color: #2b6118;
+  opacity: 0.85;
+}
+
+/* ============================================================ */
+/* INTERACTIVE 3D MODEL SHOWCASE CONTROLS (HERO SECTION)         */
+/* ============================================================ */
+.hero-3d-showcase-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 28;
+  pointer-events: auto;
+  max-width: 96vw;
+}
+
+.switcher-pills-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 36px -10px rgba(22, 60, 26, 0.12),
+              0 4px 12px rgba(0, 0, 0, 0.04),
+              inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  padding: 5px 7px;
+  border-radius: 999px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.switcher-pills-wrap:hover {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 20px 42px -10px rgba(22, 60, 26, 0.18),
+              0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pill-model-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b5030;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  white-space: nowrap;
+}
+
+.pill-model-btn:hover:not(.active) {
+  background: rgba(110, 168, 38, 0.08);
+  color: #1e4514;
+}
+
+.pill-model-btn.active {
+  background: linear-gradient(135deg, #276b1f 0%, #3e8d28 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(39, 107, 31, 0.32),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pill-model-btn .pill-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pill-model-btn .pill-title {
+  letter-spacing: 0.2px;
+}
+
+.pill-model-btn .pill-tag {
+  display: none;
+}
+
+.pill-model-btn.btn-replay-anim,
+.pill-model-btn.btn-export-obj {
+  background: rgba(45, 95, 25, 0.06);
+  border: 1px solid rgba(45, 95, 25, 0.2);
+}
+
+.pill-model-btn.btn-replay-anim:hover,
+.pill-model-btn.btn-export-obj:hover {
+  background: rgba(45, 95, 25, 0.16);
+  border-color: rgba(45, 95, 25, 0.65);
+  color: #1a4512;
+  transform: translateY(-1px);
+}
+
+
+.hero-3d-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: #4f6844;
+}
+
+.meta-hint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.meta-spin-icon {
+  animation: spinSlow 12s linear infinite;
+  color: #3b8824;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.meta-desc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.meta-desc-chip .chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #469a23;
+  box-shadow: 0 0 8px rgba(70, 154, 35, 0.6);
+}
+
+@media (max-width: 768px) {
+  .hero-3d-showcase-bar {
+    bottom: 24px;
+  }
+  .switcher-pills-wrap {
+    gap: 4px;
+    padding: 4px 6px;
+  }
+  .pill-model-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .pill-model-btn .pill-tag {
+    display: none;
+  }
+  .meta-desc-chip {
+    display: none;
+  }
+}
+
 .bottle-3d-stage {
   position: fixed;
   top: 0;
@@ -1742,8 +1970,8 @@ body {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 18px 24px 20px;
-  gap: 12px;
+  padding: clamp(28px, 4.5vh, 52px) 32px clamp(24px, 3.5vh, 44px);
+  gap: clamp(18px, 2.8vh, 32px);
   box-sizing: border-box;
 }
 
@@ -1754,51 +1982,53 @@ body {
   align-items: center;
   text-align: center;
   flex-shrink: 0;
+  margin-top: 0;
 }
 
 .reach-header-title .top-accent-bar {
   width: 44px;
-  height: 3px;
+  height: 3.5px;
   background: var(--color-forest-green, #0c562e);
   border-radius: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .reach-header-title h2 {
   font-family: var(--font-display, 'Outfit', sans-serif);
-  font-size: clamp(22px, 2.6vw, 36px);
-  font-weight: 800;
+  font-size: clamp(24px, 2.7vw, 38px);
+  font-weight: 900;
   color: var(--color-forest-green, #0c562e);
-  letter-spacing: 0.8px;
-  margin: 0 0 4px 0;
+  letter-spacing: 0.6px;
+  margin: 0 0 6px 0;
   line-height: 1.15;
   text-transform: uppercase;
 }
 
 .reach-header-title .reach-subtitle {
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: clamp(10px, 0.95vw, 12px);
-  font-weight: 600;
-  letter-spacing: 2.8px;
-  color: #2b5539;
+  font-size: clamp(10.5px, 0.95vw, 13px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--color-forest-green, #0c562e);
+  opacity: 0.85;
   text-transform: uppercase;
   margin: 0;
 }
 
 .reach-card-container {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
+  padding: 0 16px;
 }
 
 .reach-card-wrapper {
   position: relative;
-  width: min(96vw, calc((100vh - 120px) * (945 / 527)));
-  max-width: 1440px;
+  height: min(58vh, calc(86vw * 527 / 945));
+  width: calc(min(58vh, calc(86vw * 527 / 945)) * 945 / 527);
+  max-width: 1100px;
   aspect-ratio: 945 / 527;
   border-radius: 0;
   overflow: visible;
@@ -1914,11 +2144,12 @@ body {
 }
 
 .reach-interactive-pin .pin-pulse-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--color-forest-green);
-  box-shadow: 0 0 0 0 rgba(12, 86, 46, 0.55);
+  background: var(--color-primary-green);
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 6px rgba(70, 193, 84, 0.7);
   animation: pinPulse 2.6s infinite cubic-bezier(0.25, 1, 0.5, 1);
   transition: transform 0.25s ease, background-color 0.25s ease;
 }
@@ -1926,8 +2157,8 @@ body {
 .reach-interactive-pin:hover .pin-pulse-dot,
 .reach-interactive-pin:focus .pin-pulse-dot {
   transform: scale(1.5);
-  background: #148045;
-  box-shadow: 0 0 10px rgba(12, 86, 46, 0.8);
+  background: #5ee66c;
+  box-shadow: 0 0 12px rgba(70, 193, 84, 0.95);
 }
 
 /* India Central Origin Hub Pin */
@@ -1936,12 +2167,12 @@ body {
 }
 
 .reach-interactive-pin.hub .hub-pulse-core {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: var(--color-forest-green);
+  background: var(--color-primary-green);
   border: 2px solid #ffffff;
-  box-shadow: 0 0 10px rgba(12, 86, 46, 0.9);
+  box-shadow: 0 0 12px rgba(70, 193, 84, 0.95);
   z-index: 2;
   transition: transform 0.25s ease;
 }
@@ -1959,7 +2190,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(12, 86, 46, 0.7);
+  border: 2px solid rgba(70, 193, 84, 0.85);
   pointer-events: none;
   animation: hubSonar 3s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -2714,8 +2945,9 @@ body {
   }
 
   .reach-card-wrapper {
-    width: min(94vw, calc((100vh - 160px) * (1376 / 768)));
-    border-radius: 18px;
+    width: min(92vw, calc((100vh - 190px) * (945 / 527)));
+    max-height: 60vh;
+    border-radius: 0;
   }
 
   .customer-split-layout {

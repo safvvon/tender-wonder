@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import profileData from './exact_profile.json';
+import { CoconutModelBuilder, exportCoconutToOBJ } from './coconut_model_builder.js';
+
+window.THREE = THREE;
 
 // Always start at starting page (top of Slide 1) on refresh / reload
 if ('scrollRestoration' in history) {
@@ -16,7 +19,6 @@ window.addEventListener('beforeunload', () => {
   window.scrollTo(0, 0);
 });
 window.addEventListener('load', () => {
-  window.scrollTo(0, 0);
   if (typeof updateScrollMetrics === 'function') {
     updateScrollMetrics();
   }
@@ -75,6 +77,12 @@ function renderHeroText(progress1, progress2 = 0) {
 
   drinkWord.style.transform = `translate3d(${offset}vw, 0, 0)`;
   drinkWord.style.opacity = opacity;
+
+  const heroScrollPrompt = document.getElementById('hero-scroll-prompt');
+  if (heroScrollPrompt) {
+    const promptOpacity = Math.max(0, 1.0 - clamped1 * 3.5);
+    heroScrollPrompt.style.opacity = promptOpacity.toFixed(3);
+  }
 }
 
 let targetPhase1Progress = 0.0;
@@ -93,11 +101,11 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = window.innerHeight || 800;
 
-  // Phase 1 (0 to 1.0 * vh): Bottle ascends from below and locks at center
+  // Phase 1 (0 to 1.0 * vh): Starting movement - bottle ascends from below, rotates to front, text slides in
   const p1 = Math.min(Math.max(scrollY / (vh * 1.0), 0), 1);
   targetPhase1Progress = p1;
 
-  // Phase 2: Bottle moves to Slide 2 as scrolling reaches the second page
+  // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
   let p2 = 0.0;
   if (slide2El) {
     const s2Rect = slide2El.getBoundingClientRect();
@@ -117,7 +125,7 @@ function updateScrollMetrics() {
       }
       heroStage.style.opacity = stageOpacity > 0.01 ? stageOpacity.toFixed(3) : '0';
       const visible = stageOpacity > 0.05;
-      heroStage.style.pointerEvents = (visible && (p1 > 0.5 || p2 > 0.5)) ? 'auto' : 'none';
+      heroStage.style.pointerEvents = (visible && p2 < 0.95) ? 'auto' : 'none';
 
       if (s2Rect.top <= vh * 0.5 && s2Rect.bottom > vh * 0.5) {
         updateActiveSlideUI(2);
@@ -313,7 +321,12 @@ window.goToSlide = function(index) {
   const vh = window.innerHeight || 800;
   if (index === 1) {
     resetLeftBottlesSequence();
-    animateScrollTo(0);
+    const curY = window.scrollY || 0;
+    if (curY < 50) {
+      animateScrollTo(vh, 1200);
+    } else {
+      animateScrollTo(vh, 850);
+    }
     return;
   }
 
@@ -667,8 +680,11 @@ function navigateToStop(targetStop) {
     }
   }
 }
+window.navigateToStop = navigateToStop;
+window.handleAdvance = handleAdvance;
 
 function handleAdvance() {
+
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
@@ -939,7 +955,7 @@ if (heroStage) {
   const height = heroStage.clientHeight || window.innerHeight;
 
   camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 10.0);
-  camera.position.set(0.0, 0.155, 0.76);
+  camera.position.set(0.0, 0.213, 0.76);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -957,36 +973,45 @@ if (heroStage) {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.target.set(0.0, 0.155, 0.0);
+  controls.target.set(0.0, 0.213, 0.0);
   controls.maxDistance = 1.4;
-  controls.minDistance = 0.40;
-  controls.autoRotate = false; // Starts facing straight ahead so the label is perfectly readable!
+  controls.minDistance = 0.08; // Allow macro close-up inspection of fibers
+  controls.autoRotate = false;
   controls.autoRotateSpeed = 0.8;
   controls.enableZoom = false; // Disable wheel zoom so mousewheel scrolls pages smoothly!
+  window.controls = controls;
+  window.camera = camera;
+  window.scene = scene;
+  window.renderer = renderer;
 
-  // Studio Lighting (Calibrated to match DSLR Studio lighting of real product)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.20);
+  // Studio Lighting (Calibrated to natural botanical daylight and studio photo reference)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.70);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xfffdf6, 1.35);
-  keyLight.position.set(-0.15, 0.35, 0.65);
+  const keyLight = new THREE.DirectionalLight(0xfffdf6, 1.15);
+  keyLight.position.set(-0.25, 0.45, 0.70);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xf5fff0, 0.95);
-  fillLight.position.set(0.25, 0.15, 0.60);
+  const fillLight = new THREE.DirectionalLight(0xf5fff0, 0.65);
+  fillLight.position.set(0.35, 0.20, 0.60);
   scene.add(fillLight);
 
-  const rimLight1 = new THREE.DirectionalLight(0xeeffee, 1.1);
+  const rimLight1 = new THREE.DirectionalLight(0xeeffee, 0.45);
   rimLight1.position.set(0.40, 0.35, -0.40);
   scene.add(rimLight1);
 
-  const rimLight2 = new THREE.DirectionalLight(0xf2fff0, 1.0);
+  const rimLight2 = new THREE.DirectionalLight(0xf2fff0, 0.45);
   rimLight2.position.set(-0.40, 0.30, -0.40);
   scene.add(rimLight2);
 
-  const underFill = new THREE.DirectionalLight(0xffffff, 0.5);
+  const underFill = new THREE.DirectionalLight(0xffffff, 0.30);
   underFill.position.set(0.0, -0.20, 0.40);
   scene.add(underFill);
+
+  // Top Soft Light for Coconut Meat & Water Brilliance
+  const topSoftLight = new THREE.DirectionalLight(0xffffff, 0.75);
+  topSoftLight.position.set(0.0, 0.75, 0.25);
+  scene.add(topSoftLight);
 
   // Geometry Construction (Pixel-calibrated 1:1 contour with TRUE outward normals)
   function createRevolvedGeometry(profilePts, radialSegs, zMin, zMax) {
@@ -1223,24 +1248,263 @@ if (heroStage) {
   scene.add(bottleRig);
   window.bottleRig = bottleRig;
 
-  // Settle at Center: Upright, centered, raised slightly for harmonious typography alignment
-  const SETTLE_Y = BOTTLE_CENTER_Y + 0.022;
+  // ====================================================================
+  // ULTRA-REALISTIC 3D TENDER COCONUT SUITE (THREE INDEPENDENT OBJECTS)
+  // Recreated exactly from the uploaded reference image:
+  // 1. 01_Tender_Coconut_Whole_Left
+  // 2. 02_Tender_Coconut_Open_Center
+  // 3. 03_Tender_Coconut_Whole_Right
+  // ====================================================================
+  const coconutBuilder = new CoconutModelBuilder();
+  const c1Left = coconutBuilder.buildCoconut01Left();
+  const c2Center = coconutBuilder.buildCoconut02Center();
+  const c3Right = coconutBuilder.buildCoconut03Right();
+
+  // Expose as separate global objects with exact requested naming
+  window['01_Tender_Coconut_Whole_Left'] = c1Left;
+  window['02_Tender_Coconut_Open_Center'] = c2Center;
+  window['03_Tender_Coconut_Whole_Right'] = c3Right;
+
+  window.exportCoconutOBJ = (modelKey) => {
+    if (modelKey === 'c1-left') exportCoconutToOBJ(c1Left, '01_Tender_Coconut_Whole_Left.obj');
+    else if (modelKey === 'c2-center') exportCoconutToOBJ(c2Center, '02_Tender_Coconut_Open_Center.obj');
+    else if (modelKey === 'c3-right') exportCoconutToOBJ(c3Right, '03_Tender_Coconut_Whole_Right.obj');
+    else {
+      exportCoconutToOBJ(coconutRig, 'Tender_Coconut_Reference_Trio.obj');
+    }
+  };
+
+  // Dedicated containers for bilateral showcase flanking the 1L bottle:
+  // Left Rig: Houses Coconut 1 (Whole Left) & Coconut 2 (Open Center)
+  // Right Rig: Houses Coconut 3 (Whole Right on side with vertical stalk)
+  // Master Rig: Carries unified breath floating and Slide 2 scroll docking/fadeout
+  const coconutRig = new THREE.Group();
+  coconutRig.name = 'TenderCoconutBilateralMasterRig';
+
+  const COCONUT_LEFT_X = -0.094;
+  const COCONUT_RIGHT_X = +0.046; // Snug against right flank of bottle
+  const COCONUT_SIDE_Y = 0.0620;  // Exact ground plane baseline matching bottle base at Y=0.0620
+  const COCONUT_SIDE_Z = -0.038;  // Snug slightly behind bottle sides
+  const COCONUT_BASE_SCALE = 0.53;
+
+  const coconutRigLeft = new THREE.Group();
+  coconutRigLeft.name = 'TenderCoconutLeftRig';
+  coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+  coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
+
+  const coconutRigRight = new THREE.Group();
+  coconutRigRight.name = 'TenderCoconutRightRig';
+  coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+  coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
+
+  // Trio relative offsets:
+  // Left Pair: Coconut 2 nestled close to bottle left side, Coconut 1 to the left
+  const C1_TRIO_POS = new THREE.Vector3(-0.130, 0.000, -0.020);
+  const C2_TRIO_POS = new THREE.Vector3(+0.012, 0.000, +0.015);
+  // Right Coconut: lying on its side, tucked snug to bottle right side behind it
+  const C3_TRIO_POS = new THREE.Vector3(0.000, 0.000, 0.000);
+
+  c1Left.position.copy(C1_TRIO_POS);
+  c2Center.position.copy(C2_TRIO_POS);
+  c3Right.position.copy(C3_TRIO_POS);
+
+  coconutRigLeft.add(c1Left);
+  coconutRigLeft.add(c2Center);
+  coconutRigRight.add(c3Right);
+
+  coconutRig.add(coconutRigLeft);
+  coconutRig.add(coconutRigRight);
+  scene.add(coconutRig);
+
+  window.coconutRig = coconutRig;
+  window.coconutRigLeft = coconutRigLeft;
+  window.coconutRigRight = coconutRigRight;
+  window.c1Left = c1Left;
+  window.c2Center = c2Center;
+  window.c3Right = c3Right;
+
+  let active3DModel = 'trio'; // 'trio' | 'c1-left' | 'c2-center' | 'c3-right'
+  c1Left.visible = true;
+  c2Center.visible = true;
+  c3Right.visible = true;
+  coconutRigLeft.visible = true;
+  coconutRigRight.visible = true;
+  bottleMeshGroup.visible = true; // BOTTLE IS ALWAYS VISIBLE WITH ITS PREVIOUS MOTION!
+
+  const modelDescriptions = {
+    'trio': '1L Cold-Pressed Bottle • Reference Trio: Coconuts Snug Beside and Behind Bottle Sides',
+    'c1-left': '1L Bottle • 01 Left Whole: Rounded Ovoid, Curved Stem & Blunt Cut Tip',
+    'c2-center': '1L Bottle • 02 Center Open: Machete Facets, Spongy White Husk & Fresh Dome',
+    'c3-right': '1L Bottle • 03 Right Whole: Oblong Body on Side with Segmented Vertical Stalk'
+  };
+
+  const pillBtns = document.querySelectorAll('.pill-model-btn:not(.btn-export-obj)');
+  const descChipText = document.getElementById('model-desc-text');
+  const exportBtn = document.getElementById('btn-export-obj');
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.exportCoconutOBJ(active3DModel);
+    });
+  }
+
+  function set3DModel(modelType) {
+    active3DModel = modelType;
+
+    pillBtns.forEach(btn => {
+      if (btn.dataset.model === modelType) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    if (descChipText && modelDescriptions[modelType]) {
+      descChipText.textContent = modelDescriptions[modelType];
+    }
+
+    coconutRig.visible = true;
+    bottleMeshGroup.visible = true;
+
+    if (modelType === 'trio') {
+      coconutRigLeft.visible = true;
+      coconutRigRight.visible = true;
+      c1Left.visible = true;
+      c2Center.visible = true;
+      c3Right.visible = true;
+      c1Left.position.copy(C1_TRIO_POS);
+      c2Center.position.copy(C2_TRIO_POS);
+      c3Right.position.copy(C3_TRIO_POS);
+      coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+      coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
+      coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
+      coconutRigLeft.rotation.set(0, 0, 0);
+      coconutRigRight.rotation.set(0, 0, 0);
+    } else if (modelType === 'c1-left') {
+      coconutRigLeft.visible = true;
+      coconutRigRight.visible = false;
+      c1Left.visible = true;
+      c2Center.visible = false;
+      c3Right.visible = false;
+      c1Left.position.set(0, 0, 0); // Centered solo inspection
+      coconutRigLeft.position.set(COCONUT_LEFT_X - 0.05, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
+      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
+      coconutRigLeft.rotation.set(0, 0, 0);
+    } else if (modelType === 'c2-center') {
+      coconutRigLeft.visible = true;
+      coconutRigRight.visible = false;
+      c1Left.visible = false;
+      c2Center.visible = true;
+      c3Right.visible = false;
+      c2Center.position.set(0, 0, 0); // Centered solo inspection
+      coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
+      coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
+      coconutRigLeft.rotation.set(0, 0, 0);
+    } else if (modelType === 'c3-right') {
+      coconutRigLeft.visible = false;
+      coconutRigRight.visible = true;
+      c1Left.visible = false;
+      c2Center.visible = false;
+      c3Right.visible = true;
+      c3Right.position.set(-0.105, 0, 0); // Centered solo inspection
+      coconutRigRight.position.set(0.0, COCONUT_SIDE_Y, COCONUT_SIDE_Z + 0.02);
+      coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE * 1.25);
+      coconutRigRight.rotation.set(0, 0, 0);
+    }
+  }
+
+
+  pillBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const m = btn.dataset.model;
+      if (m) {
+        set3DModel(m);
+      }
+    });
+  });
+
+  const btnReplayAnim = document.getElementById('btn-replay-anim');
+  if (btnReplayAnim) {
+    btnReplayAnim.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof window.replayBottleAnimation === 'function') {
+        window.replayBottleAnimation();
+      }
+    });
+  }
+
+  window.set3DModel = set3DModel;
+  window.coconutRig = coconutRig;
+  window.coconutRigLeft = coconutRigLeft;
+  window.coconutRigRight = coconutRigRight;
+  window.c1Left = c1Left;
+  window.c2Center = c2Center;
+  window.c3Right = c3Right;
+  window.updateScrollMetrics = updateScrollMetrics;
+  window.setPhaseProgress = (p1, p2 = 0) => {
+    targetPhase1Progress = p1;
+    currentPhase1Progress = p1;
+    targetPhase2Progress = p2;
+    currentPhase2Progress = p2;
+    renderHeroText(p1, p2);
+  };
+  window.renderFrame = () => {
+    if (renderer && scene && camera) renderer.render(scene, camera);
+  };
+
+  // Settle at Center: Upright, centered with bottle base resting on ground plane (Y=0.0620)
+  const SETTLE_Y = 0.213;
   const SETTLE_X = 0.0;
   const SETTLE_Z = 0.0;
 
-  // Starts DOWN below the center, tilted and rotated
-  const START_Y = SETTLE_Y - 0.40; // Coming from the down below the viewport
-  const START_X = 0.05;                   // Subtle diagonal arc
-  const START_Z = -0.09;
+  // Initial ascent entrance coordinates
+  const START_Y = SETTLE_Y - 0.40; // Coming from down below the viewport
+  const START_X = 0.04;            // Subtle diagonal arc
+  const START_Z = -0.08;
 
-  // Rotation while down: tilted and rotated around central axis (previous cinematic animation)
-  const START_ROTX = 0.16;                // ~9° pitch
-  const START_ROTY = -Math.PI * 1.5;      // 270° axial spin as it ascends
-  const START_ROTZ = -0.36;               // ~-20.5° tilt
+  // Rotation while down: tilted and rotated around central axis (cinematic animation)
+  const START_ROTX = 0.16;         // ~9° forward pitch
+  const START_ROTY = -Math.PI * 1.5; // 270° axial spin as it ascends
+  const START_ROTZ = -0.28;        // ~-16° natural tilt
 
   const SETTLE_ROTX = 0.0;
-  const SETTLE_ROTY = 0.0;                // 0.0: FRONT of bottle (Tender WONDER, 1L, Product of India)
+  const SETTLE_ROTY = 0.0; // FRONT of bottle (Tender WONDER, 1L, Product of India)
   const SETTLE_ROTZ = 0.0;
+
+  window.forceSettle = () => {
+    const vh = window.innerHeight || 800;
+    window.scrollTo(0, vh);
+    targetPhase1Progress = 1.0;
+    currentPhase1Progress = 1.0;
+    targetPhase2Progress = 0.0;
+    currentPhase2Progress = 0.0;
+    bottleRig.position.set(SETTLE_X, SETTLE_Y, SETTLE_Z);
+    bottleRig.rotation.set(SETTLE_ROTX, SETTLE_ROTY, SETTLE_ROTZ);
+    bottleRig.scale.setScalar(1.0);
+    bottleMeshGroup.visible = true;
+    if (coconutRig) {
+      coconutRig.visible = true;
+      coconutRig.scale.setScalar(1.0);
+      coconutRig.position.set(0, 0, 0);
+      if (coconutRigLeft) {
+        coconutRigLeft.visible = active3DModel !== 'c3-right';
+        coconutRigLeft.scale.setScalar(active3DModel === 'trio' ? COCONUT_BASE_SCALE : COCONUT_BASE_SCALE * 1.25);
+        coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+      }
+      if (coconutRigRight) {
+        coconutRigRight.visible = active3DModel === 'trio' || active3DModel === 'c3-right';
+        coconutRigRight.scale.setScalar(active3DModel === 'trio' ? COCONUT_BASE_SCALE : COCONUT_BASE_SCALE * 1.25);
+        coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
+      }
+    }
+    renderHeroText(1.0, 0.0);
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  };
 
   // Quintic smoothstep easing for zero jerk
   function smoothstep5(x) {
@@ -1248,19 +1512,14 @@ if (heroStage) {
     return x * x * x * (x * (x * 6 - 15) + 10);
   }
 
-  // Replay: smoothly scrolls to show the bottle rising from down and rotating to front
+  // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival
   window.replayBottleAnimation = function() {
     const vh = window.innerHeight || 800;
-    const scrollY = window.scrollY || 0;
-    if (scrollY < 50) {
-      animateScrollTo(vh, 850);
-    } else {
-      animateScrollTo(0, 600, () => {
-        setTimeout(() => {
-          animateScrollTo(vh, 850);
-        }, 300);
-      });
-    }
+    animateScrollTo(0, 500, () => {
+      setTimeout(() => {
+        animateScrollTo(vh, 1200);
+      }, 250);
+    });
   };
 
 
@@ -1406,7 +1665,49 @@ if (heroStage) {
 
     bottleRig.scale.setScalar(baseScale);
 
-    if (controls) controls.update();
+    // ================================================================
+    // 3D COCONUT SIDE SHOWCASE (Continuous 360° Rotation & Floating)
+    // ================================================================
+    // Bottle is ALWAYS visible and executes its exact original motion above!
+    bottleMeshGroup.visible = true;
+
+    if (coconutRig) {
+      // Modulate scale by ease1 (arrival) and ease2 (docking out on Slide 2)
+      // When user clicks a specific coconut model for solo inspection, it is always full scale
+      const coconutFade = (active3DModel !== 'trio') ? 1.0 : (ease1 * Math.max(0, 1.0 - ease2 * 2.2));
+
+      if (coconutFade > 0.001) {
+        coconutRig.visible = true;
+        coconutRig.scale.setScalar(coconutFade);
+
+        // Gentle organic breathing and subtle idle perspective sway
+        const breathY = Math.sin(now * 0.0016 + 0.8) * 0.0035;
+        coconutRig.position.y = breathY;
+
+        // Symmetrical subtle slow ambient sway (+/- 3°) so reference photo composition remains front and center
+        const idleSwayY = Math.sin(now * 0.0008) * 0.05;
+        if (coconutRigLeft) coconutRigLeft.rotation.y = idleSwayY;
+        if (coconutRigRight) coconutRigRight.rotation.y = -idleSwayY;
+
+        // Natural photographic eye-level pitch
+        const targetPitch = (active3DModel === 'c2-center') ? 0.06 : 0.04;
+        if (coconutRigLeft) coconutRigLeft.rotation.x = THREE.MathUtils.lerp(coconutRigLeft.rotation.x, targetPitch, dt * 3.5);
+        if (coconutRigRight) coconutRigRight.rotation.x = THREE.MathUtils.lerp(coconutRigRight.rotation.x, targetPitch, dt * 3.5);
+
+        // Animated ripples on Coconut 2 coconut water pool
+        if (c2Center && c2Center.userData.waterMesh) {
+          const wTex = c2Center.userData.waterMesh.material.normalMap;
+          if (wTex) {
+            wTex.offset.x = (now * 0.00008) % 1;
+            wTex.offset.y = (now * 0.00005) % 1;
+          }
+        }
+      } else {
+        coconutRig.visible = false;
+      }
+    }
+
+    if (controls && controls.enabled) controls.update();
     // Occlusion culling: only render when heroStage is in viewport
     if (isHeroStageVisible && renderer && scene && camera) {
       renderer.render(scene, camera);
