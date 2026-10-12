@@ -1,0 +1,153 @@
+{
+  "bottleType": "250ml_hourglass",
+  "totalHeight": 0.192,
+  "maxBodyRadius": 0.0298,
+  "sleeveBottomZ": 0.0058,
+  "sleeveTopZ": 0.16,
+  "capBottomZ": 0.1768,
+  "capTopZ": 0.192,
+  "capRadius": 0.0188,
+  "capColor": 16054008,
+  "points": [
+    {
+      "r": 0,
+      "z": 0.001,
+      "desc": "base center pushup"
+    },
+    {
+      "r": 0.012,
+      "z": 0.001,
+      "desc": "pushup inner dome"
+    },
+    {
+      "r": 0.0225,
+      "z": 0,
+      "desc": "resting foot ring"
+    },
+    {
+      "r": 0.0252,
+      "z": 0.0022,
+      "desc": "heel curve lower"
+    },
+    {
+      "r": 0.027,
+      "z": 0.0058,
+      "desc": "sleeve bottom heel"
+    },
+    {
+      "r": 0.0285,
+      "z": 0.011,
+      "desc": "heel curve upper"
+    },
+    {
+      "r": 0.0294,
+      "z": 0.018,
+      "desc": "lower hip rise"
+    },
+    {
+      "r": 0.0298,
+      "z": 0.028,
+      "desc": "lower hip peak"
+    },
+    {
+      "r": 0.0296,
+      "z": 0.038,
+      "desc": "lower hip upper"
+    },
+    {
+      "r": 0.0288,
+      "z": 0.048,
+      "desc": "transition to waist"
+    },
+    {
+      "r": 0.0276,
+      "z": 0.058,
+      "desc": "waist inward slope"
+    },
+    {
+      "r": 0.0262,
+      "z": 0.068,
+      "desc": "waist taper"
+    },
+    {
+      "r": 0.0253,
+      "z": 0.078,
+      "desc": "waist dip enter"
+    },
+    {
+      "r": 0.025,
+      "z": 0.086,
+      "desc": "waist minimum inflection"
+    },
+    {
+      "r": 0.0253,
+      "z": 0.094,
+      "desc": "waist dip exit"
+    },
+    {
+      "r": 0.0263,
+      "z": 0.104,
+      "desc": "chest outward flare"
+    },
+    {
+      "r": 0.0276,
+      "z": 0.114,
+      "desc": "chest rise"
+    },
+    {
+      "r": 0.0288,
+      "z": 0.124,
+      "desc": "shoulder curve"
+    },
+    {
+      "r": 0.0296,
+      "z": 0.134,
+      "desc": "shoulder peak"
+    },
+    {
+      "r": 0.0293,
+      "z": 0.142,
+      "desc": "shoulder dome"
+    },
+    {
+      "r": 0.028,
+      "z": 0.149,
+      "desc": "shoulder inward taper"
+    },
+    {
+      "r": 0.0255,
+      "z": 0.155,
+      "desc": "shoulder upper dome"
+    },
+    {
+      "r": 0.022,
+      "z": 0.16,
+      "desc": "sleeve top seam"
+    },
+    {
+      "r": 0.0185,
+      "z": 0.1635,
+      "desc": "neck transition"
+    },
+    {
+      "r": 0.016,
+      "z": 0.1675,
+      "desc": "neck conical flare"
+    },
+    {
+      "r": 0.0148,
+      "z": 0.1715,
+      "desc": "neck waist cylinder"
+    },
+    {
+      "r": 0.0165,
+      "z": 0.1745,
+      "desc": "neck collar support ring"
+    },
+    {
+      "r": 0.0152,
+      "z": 0.1768,
+      "desc": "neck under cap"
+    }
+  ]
+}

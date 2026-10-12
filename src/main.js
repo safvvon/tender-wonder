@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import profileData from './exact_profile.json';
+import profile1L from './exact_profile.json';
+import profile500ml from './profile_500ml.json';
+import profile250ml from './profile_250ml.json';
+const profileData = profile1L;
 import { CoconutModelBuilder, exportCoconutToOBJ } from './coconut_model_builder.js';
 
 window.THREE = THREE;
@@ -85,9 +88,13 @@ function renderHeroText(progress1, progress2 = 0) {
   }
 }
 
+let targetPhase1CenterProgress = 0.0;
+let targetPhase1EmergeProgress = 0.0;
+let currentPhase1CenterProgress = 0.0;
+let currentPhase1EmergeProgress = 0.0;
 let targetPhase1Progress = 0.0;
-let targetPhase2Progress = 0.0;
 let currentPhase1Progress = 0.0;
+let targetPhase2Progress = 0.0;
 let currentPhase2Progress = 0.0;
 let isHeroStageVisible = true;
 let isScrollPending = false;
@@ -101,11 +108,18 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = window.innerHeight || 800;
 
-  // Phase 1 (0 to 1.0 * vh): Starting movement - bottle ascends from below, rotates to front, text slides in
-  const p1 = Math.min(Math.max(scrollY / (vh * 1.0), 0), 1);
-  targetPhase1Progress = p1;
+  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
+  const pCenter = Math.min(Math.max(scrollY / (vh * 1.0), 0), 1);
+  targetPhase1CenterProgress = pCenter;
 
-  // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
+  // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
+  const pEmerge = Math.min(Math.max((scrollY - vh) / (vh * 1.0), 0), 1);
+  targetPhase1EmergeProgress = pEmerge;
+
+  // Combined progress for backward compatibility
+  targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
+
+  // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page (2.0 * vh to 3.0 * vh)
   let p2 = 0.0;
   if (slide2El) {
     const s2Rect = slide2El.getBoundingClientRect();
@@ -136,7 +150,7 @@ function updateScrollMetrics() {
   }
   targetPhase2Progress = p2;
 
-  renderHeroText(p1, p2);
+  renderHeroText(pCenter, p2);
 
   // DONT MOVE THE SECOND PAGE UNTILL THE BOTTLE ALL COMING FROM THE SIDE WHILE SCROLLING
   if (slide2El && !isLeftBottlesSequenceFinished() && (scrollY >= slide2El.offsetTop - 60 && scrollY <= slide2El.offsetTop + vh * 0.5)) {
@@ -148,7 +162,7 @@ function updateScrollMetrics() {
   }
 
   // Reset left bottles if user scrolls back up to Slide 1
-  if (p2 < 0.35 && scrollY < vh * 1.3) {
+  if (p2 < 0.35 && scrollY < vh * 2.3) {
     resetLeftBottlesSequence();
   } else if (slide3El && scrollY >= slide3El.offsetTop - 60) {
     setLeftBottlesStep(3);
@@ -324,6 +338,8 @@ window.goToSlide = function(index) {
     const curY = window.scrollY || 0;
     if (curY < 50) {
       animateScrollTo(vh, 1200);
+    } else if (curY > vh * 2.2) {
+      animateScrollTo(vh * 2, 850);
     } else {
       animateScrollTo(vh, 850);
     }
@@ -404,37 +420,53 @@ document.addEventListener('click', (e) => {
 // ======================================================================
 // UNIFIED BULLETPROOF SLIDE NAVIGATION ENGINE
 // Stop 0: Slide 1 Top (0vh)
-// Stop 1: Slide 1 Center Checkpoint (100vh) - "TASTE NATURE’S WONDER" + 3D Bottle
-// Stop 2: Slide 2 (New Collection) - 3D Bottle docked + 3 Left Bottles Staggered
-// Stop 3: Slide 3 (The Product)
-// Stop 4: Slide 4 (Catalog)
-// Stop 5: Slide 5 (Global Reach)
-// Stop 6: Slide 6 (Customer Details)
-// Stop 7: Slide 7 (Valued Clients)
+// Stop 1: Slide 1 Center Checkpoint (100vh) - Center 1L Bottle arrives
+// Stop 2: Slide 1 Trio Checkpoint (200vh) - Remaining 2 bottles emerge with rotation
+// Stop 3: Slide 2 (New Collection) - 1L Bottle docked + 3 Left Bottles Staggered
+// Stop 4: Slide 3 (The Product / 10 Stages)
+// Stop 5: Slide 4 (Catalog)
+// Stop 6: Slide 5 (Global Reach)
+// Stop 7: Slide 6 (Customer Details)
+// Stop 8: Slide 7 (Valued Clients)
 // ======================================================================
+const STOP_HERO_TOP = 0;
+const STOP_HERO_CENTER = 1;
+const STOP_HERO_TRIO = 2;
+const STOP_SLIDE_2 = 3;
+const STOP_SLIDE_3 = 4;
+const STOP_SLIDE_4 = 5;
+const STOP_SLIDE_5 = 6;
+const STOP_SLIDE_6 = 7;
+const STOP_SLIDE_7 = 8;
+const TOTAL_STOPS = 8;
 
 function getCurrentStop() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = window.innerHeight || 800;
 
-  if (scrollY < vh * 0.45) return 0;
-  if (scrollY < vh * 1.45) return 1;
+  if (scrollY < vh * 0.45) return STOP_HERO_TOP;
+  if (scrollY < vh * 1.45) return STOP_HERO_CENTER;
+
+  const s2 = document.getElementById('slide-2');
+  const s2Top = s2 ? s2.offsetTop : vh * 3;
+  if (scrollY < (vh * 2 + s2Top) / 2) return STOP_HERO_TRIO;
 
   for (let i = 2; i < totalSlides; i++) {
     const s = document.getElementById(`slide-${i}`);
     const nextS = document.getElementById(`slide-${i + 1}`);
+    const stopIdx = i + 1; // Slide 2 -> Stop 3, Slide 3 -> Stop 4, etc.
     if (s && nextS) {
       const mid = (s.offsetTop + nextS.offsetTop) / 2;
       if (scrollY < mid) {
-        return i;
+        return stopIdx;
       }
     } else if (s) {
       if (scrollY < s.offsetTop + vh * 0.5) {
-        return i;
+        return stopIdx;
       }
     }
   }
-  return totalSlides;
+  return TOTAL_STOPS;
 }
 window.getCurrentStop = getCurrentStop;
 
@@ -652,29 +684,33 @@ function navigateToStop(targetStop) {
   const vh = window.innerHeight || 800;
   const cur = getCurrentStop();
 
-  if (targetStop <= 0) {
+  if (targetStop <= STOP_HERO_TOP) {
     resetLeftBottlesSequence();
     animateScrollTo(0);
-  } else if (targetStop === 1) {
+  } else if (targetStop === STOP_HERO_CENTER) {
     resetLeftBottlesSequence();
     animateScrollTo(vh);
-  } else if (targetStop === 2) {
+  } else if (targetStop === STOP_HERO_TRIO) {
+    resetLeftBottlesSequence();
+    animateScrollTo(vh * 2);
+  } else if (targetStop === STOP_SLIDE_2) {
     const s2 = document.getElementById('slide-2');
-    const top = s2 ? s2.offsetTop : vh * 2;
+    const top = s2 ? s2.offsetTop : vh * 3;
     animateScrollTo(top);
-  } else if (targetStop >= 3 && targetStop <= totalSlides) {
-    if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+  } else if (targetStop >= STOP_SLIDE_3 && targetStop <= TOTAL_STOPS) {
+    const slideNum = targetStop - 1; // STOP_SLIDE_3 (4) -> slide 3, etc.
+    if (cur === STOP_SLIDE_2 && !isLeftBottlesSequenceFinished()) {
       stepLeftBottlesForward();
       const s2 = document.getElementById('slide-2');
-      const top = s2 ? s2.offsetTop : vh * 2;
+      const top = s2 ? s2.offsetTop : vh * 3;
       animateScrollTo(top);
       return;
     }
     setLeftBottlesStep(3);
-    const s = document.getElementById(`slide-${targetStop}`);
+    const s = document.getElementById(`slide-${slideNum}`);
     if (s) {
       animateScrollTo(s.offsetTop);
-      if (targetStop === 3) {
+      if (slideNum === 3) {
         setTimeout(() => updateProcessTrackFill(), 350);
       }
     }
@@ -684,14 +720,13 @@ window.navigateToStop = navigateToStop;
 window.handleAdvance = handleAdvance;
 
 function handleAdvance() {
-
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
-  if (cur === 2 && !isLeftBottlesSequenceFinished()) {
+  if (cur === STOP_SLIDE_2 && !isLeftBottlesSequenceFinished()) {
     stepLeftBottlesForward();
     const s2 = document.getElementById('slide-2');
-    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 2;
+    const s2Top = s2 ? s2.offsetTop : window.innerHeight * 3;
     if (Math.abs(window.scrollY - s2Top) > 2) {
       window.scrollTo(0, s2Top);
     }
@@ -699,26 +734,26 @@ function handleAdvance() {
   }
 
   // On Slide 3: step through stages 1 to 10 before advancing to Slide 4
-  if (cur === 3 && currentProcessStep < 10) {
+  if (cur === STOP_SLIDE_3 && currentProcessStep < 10) {
     setProcessStep(currentProcessStep + 1);
     lastProcessStepTime = performance.now();
     return;
   }
 
-  // Once all 3 bottles have come in (or on any other slide), advance to the next slide!
-  if (cur < totalSlides) {
+  // Once all 3 bottles have come in (or on any other stop), advance to the next stop!
+  if (cur < TOTAL_STOPS) {
     navigateToStop(cur + 1);
   }
 }
 
 function handleRetreat() {
   const cur = getCurrentStop();
-  if (cur === 3 && currentProcessStep > 1) {
+  if (cur === STOP_SLIDE_3 && currentProcessStep > 1) {
     setProcessStep(currentProcessStep - 1);
     lastProcessStepTime = performance.now();
     return;
   }
-  if (cur > 0) {
+  if (cur > STOP_HERO_TOP) {
     navigateToStop(cur - 1);
   }
 }
@@ -802,7 +837,7 @@ function handleGlobalWheel(e) {
   // Slide 2: 3 horizontal bottles entrance according to user scrolling
   // Bottles enter cleanly with responsive cooldown (260ms).
   // Once all 3 bottles are on screen, scrolling down directly advances to Slide 3.
-  if (cur === 2) {
+  if (cur === STOP_SLIDE_2) {
     if (e.deltaY > 0) {
       if (leftBottlesStep < 3) {
         if (now - lastBottleStepTime < 260) {
@@ -840,7 +875,7 @@ function handleGlobalWheel(e) {
   }
 
   // Slide 3: 9 Stages Process Journey + Stage 10 Reveal scrubbed via scroll
-  if (cur === 3) {
+  if (cur === STOP_SLIDE_3) {
     if (e.deltaY > 0) {
       if (currentProcessStep < 10) {
         if (now - lastProcessStepTime < 380) {
@@ -883,9 +918,9 @@ function handleGlobalWheel(e) {
     }
   }
 
-  // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (804px).
-  // The next scroll down (after brief pause) goes to Slide 2.
-  if (cur === 1 && isFirstScrollLocked && e.deltaY > 0) {
+  // Enforce rule: A big first scroll starting at Slide 1 Top ends at Center Checkpoint (100vh).
+  // The next scroll down (after brief pause) goes to Trio Checkpoint (200vh).
+  if (cur === STOP_HERO_CENTER && isFirstScrollLocked && e.deltaY > 0) {
     return;
   }
 
@@ -895,7 +930,7 @@ function handleGlobalWheel(e) {
   const THRESHOLD = 28;
   if (wheelDeltaAccumulator >= THRESHOLD) {
     wheelDeltaAccumulator = 0;
-    if (cur === 0) {
+    if (cur === STOP_HERO_TOP) {
       isFirstScrollLocked = true;
     }
     handleAdvance();
@@ -990,31 +1025,31 @@ if (heroStage) {
   window.renderer = renderer;
 
   // Studio Lighting (Calibrated to natural botanical daylight and studio photo reference)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.70);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.38);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xfffdf6, 1.15);
+  const keyLight = new THREE.DirectionalLight(0xfffaee, 1.42);
   keyLight.position.set(-0.25, 0.45, 0.70);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xf5fff0, 0.65);
+  const fillLight = new THREE.DirectionalLight(0xf5fff0, 0.55);
   fillLight.position.set(0.35, 0.20, 0.60);
   scene.add(fillLight);
 
-  const rimLight1 = new THREE.DirectionalLight(0xeeffee, 0.45);
+  const rimLight1 = new THREE.DirectionalLight(0xeeffee, 0.50);
   rimLight1.position.set(0.40, 0.35, -0.40);
   scene.add(rimLight1);
 
-  const rimLight2 = new THREE.DirectionalLight(0xf2fff0, 0.45);
+  const rimLight2 = new THREE.DirectionalLight(0xf2fff0, 0.50);
   rimLight2.position.set(-0.40, 0.30, -0.40);
   scene.add(rimLight2);
 
-  const underFill = new THREE.DirectionalLight(0xffffff, 0.30);
+  const underFill = new THREE.DirectionalLight(0xffffff, 0.25);
   underFill.position.set(0.0, -0.20, 0.40);
   scene.add(underFill);
 
   // Top Soft Light for Coconut Meat & Water Brilliance
-  const topSoftLight = new THREE.DirectionalLight(0xffffff, 0.75);
+  const topSoftLight = new THREE.DirectionalLight(0xffffff, 0.85);
   topSoftLight.position.set(0.0, 0.75, 0.25);
   scene.add(topSoftLight);
 
@@ -1060,88 +1095,14 @@ if (heroStage) {
     return geo;
   }
 
-  const points = profileData.points;
-
-  // A. Translucent PET Bottle (Exposed Neck & Base Foot only, so shrink sleeve is 100% crisp)
-  const neckPts = points.filter(p => p.z >= profileData.sleeveTopZ - 0.001);
-  const neckGeo = createRevolvedGeometry(neckPts, 64, neckPts[0].z, neckPts[neckPts.length - 1].z);
-
-  const basePts = points.filter(p => p.z <= profileData.sleeveBottomZ + 0.001);
-  const baseGeo = createRevolvedGeometry(basePts, 64, basePts[0].z, basePts[basePts.length - 1].z);
-
-  const petMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0xb8c5a4), // natural cloudy coconut water tint
-    transparent: true,
-    opacity: 0.28,
-    roughness: 0.04,
-    ior: 1.52,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.03,
-    side: THREE.FrontSide
-  });
-  const neckMesh = new THREE.Mesh(neckGeo, petMat);
-  const baseMesh = new THREE.Mesh(baseGeo, petMat);
-
-  // B. Natural Coconut Water Liquid (Inner Core)
-  const liquidPts = points
-    .filter(p => p.z <= profileData.capBottomZ)
-    .map(p => ({
-      r: Math.max(0, p.r - 0.0008),
-      z: Math.min(profileData.capBottomZ - 0.0005, p.z)
-    }));
-
-  const topLiquidZ = liquidPts[liquidPts.length - 1].z;
-  const liquidGeo = createRevolvedGeometry(liquidPts, 64, liquidPts[0].z, topLiquidZ);
-
-  // Top liquid meniscus disc
-  const topLiquidRadius = liquidPts[liquidPts.length - 1].r;
-  const meniscusGeo = new THREE.CircleGeometry(topLiquidRadius, 64);
-  meniscusGeo.rotateX(-Math.PI / 2);
-  meniscusGeo.translate(0, topLiquidZ, 0);
-
-  const liquidMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0xa4b28c), // authentic tender coconut water color
-    roughness: 0.2,
-    metalness: 0.0
-  });
-  const liquidMesh = new THREE.Mesh(liquidGeo, liquidMat);
-  const meniscusMesh = new THREE.Mesh(meniscusGeo, liquidMat);
-
-  // C. Shrink Sleeve Label (Wrap right below collar ring down to heel)
-  const sleevePts = points
-    .filter(p => p.z >= profileData.sleeveBottomZ - 0.001 && p.z <= profileData.sleeveTopZ + 0.001)
-    .map(p => ({ r: p.r + 0.00015, z: p.z }));
-
-  const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
-
-  const texLoader = new THREE.TextureLoader();
-  const labelAlbedoTex = texLoader.load('/textures/label_albedo.png?v=21', (t) => {
-    t.colorSpace = THREE.SRGBColorSpace;
-    t.wrapS = THREE.RepeatWrapping;
-    t.wrapT = THREE.ClampToEdgeWrapping;
-    t.offset.x = -0.045; // Perfectly centered front face (Tender WONDER logo, Arabic text, coconut splash)
-    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  });
-  labelAlbedoTex.wrapS = THREE.RepeatWrapping;
-  labelAlbedoTex.offset.x = -0.045;
-  window.labelAlbedoTex = labelAlbedoTex;
-
-  const sleeveMat = new THREE.MeshStandardMaterial({
-    map: labelAlbedoTex,
-    roughness: 0.32,
-    metalness: 0.0,
-    side: THREE.FrontSide
-  });
-  const sleeveMesh = new THREE.Mesh(sleeveGeo, sleeveMat);
-
-  // D. Precision 1L Commercial Screw Cap with 64 Fluted Grip Ridges & Tamper Ring
-  function createCapGeometry() {
+  // Precision Reusable Commercial Screw Cap with 64 Fluted Grip Ridges & Tamper Ring
+  function createCapGeometry(profile) {
     const numRidges = 64;
     const numSegs = numRidges * 2;
-    const R_base = profileData.capRadius;
-    const R_ridge = profileData.capRadius + 0.00055;
-    const capBotZ = profileData.capBottomZ;
-    const capTopZ = profileData.capTopZ;
+    const R_base = profile.capRadius;
+    const R_ridge = profile.capRadius + 0.00055;
+    const capBotZ = profile.capBottomZ;
+    const capTopZ = profile.capTopZ;
     const capH = capTopZ - capBotZ;
 
     const zLevels = [
@@ -1194,7 +1155,6 @@ if (heroStage) {
     }
 
     const topCenterIdx = positions.length / 3;
-    // Flat top center vertex at capTopZ
     positions.push(0, zLevels[5], 0);
     uvs.push(0.5, 0.5);
 
@@ -1221,43 +1181,206 @@ if (heroStage) {
     return geo;
   }
 
-  const capGeo = createCapGeometry();
-  const capMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0x6ed618), // Vibrant commercial lime green matching real 1L bottle photo
-    roughness: 0.32,
-    metalness: 0.02
-  });
-  const capMesh = new THREE.Mesh(capGeo, capMat);
+  const texLoader = new THREE.TextureLoader();
+
+  // Unified factory to build an authentic 3D commercial bottle with PET, liquid, shrink sleeve, and cap
+  function createBottleMeshGroup(profile, labelTexturePath, labelOffsetX, capColorHex, name) {
+    const points = profile.points;
+
+    // A. Translucent PET Bottle (Exposed Neck & Base Foot)
+    const neckPts = points.filter(p => p.z >= profile.sleeveTopZ - 0.001);
+    const neckGeo = createRevolvedGeometry(neckPts, 64, neckPts[0].z, neckPts[neckPts.length - 1].z);
+
+    const basePts = points.filter(p => p.z <= profile.sleeveBottomZ + 0.001);
+    const baseGeo = createRevolvedGeometry(basePts, 64, basePts[0].z, basePts[basePts.length - 1].z);
+
+    const petMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(0xb8c5a4), // natural cloudy coconut water tint
+      transparent: true,
+      opacity: 0.28,
+      roughness: 0.04,
+      ior: 1.52,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      side: THREE.FrontSide
+    });
+    const neckMesh = new THREE.Mesh(neckGeo, petMat);
+    const baseMesh = new THREE.Mesh(baseGeo, petMat);
+
+    // B. Natural Coconut Water Liquid (Inner Core)
+    const liquidPts = points
+      .filter(p => p.z <= profile.capBottomZ)
+      .map(p => ({
+        r: Math.max(0, p.r - 0.0008),
+        z: Math.min(profile.capBottomZ - 0.0005, p.z)
+      }));
+
+    const topLiquidZ = liquidPts[liquidPts.length - 1].z;
+    const liquidGeo = createRevolvedGeometry(liquidPts, 64, liquidPts[0].z, topLiquidZ);
+
+    const topLiquidRadius = liquidPts[liquidPts.length - 1].r;
+    const meniscusGeo = new THREE.CircleGeometry(topLiquidRadius, 64);
+    meniscusGeo.rotateX(-Math.PI / 2);
+    meniscusGeo.translate(0, topLiquidZ, 0);
+
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0xa4b28c), // authentic tender coconut water color
+      roughness: 0.2,
+      metalness: 0.0,
+      transparent: true,
+      opacity: 1.0
+    });
+    const liquidMesh = new THREE.Mesh(liquidGeo, liquidMat);
+    const meniscusMesh = new THREE.Mesh(meniscusGeo, liquidMat);
+
+    // C. Shrink Sleeve Label
+    const sleevePts = points
+      .filter(p => p.z >= profile.sleeveBottomZ - 0.001 && p.z <= profile.sleeveTopZ + 0.001)
+      .map(p => ({ r: p.r + 0.00015, z: p.z }));
+
+    const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
+
+    const labelTex = texLoader.load(labelTexturePath, (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.ClampToEdgeWrapping;
+      t.offset.x = labelOffsetX;
+      if (renderer && renderer.capabilities) {
+        t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      }
+    });
+    labelTex.wrapS = THREE.RepeatWrapping;
+    labelTex.offset.x = labelOffsetX;
+
+    const sleeveMat = new THREE.MeshStandardMaterial({
+      map: labelTex,
+      roughness: 0.32,
+      metalness: 0.0,
+      side: THREE.FrontSide,
+      transparent: true,
+      opacity: 1.0
+    });
+    const sleeveMesh = new THREE.Mesh(sleeveGeo, sleeveMat);
+
+    // D. Precision Screw Cap
+    const capGeo = createCapGeometry(profile);
+    const capMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(capColorHex),
+      roughness: 0.32,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 1.0
+    });
+    const capMesh = new THREE.Mesh(capGeo, capMat);
+
+    const totalH = profile.totalHeight || profile.capTopZ || 0.3033;
+    const centerY = totalH * 0.5;
+    const group = new THREE.Group();
+    group.name = name;
+    group.add(neckMesh);
+    group.add(baseMesh);
+    group.add(liquidMesh);
+    group.add(meniscusMesh);
+    group.add(sleeveMesh);
+    group.add(capMesh);
+    group.position.set(0, -centerY, 0);
+
+    return {
+      group,
+      centerY,
+      totalHeight: totalH,
+      neckMesh,
+      baseMesh,
+      liquidMesh,
+      meniscusMesh,
+      sleeveMesh,
+      capMesh,
+      labelTex,
+      materials: [petMat, liquidMat, sleeveMat, capMat]
+    };
+  }
 
   // ====================================================================
-  // UNIFIED 3D BOTTLE ASSEMBLY & CINEMATIC MOTION RIG
+  // THREE-BOTTLE 3D HOMEPAGE SHOWCASE (1L Hero Center, 500ml Left, 250ml Right)
   // ====================================================================
-  // Exact center of mass for physical 303.3mm tall commercial bottle
-  const BOTTLE_CENTER_Y = 0.1516;
+  const BOTTLE_CENTER_Y = 0.1516; // Exact center of 303.3mm tall commercial 1L bottle
 
-  const bottleMeshGroup = new THREE.Group();
-  bottleMeshGroup.add(neckMesh);
-  bottleMeshGroup.add(baseMesh);
-  bottleMeshGroup.add(liquidMesh);
-  bottleMeshGroup.add(meniscusMesh);
-  bottleMeshGroup.add(sleeveMesh);
-  bottleMeshGroup.add(capMesh);
-  // Center meshes relative to pivot so all rotations naturally pivot around center of mass
-  bottleMeshGroup.position.set(0, -BOTTLE_CENTER_Y, 0);
+  // 1. Center Hero Bottle (1L)
+  const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.png?v=21', -0.045, 0x6ed618, 'Bottle1L');
+  const bottleMeshGroup = bottle1LData.group;
   window.bottleMeshGroup = bottleMeshGroup;
+  window.labelAlbedoTex = bottle1LData.labelTex;
 
-  // Interactive Rig for independent mouse rotation around center of mass
+  // 2. Left Flanking Bottle (500ml Cylinder)
+  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.png', 0.40, 0x6ed618, 'Bottle500ml');
+  window.bottle500Data = bottle500Data;
+
+  // 3. Right Flanking Bottle (250ml Hourglass)
+  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.png', 0.38, 0x6ed618, 'Bottle250ml');
+  window.bottle250Data = bottle250Data;
+
+  // Calibrated size scaling for authentic volume relationships & viewport framing
+  const BOTTLE_1L_SCALE = 0.90; // Elegant viewport height framing for hero 1L bottle
+  const B500_SCALE_X = 1.18;
+  const B500_SCALE_Y = 1.10;
+  const B500_SCALE_Z = 1.18;
+  const B250_SCALE_X = 1.22;
+  const B250_SCALE_Y = 1.18;
+  const B250_SCALE_Z = 1.22;
+
+  // Interactive Rigs for independent rotation around each bottle's center
   const bottleInteractiveRig = new THREE.Group();
   bottleInteractiveRig.name = 'BottleInteractiveRig';
   bottleInteractiveRig.add(bottleMeshGroup);
+  bottleInteractiveRig.scale.set(BOTTLE_1L_SCALE, BOTTLE_1L_SCALE, BOTTLE_1L_SCALE);
   window.bottleInteractiveRig = bottleInteractiveRig;
 
-  // Outer Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
+  const bottle500InteractiveRig = new THREE.Group();
+  bottle500InteractiveRig.name = 'Bottle500InteractiveRig';
+  bottle500InteractiveRig.add(bottle500Data.group);
+  bottle500InteractiveRig.scale.set(B500_SCALE_X, B500_SCALE_Y, B500_SCALE_Z);
+  window.bottle500InteractiveRig = bottle500InteractiveRig;
+
+  const bottle250InteractiveRig = new THREE.Group();
+  bottle250InteractiveRig.name = 'Bottle250InteractiveRig';
+  bottle250InteractiveRig.add(bottle250Data.group);
+  bottle250InteractiveRig.scale.set(B250_SCALE_X, B250_SCALE_Y, B250_SCALE_Z);
+  window.bottle250InteractiveRig = bottle250InteractiveRig;
+
+  // Exact shared tabletop baseline: all 3 bottles rest solidly on baseline
+  // 1L bottom is at -BOTTLE_CENTER_Y * BOTTLE_1L_SCALE = -0.1516 * 0.90 = -0.13644
+  // 500ml scaled total height = 0.236 * 1.10 = 0.2596 -> Center Y = -0.13644 + 0.1298 = -0.0066
+  const B500_POS_X = -0.125;
+  const B500_POS_Y = -0.007;
+  const B500_POS_Z = -0.035;
+
+  const bottle500Rig = new THREE.Group();
+  bottle500Rig.name = 'Bottle500Rig';
+  bottle500Rig.position.set(B500_POS_X, B500_POS_Y, B500_POS_Z);
+  bottle500Rig.rotation.set(0.015, 0.16, -0.02);
+  bottle500Rig.add(bottle500InteractiveRig);
+
+  // 250ml scaled total height = 0.192 * 1.18 = 0.2265 -> Center Y = -0.13644 + 0.1132 = -0.0232
+  const B250_POS_X = +0.118;
+  const B250_POS_Y = -0.023;
+  const B250_POS_Z = -0.025;
+
+  const bottle250Rig = new THREE.Group();
+  bottle250Rig.name = 'Bottle250Rig';
+  bottle250Rig.position.set(B250_POS_X, B250_POS_Y, B250_POS_Z);
+  bottle250Rig.rotation.set(0.015, -0.18, 0.025);
+  bottle250Rig.add(bottle250InteractiveRig);
+
+  // Outer Master Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
   bottleRig.position.set(0, BOTTLE_CENTER_Y, 0);
   bottleRig.add(bottleInteractiveRig);
+  bottleRig.add(bottle500Rig);
+  bottleRig.add(bottle250Rig);
   scene.add(bottleRig);
   window.bottleRig = bottleRig;
+  window.bottle500Rig = bottle500Rig;
+  window.bottle250Rig = bottle250Rig;
 
   // ====================================================================
   // ULTRA-REALISTIC 3D TENDER COCONUT SUITE (THREE INDEPENDENT OBJECTS)
@@ -1292,11 +1415,11 @@ if (heroStage) {
   const coconutRig = new THREE.Group();
   coconutRig.name = 'TenderCoconutBilateralMasterRig';
 
-  const COCONUT_LEFT_X = -0.082;  // Balanced snug tuck behind bottle's left contour
-  const COCONUT_RIGHT_X = +0.024; // Balanced snug tuck behind bottle's right contour
+  const COCONUT_LEFT_X = -0.072;  // Left cluster (Cut Coconut 2 & Whole Coconut 1)
+  const COCONUT_RIGHT_X = +0.076; // Right cluster (Whole Coconut 3 with vertical stalk)
   const COCONUT_SIDE_Y = 0.0616;  // Exact ground plane baseline matching bottle base at Y=0.0616
-  const COCONUT_SIDE_Z = -0.118;  // Strictly behind bottle: guarantees every vertex is behind bottle back wall
-  const COCONUT_BASE_SCALE = 0.56;
+  const COCONUT_SIDE_Z = -0.065;  // Slightly behind bottle for natural depth
+  const COCONUT_BASE_SCALE = 0.88; // Anatomically calibrated to 1L commercial bottle (30.3cm)
 
   const coconutRigLeft = new THREE.Group();
   coconutRigLeft.name = 'TenderCoconutLeftRig';
@@ -1308,23 +1431,27 @@ if (heroStage) {
   coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
   coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
 
-  // Bilateral Duo Composition:
-  // Left: Coconut 2 (Cut Open with fresh white meat dome, tucked behind bottle left)
-  // Right: Coconut 3 (Horizontal body on side with graceful vertical stalk, tucked behind bottle right)
-  c1Left.visible = false;
+  // Authentic Trio Composition Matching Reference Photo:
+  // Left: Coconut 1 (Whole Left with calyx rosette & curved stem) & Coconut 2 (Cut Open with juicy meat)
+  // Right: Coconut 3 (Horizontal body on side with tall segmented vertical green stalk)
+  c1Left.visible = true;
+  c1Left.position.set(-0.095, 0.000, -0.040);
+  c1Left.scale.setScalar(0.95);
+  c1Left.rotation.set(0.04, 0.22, 0.05);
 
   const c2InteractiveRig = new THREE.Group();
   c2InteractiveRig.name = 'C2InteractiveRig';
   c2Center.position.set(0.000, 0.000, 0.000);
-  c2Center.rotation.set(0.02, 0.20, 0.00);
+  c2Center.rotation.set(0.02, 0.05, 0.00);
   c2InteractiveRig.add(c2Center);
 
   const c3InteractiveRig = new THREE.Group();
   c3InteractiveRig.name = 'C3InteractiveRig';
   c3Right.position.set(0.000, 0.000, 0.000);
-  c3Right.rotation.set(0.00, 0.12, 0.00);
+  c3Right.rotation.set(-0.06, 0.32, 0.02);
   c3InteractiveRig.add(c3Right);
 
+  coconutRigLeft.add(c1Left);
   coconutRigLeft.add(c2InteractiveRig);
   coconutRigRight.add(c3InteractiveRig);
 
@@ -1339,8 +1466,9 @@ if (heroStage) {
   bottleRig.traverse(c => { if (c.isMesh) c.renderOrder = 20; });
   coconutRig.renderOrder = 5;
   coconutRig.traverse(c => { if (c.isMesh) c.renderOrder = 5; });
+  coconutRig.visible = false;
 
-  scene.add(coconutRig);
+  // scene.add(coconutRig); // Coconuts removed as requested
 
   window.coconutRig = coconutRig;
   window.coconutRigLeft = coconutRigLeft;
@@ -1356,11 +1484,13 @@ if (heroStage) {
   const raycaster = new THREE.Raycaster();
   const mouseCoords = new THREE.Vector2();
 
-  let activeDragObject = null; // 'bottle' | 'c2' | 'c3' | null
+  let activeDragObject = null; // 'bottle' | 'bottle500' | 'bottle250' | 'c2' | 'c3' | null
   let isPointerDownOnObject = false;
   let lastPointerPos = { x: 0, y: 0 };
 
   const bottleVel = { x: 0, y: 0 };
+  const bottle500Vel = { x: 0, y: 0 };
+  const bottle250Vel = { x: 0, y: 0 };
   const c2Vel = { x: 0, y: 0 };
   const c3Vel = { x: 0, y: 0 };
 
@@ -1380,14 +1510,40 @@ if (heroStage) {
         }
       });
     }
+    if (bottle500Rig && bottle500Rig.visible) {
+      bottle500Rig.traverse(child => {
+        if (child.isMesh) {
+          child.userData.hitTarget = 'bottle500';
+          candidates.push(child);
+        }
+      });
+    }
+    if (bottle250Rig && bottle250Rig.visible) {
+      bottle250Rig.traverse(child => {
+        if (child.isMesh) {
+          child.userData.hitTarget = 'bottle250';
+          candidates.push(child);
+        }
+      });
+    }
     if (coconutRig && coconutRig.visible) {
-      if (coconutRigLeft && coconutRigLeft.visible && c2Center) {
-        c2Center.traverse(child => {
-          if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
-            child.userData.hitTarget = 'c2';
-            candidates.push(child);
-          }
-        });
+      if (coconutRigLeft && coconutRigLeft.visible) {
+        if (c2Center) {
+          c2Center.traverse(child => {
+            if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
+              child.userData.hitTarget = 'c2';
+              candidates.push(child);
+            }
+          });
+        }
+        if (c1Left) {
+          c1Left.traverse(child => {
+            if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
+              child.userData.hitTarget = 'c2';
+              candidates.push(child);
+            }
+          });
+        }
       }
       if (coconutRigRight && coconutRigRight.visible && c3Right) {
         c3Right.traverse(child => {
@@ -1437,6 +1593,12 @@ if (heroStage) {
       if (activeDragObject === 'bottle') {
         bottleVel.y += dx * SENSITIVITY;
         bottleVel.x += dy * SENSITIVITY;
+      } else if (activeDragObject === 'bottle500') {
+        bottle500Vel.y += dx * SENSITIVITY;
+        bottle500Vel.x += dy * SENSITIVITY;
+      } else if (activeDragObject === 'bottle250') {
+        bottle250Vel.y += dx * SENSITIVITY;
+        bottle250Vel.x += dy * SENSITIVITY;
       } else if (activeDragObject === 'c2') {
         c2Vel.y += dx * SENSITIVITY;
         c2Vel.x += dy * SENSITIVITY;
@@ -1477,6 +1639,12 @@ if (heroStage) {
     if (hit === 'bottle' && bottleInteractiveRig) {
       bottleInteractiveRig.rotation.set(0, 0, 0);
       bottleVel.x = 0; bottleVel.y = 0;
+    } else if (hit === 'bottle500' && bottle500InteractiveRig) {
+      bottle500InteractiveRig.rotation.set(0, 0, 0);
+      bottle500Vel.x = 0; bottle500Vel.y = 0;
+    } else if (hit === 'bottle250' && bottle250InteractiveRig) {
+      bottle250InteractiveRig.rotation.set(0, 0, 0);
+      bottle250Vel.x = 0; bottle250Vel.y = 0;
     } else if (hit === 'c2' && c2InteractiveRig) {
       c2InteractiveRig.rotation.set(0, 0, 0);
       c2Vel.x = 0; c2Vel.y = 0;
@@ -1486,28 +1654,29 @@ if (heroStage) {
     }
   });
 
-  let active3DModel = 'duo';
+  let active3DModel = 'bottle';
   c1Left.visible = false;
-  c2Center.visible = true;
-  c3Right.visible = true;
-  coconutRigLeft.visible = true;
-  coconutRigRight.visible = true;
+  c2Center.visible = false;
+  c3Right.visible = false;
+  coconutRigLeft.visible = false;
+  coconutRigRight.visible = false;
+  coconutRig.visible = false;
   bottleMeshGroup.visible = true; // BOTTLE IS ALWAYS VISIBLE WITH ITS PREVIOUS MOTION!
 
   function set3DModel(modelType) {
     active3DModel = modelType;
-    coconutRig.visible = true;
+    coconutRig.visible = false;
     bottleMeshGroup.visible = true;
 
-    coconutRigLeft.visible = true;
-    coconutRigRight.visible = true;
+    coconutRigLeft.visible = false;
+    coconutRigRight.visible = false;
     c1Left.visible = false;
-    c2Center.visible = true;
-    c3Right.visible = true;
-    c2Center.position.set(0.000, 0.000, 0.000);
-    c2Center.rotation.set(0.02, 0.20, 0.00);
+    c2Center.visible = false;
+    c3Right.visible = false;
+    c2Center.position.set(0.012, 0.000, 0.008);
+    c2Center.rotation.set(0.02, 0.05, 0.00);
     c3Right.position.set(0.000, 0.000, 0.000);
-    c3Right.rotation.set(0.00, 0.12, 0.00);
+    c3Right.rotation.set(-0.06, 0.32, 0.02);
     if (bottleInteractiveRig) { bottleInteractiveRig.rotation.set(0, 0, 0); bottleVel.x = 0; bottleVel.y = 0; }
     if (c2InteractiveRig) { c2InteractiveRig.rotation.set(0, 0, 0); c2Vel.x = 0; c2Vel.y = 0; }
     if (c3InteractiveRig) { c3InteractiveRig.rotation.set(0, 0, 0); c3Vel.x = 0; c3Vel.y = 0; }
@@ -1528,11 +1697,22 @@ if (heroStage) {
   window.c3Right = c3Right;
   window.updateScrollMetrics = updateScrollMetrics;
   window.setPhaseProgress = (p1, p2 = 0) => {
+    if (p1 <= 0.50) {
+      targetPhase1CenterProgress = p1 / 0.50;
+      currentPhase1CenterProgress = targetPhase1CenterProgress;
+      targetPhase1EmergeProgress = 0.0;
+      currentPhase1EmergeProgress = 0.0;
+    } else {
+      targetPhase1CenterProgress = 1.0;
+      currentPhase1CenterProgress = 1.0;
+      targetPhase1EmergeProgress = (p1 - 0.50) / 0.50;
+      currentPhase1EmergeProgress = targetPhase1EmergeProgress;
+    }
     targetPhase1Progress = p1;
     currentPhase1Progress = p1;
     targetPhase2Progress = p2;
     currentPhase2Progress = p2;
-    renderHeroText(p1, p2);
+    renderHeroText(targetPhase1CenterProgress, p2);
   };
   window.renderFrame = () => {
     if (renderer && scene && camera) renderer.render(scene, camera);
@@ -1559,7 +1739,11 @@ if (heroStage) {
 
   window.forceSettle = () => {
     const vh = window.innerHeight || 800;
-    window.scrollTo(0, vh);
+    window.scrollTo(0, vh * 2);
+    targetPhase1CenterProgress = 1.0;
+    currentPhase1CenterProgress = 1.0;
+    targetPhase1EmergeProgress = 1.0;
+    currentPhase1EmergeProgress = 1.0;
     targetPhase1Progress = 1.0;
     currentPhase1Progress = 1.0;
     targetPhase2Progress = 0.0;
@@ -1569,23 +1753,8 @@ if (heroStage) {
     bottleRig.scale.setScalar(1.0);
     bottleMeshGroup.visible = true;
     if (bottleInteractiveRig) { bottleInteractiveRig.rotation.set(0, 0, 0); bottleVel.x = 0; bottleVel.y = 0; }
-    if (c2InteractiveRig) { c2InteractiveRig.rotation.set(0, 0, 0); c2Vel.x = 0; c2Vel.y = 0; }
-    if (c3InteractiveRig) { c3InteractiveRig.rotation.set(0, 0, 0); c3Vel.x = 0; c3Vel.y = 0; }
-    if (coconutRig) {
-      coconutRig.visible = true;
-      coconutRig.scale.setScalar(1.0);
-      coconutRig.position.set(0, 0, 0);
-      if (coconutRigLeft) {
-        coconutRigLeft.visible = true;
-        coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE);
-        coconutRigLeft.position.set(COCONUT_LEFT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
-      }
-      if (coconutRigRight) {
-        coconutRigRight.visible = true;
-        coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE);
-        coconutRigRight.position.set(COCONUT_RIGHT_X, COCONUT_SIDE_Y, COCONUT_SIDE_Z);
-      }
-    }
+    if (bottle500InteractiveRig) { bottle500InteractiveRig.rotation.set(0, 0, 0); bottle500Vel.x = 0; bottle500Vel.y = 0; }
+    if (bottle250InteractiveRig) { bottle250InteractiveRig.rotation.set(0, 0, 0); bottle250Vel.x = 0; bottle250Vel.y = 0; }
     renderHeroText(1.0, 0.0);
     if (renderer && scene && camera) {
       renderer.render(scene, camera);
@@ -1598,12 +1767,16 @@ if (heroStage) {
     return x * x * x * (x * (x * 6 - 15) + 10);
   }
 
-  // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival
+  // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
   window.replayBottleAnimation = function() {
     const vh = window.innerHeight || 800;
     animateScrollTo(0, 500, () => {
       setTimeout(() => {
-        animateScrollTo(vh, 1200);
+        animateScrollTo(vh, 1000, () => {
+          setTimeout(() => {
+            animateScrollTo(vh * 2, 1000);
+          }, 300);
+        });
       }, 250);
     });
   };
@@ -1659,7 +1832,7 @@ if (heroStage) {
       x: worldX,
       y: worldY,
       z: -0.02,
-      scale: scale
+      scale: scale / BOTTLE_1L_SCALE
     };
   };
 
@@ -1677,26 +1850,39 @@ if (heroStage) {
     lastTime = now;
 
     // Damped progress tracking for butter-smooth physical response
-    currentPhase1Progress += (targetPhase1Progress - currentPhase1Progress) * Math.min(1.0, dt * 4.5);
+    currentPhase1CenterProgress += (targetPhase1CenterProgress - currentPhase1CenterProgress) * Math.min(1.0, dt * 4.5);
+    currentPhase1EmergeProgress += (targetPhase1EmergeProgress - currentPhase1EmergeProgress) * Math.min(1.0, dt * 4.5);
     currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * Math.min(1.0, dt * 4.5);
-    if (Math.abs(targetPhase1Progress - currentPhase1Progress) < 0.0005) {
-      currentPhase1Progress = targetPhase1Progress;
+    if (Math.abs(targetPhase1CenterProgress - currentPhase1CenterProgress) < 0.0005) {
+      currentPhase1CenterProgress = targetPhase1CenterProgress;
+    }
+    if (Math.abs(targetPhase1EmergeProgress - currentPhase1EmergeProgress) < 0.0005) {
+      currentPhase1EmergeProgress = targetPhase1EmergeProgress;
     }
     if (Math.abs(targetPhase2Progress - currentPhase2Progress) < 0.0005) {
       currentPhase2Progress = targetPhase2Progress;
     }
+    currentPhase1Progress = currentPhase1CenterProgress * 0.5 + currentPhase1EmergeProgress * 0.5;
 
-    const ease1 = smoothstep5(currentPhase1Progress);
     const ease2 = smoothstep5(currentPhase2Progress);
 
-    // 1. Phase 1: Ascent from down below to center of screen
-    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, ease1);
-    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, ease1);
-    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, ease1);
+    // ================================================================
+    // STRICT SEQUENTIAL HERO CHOREOGRAPHY:
+    // 1. Center 1L bottle ascends and completely reaches the center first (Scroll 1: 0 -> 100vh)
+    // 2. ONLY once the center bottle has reached the center (Scroll 2: 100vh -> 200vh),
+    //    the remaining two bottles emerge from behind the center bottle with rotation.
+    // ================================================================
+    const tCenter = smoothstep5(currentPhase1CenterProgress);
+    const tEmerge = smoothstep5(currentPhase1EmergeProgress);
 
-    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, ease1);
-    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, ease1);
-    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, ease1);
+    // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
+    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
+    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
+
+    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -1711,7 +1897,7 @@ if (heroStage) {
 
     // 3. Weightless Harmonic Floating (subtle breathing - active only on Slide 1 hero)
     // On Slide 2, the bottle is docked in its slot - floatWeight fades completely to 0 so it stays rock-solid
-    const floatWeight = ease1 * Math.max(0, 1.0 - ease2 * 1.6);
+    const floatWeight = tCenter * Math.max(0, 1.0 - ease2 * 1.6);
     const floatY = floatWeight > 0.0001 ? Math.sin(now * 0.0016) * 0.007 * floatWeight : 0;
     const floatX = floatWeight > 0.0001 ? Math.cos(now * 0.0011) * 0.004 * floatWeight : 0;
     const floatZ = floatWeight > 0.0001 ? Math.sin(now * 0.0009) * 0.003 * floatWeight : 0;
@@ -1752,66 +1938,79 @@ if (heroStage) {
     bottleRig.scale.setScalar(baseScale);
 
     // ================================================================
-    // 3D COCONUT SIDE SHOWCASE (Continuous 360° Rotation & Floating)
+    // THREE-BOTTLE 3D SHOWCASE ANIMATION & TRANSITION
     // ================================================================
-    // Bottle is ALWAYS visible and executes its exact original motion above!
     bottleMeshGroup.visible = true;
 
-    if (coconutRig) {
-      // 1. Entrance arrival scale on Slide 1: scales in naturally as bottle ascends
-      // Once reached the place (ease1 = 1.0), scale stays permanently at full COCONUT_BASE_SCALE
-      const coconutScale = Math.min(1.0, ease1);
+    // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
+    // During second scroll (tEmerge > 0), they emerge from behind with rotation flourish.
+    const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
 
-      // Coconuts belong strictly to Slide 1 and do NOT go to the next slide
-      // When scrolling past Slide 1 (scrollY > vh), coconuts stay anchored to Slide 1 and scroll up off-screen with it
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-      const vh = window.innerHeight || 800;
-      const camDist = camera ? camera.position.z : 0.76;
-      const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
-      const visibleHeight = 2 * camDist * Math.tan(fovRad / 2);
+    // Dynamic rotation flourish while emerging from behind center bottle:
+    // 500ml spins smoothly as it slides out to the left
+    const emerge500RotY = THREE.MathUtils.lerp(0.16 - Math.PI * 1.5, 0.16, tEmerge);
+    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
+    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, -0.02, tEmerge);
 
-      const slide1ExitOffset = Math.max(0, scrollY - vh);
-      const exitScrollY = (slide1ExitOffset / vh) * visibleHeight;
+    // 250ml spins in opposite direction as it slides out to the right
+    const emerge250RotY = THREE.MathUtils.lerp(-0.18 + Math.PI * 1.5, -0.18, tEmerge);
+    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
+    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.025, tEmerge);
 
-      // When Slide 1 has scrolled away or user reaches Slide 2, hide coconuts completely
-      const isPastSlide1 = (slide1ExitOffset >= vh * 0.95) || (slide2El && slide2El.getBoundingClientRect().top <= vh * 0.1);
+    // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
+    const emerge500X = THREE.MathUtils.lerp(0.0, B500_POS_X, tEmerge);
+    const emerge500Y = THREE.MathUtils.lerp(B500_POS_Y - 0.015, B500_POS_Y, tEmerge);
+    const emerge500Z = THREE.MathUtils.lerp(-0.090, B500_POS_Z, tEmerge);
 
-      if (coconutScale > 0.001 && !isPastSlide1) {
-        coconutRig.visible = true;
-        coconutRig.scale.setScalar(1.0);
-        if (coconutRigLeft) coconutRigLeft.scale.setScalar(COCONUT_BASE_SCALE * coconutScale);
-        if (coconutRigRight) coconutRigRight.scale.setScalar(COCONUT_BASE_SCALE * coconutScale);
+    const emerge250X = THREE.MathUtils.lerp(0.0, B250_POS_X, tEmerge);
+    const emerge250Y = THREE.MathUtils.lerp(B250_POS_Y - 0.015, B250_POS_Y, tEmerge);
+    const emerge250Z = THREE.MathUtils.lerp(-0.090, B250_POS_Z, tEmerge);
 
-        // Position:
-        // Entrance: rise synchronously with bottle from below
-        // Settled: stay there at baseline with subtle organic breathing
-        // Scroll exit: scroll naturally UP with Slide 1, exiting off the top
-        const entranceY = (p1Y - SETTLE_Y);
-        const breathY = Math.sin(now * 0.0016 + 0.8) * 0.0035;
-        coconutRig.position.y = entranceY + breathY + exitScrollY;
-        coconutRig.position.z = p1Z;
+    const emergeScale500 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
+    const emergeScale250 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
 
-        // Symmetrical subtle slow ambient sway (+/- 0.8°) so reference photo composition remains front and center
-        const idleSwayY = Math.sin(now * 0.0006) * 0.015;
-        if (coconutRigLeft) coconutRigLeft.rotation.y = idleSwayY;
-        if (coconutRigRight) coconutRigRight.rotation.y = -idleSwayY;
+    if (bottle500Rig) {
+      bottle500Rig.visible = sideBottleFade > 0.005;
+      bottle500Rig.scale.setScalar(sideBottleFade > 0.005 ? emergeScale500 : 0.0001);
 
-        // Natural photographic eye-level pitch
-        const targetPitch = 0.02;
-        if (coconutRigLeft) coconutRigLeft.rotation.x = THREE.MathUtils.lerp(coconutRigLeft.rotation.x, targetPitch, dt * 3.5);
-        if (coconutRigRight) coconutRigRight.rotation.x = THREE.MathUtils.lerp(coconutRigRight.rotation.x, targetPitch, dt * 3.5);
+      // Subtle organic breathing float once settled on Slide 1
+      const breath500Y = (tEmerge > 0.95 && sideBottleFade > 0.005) ? Math.sin(now * 0.0014 + 1.2) * 0.0022 : 0;
+      const breath500X = (tEmerge > 0.95 && sideBottleFade > 0.005) ? Math.cos(now * 0.0010 + 0.8) * 0.0012 : 0;
 
-        // Animated ripples on Coconut 2 coconut water pool
-        if (c2Center && c2Center.userData.waterMesh) {
-          const wTex = c2Center.userData.waterMesh.material.normalMap;
-          if (wTex) {
-            wTex.offset.x = (now * 0.00008) % 1;
-            wTex.offset.y = (now * 0.00005) % 1;
+      bottle500Rig.position.set(emerge500X + breath500X, emerge500Y + breath500Y, emerge500Z);
+      bottle500Rig.rotation.set(emerge500RotX, emerge500RotY, emerge500RotZ);
+
+      if (bottle500Data && bottle500Data.materials) {
+        bottle500Data.materials.forEach(mat => {
+          if (mat.opacity !== undefined) {
+            mat.opacity = mat.isMeshPhysicalMaterial ? (0.28 * sideBottleFade) : sideBottleFade;
           }
-        }
-      } else {
-        coconutRig.visible = false;
+        });
       }
+    }
+
+    if (bottle250Rig) {
+      bottle250Rig.visible = sideBottleFade > 0.005;
+      bottle250Rig.scale.setScalar(sideBottleFade > 0.005 ? emergeScale250 : 0.0001);
+
+      // Subtle organic breathing float once settled on Slide 1
+      const breath250Y = (tEmerge > 0.95 && sideBottleFade > 0.005) ? Math.sin(now * 0.0017 + 2.4) * 0.0020 : 0;
+      const breath250X = (tEmerge > 0.95 && sideBottleFade > 0.005) ? Math.cos(now * 0.0012 + 1.6) * 0.0010 : 0;
+
+      bottle250Rig.position.set(emerge250X + breath250X, emerge250Y + breath250Y, emerge250Z);
+      bottle250Rig.rotation.set(emerge250RotX, emerge250RotY, emerge250RotZ);
+
+      if (bottle250Data && bottle250Data.materials) {
+        bottle250Data.materials.forEach(mat => {
+          if (mat.opacity !== undefined) {
+            mat.opacity = mat.isMeshPhysicalMaterial ? (0.28 * sideBottleFade) : sideBottleFade;
+          }
+        });
+      }
+    }
+
+    if (coconutRig) {
+      coconutRig.visible = false;
     }
 
     // ================================================================
@@ -1823,6 +2022,20 @@ if (heroStage) {
       bottleInteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottleInteractiveRig.rotation.x));
       bottleVel.y *= 0.91;
       bottleVel.x *= 0.91;
+    }
+    if (bottle500InteractiveRig) {
+      bottle500InteractiveRig.rotation.y += bottle500Vel.y;
+      bottle500InteractiveRig.rotation.x += bottle500Vel.x;
+      bottle500InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottle500InteractiveRig.rotation.x));
+      bottle500Vel.y *= 0.91;
+      bottle500Vel.x *= 0.91;
+    }
+    if (bottle250InteractiveRig) {
+      bottle250InteractiveRig.rotation.y += bottle250Vel.y;
+      bottle250InteractiveRig.rotation.x += bottle250Vel.x;
+      bottle250InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottle250InteractiveRig.rotation.x));
+      bottle250Vel.y *= 0.91;
+      bottle250Vel.x *= 0.91;
     }
     if (c2InteractiveRig) {
       c2InteractiveRig.rotation.y += c2Vel.y;

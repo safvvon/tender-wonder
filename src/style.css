@@ -178,8 +178,8 @@ body {
 /* ============================================================ */
 #slide-1 {
   width: 100vw;
-  height: 200vh !important;
-  min-height: 200vh !important;
+  height: 300vh !important;
+  min-height: 300vh !important;
   max-height: none !important;
   position: relative;
   overflow: visible !important;
@@ -207,7 +207,10 @@ body {
   width: 100%;
   height: 1px;
   pointer-events: none;
-  scroll-snap-align: start;
+}
+
+.hero-locked-checkpoint.hero-checkpoint-2 {
+  top: 200vh;
 }
 
 .screen-logo-corner {

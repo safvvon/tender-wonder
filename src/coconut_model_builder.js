@@ -157,18 +157,25 @@ function getBroadAnatomicalRadius(t, maxR = 0.100, crownR = 0.016) {
   return Math.max(0.001, (maxR / 0.645) * raw + crownR * Math.pow(Math.min(1.0, t), 2.5));
 }
 
-// Clean, organic botanical morphology for fresh young tender green coconuts matching reference photo
+// High-density organic botanical morphology for fresh young tender green coconuts:
+// - Physical longitudinal coir fiber cluster ridges running along meridian lines
+// - Gentle 3-sided carpellary rounding with subtle natural asymmetry
+// - Organic growth bulges, subtle contact facets, and micro-imperfections
 function getHuskSurfaceDisplacement(t, phi, baseR, yBase) {
-  // Gentle 3-sided carpellary rounding (natural biological shape of young coconuts)
-  const carpellarySuture = Math.cos(phi * 3.0 + 0.25) * 0.0028;
-
-  // Very soft natural growth asymmetry
-  const organicSway = noiseA(Math.cos(phi) * 1.6, yBase * 2.5, Math.sin(phi) * 1.6) * 0.0014;
-
   // Smooth bell-shaped envelope (zero displacement at base pole t=0 and crown pole t=1)
-  const sutureWeight = Math.sin(Math.pow(t, 0.9) * Math.PI);
+  const sutureWeight = Math.sin(Math.pow(Math.min(1.0, Math.max(0.0, t)), 0.88) * Math.PI);
 
-  return (carpellarySuture + organicSway) * sutureWeight;
+  // 1. Natural 3-sided carpellary rounding (subtle organic triangular tendency)
+  const carpellarySuture = Math.cos(phi * 3.0 + 0.25) * 0.0020;
+
+  // 2. Organic non-uniform growth asymmetry (natural biological bulge & bunch contact facet)
+  const organicSway = noiseA(Math.cos(phi) * 1.4, yBase * 2.2, Math.sin(phi) * 1.4) * 0.0015;
+  const bunchFacet = noiseB(Math.cos(phi + 0.9) * 1.1, yBase * 1.6, Math.sin(phi + 0.9) * 1.1) * 0.0012;
+
+  // 3. Fine surface micro-imperfections (natural slight biological undulations)
+  const microDent = noiseC(Math.cos(phi) * 3.5, yBase * 5.0, Math.sin(phi) * 3.5) * 0.00035;
+
+  return (carpellarySuture + organicSway + bunchFacet + microDent) * sutureWeight;
 }
 
 // Correct counter-clockwise quad winding for true outward-pointing normals
@@ -199,36 +206,48 @@ export class CoconutModelBuilder {
       return tex;
     };
 
-    t.huskAlbedo = setupTex(this.texLoader.load('/textures/coconut/coconut_husk_albedo_4k.png'), true, 1, 1);
-    t.huskNormal = setupTex(this.texLoader.load('/textures/coconut/coconut_husk_normal_4k.png'), false, 1, 1);
-    t.huskRoughness = setupTex(this.texLoader.load('/textures/coconut/coconut_husk_roughness_4k.png'), false, 1, 1);
+    const ver = 'photoreal_v14';
+    t.huskAlbedo = setupTex(this.texLoader.load(`/textures/coconut/coconut_husk_pbr_albedo.png?v=${ver}`), true, 1, 1);
+    t.huskNormal = setupTex(this.texLoader.load(`/textures/coconut/coconut_husk_pbr_normal.png?v=${ver}`), false, 1, 1);
+    t.huskRoughness = setupTex(this.texLoader.load(`/textures/coconut/coconut_husk_pbr_roughness.png?v=${ver}`), false, 1, 1);
 
-    t.calyxAlbedo = setupTex(this.texLoader.load('/textures/coconut/coconut_calyx_albedo.png'), true, 1, 1);
-    t.pedicelBark = setupTex(this.texLoader.load('/textures/coconut/coconut_pedicel_bark.png'), true, 1, 2);
-    t.pithCut = setupTex(this.texLoader.load('/textures/coconut/coconut_pith_cut.png'), true, 1, 1);
+    t.calyxAlbedo = setupTex(this.texLoader.load(`/textures/coconut/coconut_calyx_albedo.png?v=${ver}`), true, 1, 1);
+    t.calyxNormal = setupTex(this.texLoader.load(`/textures/coconut/coconut_calyx_normal.png?v=${ver}`), false, 1, 1);
+    t.calyxRoughness = setupTex(this.texLoader.load(`/textures/coconut/coconut_calyx_roughness.png?v=${ver}`), false, 1, 1);
 
-    t.cutMesocarpAlbedo = setupTex(this.texLoader.load('/textures/coconut/coconut_cut_faceted_white.png'), true, 1, 1);
-    t.cutMesocarpNormal = setupTex(this.texLoader.load('/textures/coconut/coconut_cut_white_normal.png'), false, 1, 1);
+    t.pedicelBark = setupTex(this.texLoader.load(`/textures/coconut/coconut_pedicel_bark.png?v=${ver}`), true, 1, 2);
+    t.pithCut = setupTex(this.texLoader.load(`/textures/coconut/coconut_pith_cut.png?v=${ver}`), true, 1, 1);
 
-    t.stalkGreen = setupTex(this.texLoader.load('/textures/coconut/coconut_stalk_green.png'), true, 1, 2);
+    t.cutMesocarpAlbedo = setupTex(this.texLoader.load(`/textures/coconut/coconut_mesocarp_clean_albedo.png?v=${ver}`), true, 1, 1);
+    t.cutMesocarpNormal = setupTex(this.texLoader.load(`/textures/coconut/coconut_mesocarp_clean_normal.png?v=${ver}`), false, 1, 1);
+
+    t.cutMeatAlbedo = setupTex(this.texLoader.load(`/textures/coconut/coconut_cut_meat_albedo.png?v=${ver}`), true, 1, 1);
+    t.cutMeatNormal = setupTex(this.texLoader.load(`/textures/coconut/coconut_cut_meat_normal.png?v=${ver}`), false, 1, 1);
+    t.cutMeatRoughness = setupTex(this.texLoader.load(`/textures/coconut/coconut_cut_meat_roughness.png?v=${ver}`), false, 1, 1);
+
+    t.stalkGreen = setupTex(this.texLoader.load(`/textures/coconut/coconut_stalk_green.png?v=${ver}`), true, 1, 2);
 
     return t;
   }
 
-  // Authentic Young Tender Coconut Skin Material - Waxy living cuticular response, UNGLAZED (NO CLEARCOAT)
+  // Authentic Young Tender Coconut Outer Epidermis Material:
+  // - High-fidelity photographic texture with botanical pores, fine longitudinal striations, and water droplets
+  // - Tactile normal displacement relief with waxy cuticle plant sheen
   createHuskMaterial() {
     return new THREE.MeshPhysicalMaterial({
       map: this.textures.huskAlbedo,
       normalMap: this.textures.huskNormal,
-      normalScale: new THREE.Vector2(0.25, 0.25), // Subtle tactile microscopic cellular relief
+      normalScale: new THREE.Vector2(1.15, 1.15),
       roughnessMap: this.textures.huskRoughness,
-      roughness: 0.64, // Organic velvety matte cuticle (UNGLAZED, NO CLEARCOAT, zero harsh glare)
+      roughness: 0.88,
       metalness: 0.0,
-      clearcoat: 0.0,  // Strictly zero glaze
-      sheen: 0.38,     // Warm tropical plant epicuticular sheen
-      sheenColor: new THREE.Color(0xdceea0),
-      sheenRoughness: 0.50,
-      side: THREE.DoubleSide // Completely sealed, zero transparency
+      clearcoat: 0.30,
+      clearcoatRoughness: 0.25,
+      sheen: 0.20,
+      sheenColor: new THREE.Color(0xb5e83a),
+      sheenRoughness: 0.35,
+      transmission: 0.0,
+      side: THREE.FrontSide
     });
   }
 
@@ -252,8 +271,8 @@ export class CoconutModelBuilder {
 
     const radialSegs = 180;
     const heightSegs = 140;
-    const totalHeight = 0.236; // preserved 23.6 cm height
-    const maxR = 0.114;        // broad, plump, heavy body matching reference photo aspect ratio
+    const totalHeight = 0.230; // 23.0 cm height
+    const maxR = 0.094;        // compact, bulbous, naturally asymmetrical young coconut (18.8 cm width)
 
     const positions = [];
     const uvs = [];
@@ -293,8 +312,9 @@ export class CoconutModelBuilder {
         // Double-lobed bottom flattening near base (t < 0.15)
         const bottomCleft = (1.0 - Math.min(1.0, t / 0.15));
         const lobeMod = 1.0 + 0.06 * Math.cos(phi * 2.0) * Math.pow(bottomCleft, 1.5);
+        const disp = getHuskSurfaceDisplacement(t, phi, lateralR, yBase);
 
-        const r = Math.max(0.0005, (lateralR + carpel) * lobeMod);
+        const r = Math.max(0.0005, (lateralR + carpel) * lobeMod + disp);
 
         const x = r * Math.sin(phi) + xLean;
         const y = yBase;
@@ -521,10 +541,17 @@ export class CoconutModelBuilder {
     calyxGeo.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
     calyxGeo.computeVertexNormals();
 
-    const calyxMat = new THREE.MeshStandardMaterial({
+    const calyxMat = new THREE.MeshPhysicalMaterial({
       map: this.textures.calyxAlbedo,
-      roughness: 0.65,
-      metalness: 0.0
+      normalMap: this.textures.calyxNormal,
+      normalScale: new THREE.Vector2(0.95, 0.95),
+      roughnessMap: this.textures.calyxRoughness,
+      roughness: 0.70,
+      metalness: 0.0,
+      clearcoat: 0.16,
+      clearcoatRoughness: 0.32,
+      sheen: 0.15,
+      sheenColor: new THREE.Color(0xb2cc5a)
     });
 
     const mesh = new THREE.Mesh(calyxGeo, calyxMat);
@@ -621,85 +648,6 @@ export class CoconutModelBuilder {
     pithMesh.position.copy(tipCenter);
     pithMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tipTangent);
     stemGroup.add(pithMesh);
-
-    // -------------------------------------------------------------
-    // Part B: Thin Natural Stem Protrusion (Nodular Rachilla)
-    // -------------------------------------------------------------
-    const rachCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(crownPos.x + 0.002, crownPos.y - 0.002, crownPos.z - 0.002),
-      new THREE.Vector3(crownPos.x + 0.016, crownPos.y + 0.012, crownPos.z - 0.001),
-      new THREE.Vector3(crownPos.x + 0.034, crownPos.y + 0.020, crownPos.z + 0.001),
-      new THREE.Vector3(crownPos.x + 0.052, crownPos.y + 0.024, crownPos.z + 0.000)
-    ]);
-
-    const rachSegs = 28;
-    const rachRadSegs = 14;
-    const rachPositions = [];
-    const rachUVs = [];
-    const rachIndices = [];
-    const rRachBase = 0.0038;
-
-    for (let j = 0; j <= rachSegs; j++) {
-      const v = j / rachSegs;
-      const center = rachCurve.getPointAt(v);
-      const tangent = rachCurve.getTangentAt(v);
-      const normal = new THREE.Vector3(-tangent.y, tangent.x, 0).normalize();
-      const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
-
-      // Subtle taper towards tip + 6 nodular rings (floral bract scars)
-      const taper = 1.0 - v * 0.25;
-      const nodeRings = 1.0 + 0.24 * Math.pow(Math.max(0, Math.sin(v * Math.PI * 6.0)), 4.0);
-      const rad = rRachBase * taper * nodeRings;
-
-      for (let i = 0; i <= rachRadSegs; i++) {
-        const u = i / rachRadSegs;
-        const phi = u * Math.PI * 2.0;
-        const lx = Math.cos(phi) * rad;
-        const lz = Math.sin(phi) * rad;
-        const p = center.clone()
-          .addScaledVector(normal, lx)
-          .addScaledVector(binormal, lz);
-
-        rachPositions.push(p.x, p.y, p.z);
-        rachUVs.push(u, v * 3.0);
-      }
-    }
-
-    for (let j = 0; j < rachSegs; j++) {
-      for (let i = 0; i < rachRadSegs; i++) {
-        const a = j * (rachRadSegs + 1) + i;
-        const b = (j + 1) * (rachRadSegs + 1) + i;
-        const c = (j + 1) * (rachRadSegs + 1) + (i + 1);
-        const d = j * (rachRadSegs + 1) + (i + 1);
-        pushQuadCCW(rachIndices, a, b, c, d);
-      }
-    }
-
-    // Cap tip of thin stem
-    const rachTipIdx = rachPositions.length / 3;
-    const rTipPos = rachCurve.getPointAt(1.0);
-    rachPositions.push(rTipPos.x, rTipPos.y, rTipPos.z);
-    rachUVs.push(0.5, 1.0);
-    const tipRingStart = rachSegs * (rachRadSegs + 1);
-    for (let i = 0; i < rachRadSegs; i++) {
-      rachIndices.push(rachTipIdx, tipRingStart + i, tipRingStart + (i + 1));
-    }
-
-    const rachGeo = new THREE.BufferGeometry();
-    rachGeo.setAttribute('position', new THREE.Float32BufferAttribute(rachPositions, 3));
-    rachGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rachUVs, 2));
-    rachGeo.setIndex(new THREE.Uint32BufferAttribute(rachIndices, 1));
-    rachGeo.computeVertexNormals();
-
-    const rachMat = new THREE.MeshStandardMaterial({
-      map: this.textures.pedicelBark,
-      roughness: 0.74,
-      metalness: 0.0
-    });
-
-    const rachMesh = new THREE.Mesh(rachGeo, rachMat);
-    rachMesh.castShadow = true;
-    stemGroup.add(rachMesh);
 
     return stemGroup;
   }
@@ -806,16 +754,20 @@ export class CoconutModelBuilder {
     const group = new THREE.Group();
     group.name = '02_Tender_Coconut_Open_Center';
 
-    const radialSegs = 160;
-    const bodyHeightSegs = 70;
-    const facetHeightSegs = 36;
+    const radialSegs = 180;
+    const bodyHeightSegs = 90;
+    const facetHeightSegs = 40;
 
-    const totalHeight = 0.220;   // Sits lower in front
-    const maxR = 0.104;          // Broad wide body
-    const cutTransitionT = 0.52; // Lower 52% is intact green husk body (~11.4 cm)
-    const numStrikePlanes = 5;   // 5 authentic angled machete strike planes
+    // Anatomical proportions measured directly from reference photograph:
+    // Broad, heavy rounded body (max width ~20.8 cm, height ~18.2 cm)
+    // Intact green husk comprises ~65% of height; sliced machete crown comprises ~35%
+    const totalHeight = 0.182;
+    const maxR = 0.104;
+    const cutTransitionT = 0.65;
+    const numStrikePlanes = 5;
+    const facetSector = (Math.PI * 2.0) / numStrikePlanes; // 72 degrees per cut plane
 
-    // A. INTACT LOWER GREEN HUSK (Broad Hemispherical Base)
+    // A. INTACT LOWER GREEN HUSK (Broad Rounded Base with Scalloped Machete Cut Rim)
     const greenPositions = [];
     const greenUVs = [];
     const greenIndices = [];
@@ -823,31 +775,35 @@ export class CoconutModelBuilder {
 
     for (let j = 0; j <= bodyHeightSegs; j++) {
       const v = j / bodyHeightSegs;
-      const t = v * cutTransitionT;
+      const t = 0.02 + v * (cutTransitionT - 0.02);
       const baseR = getBroadAnatomicalRadius(t, maxR, 0.016);
-      const yBase = t * totalHeight;
+      const yBaseNominal = t * totalHeight;
 
       for (let i = 0; i <= radialSegs; i++) {
         const u = i / radialSegs;
-        const phi = u * Math.PI * 2.0;
+        // Azimuth centered so seam u=0 and u=1 is on the back (-Z), front (+Z at u=0.5) is seamless!
+        const phi = (u - 0.5) * Math.PI * 2.0;
 
-        // Scalloped cut rim line where knife cuts terminate at outer green husk
-        const knifeScallop = Math.sin(phi * numStrikePlanes + 0.4) * 0.0045;
-        const yCutOffset = (j === bodyHeightSegs) ? knifeScallop : 0;
+        // Front facet centered exactly at phi = 0 (deltaPhi = 0 at phi = 0)
+        const deltaPhi = (((phi + facetSector * 0.5) % facetSector) + facetSector) % facetSector - (facetSector * 0.5);
+        // Scallop cut dip on green husk: knife chops deeper at facet center
+        const dipAmount = 0.010 * (1.0 - Math.pow(Math.abs(deltaPhi) / (facetSector * 0.5), 1.8));
+        const yDip = dipAmount * Math.pow(v, 2.0); // Only affects upper region near cut rim
+        const yBase = yBaseNominal - yDip;
 
-        const ridge = Math.cos(phi * 3.0) * 0.015 * Math.sin(t * Math.PI);
+        const ridge = Math.cos(phi * 3.0) * 0.012 * Math.sin(t * Math.PI);
         const disp = getHuskSurfaceDisplacement(t, phi, baseR, yBase);
 
         const r = Math.max(0.001, (baseR * (1.0 + ridge)) + disp);
         const x = r * Math.sin(phi);
-        const y = yBase + yCutOffset;
+        const y = yBase;
         const z = r * Math.cos(phi);
 
         greenPositions.push(x, y, z);
-        greenUVs.push(u, 1.0 - t);
+        greenUVs.push(u, 1.0 - (y / (cutTransitionT * totalHeight)));
 
         if (j === bodyHeightSegs) {
-          scallopedCutRim.push({ x, y, z, r, phi, u });
+          scallopedCutRim.push({ x, y, z, r, phi, u, deltaPhi });
         }
       }
     }
@@ -859,11 +815,13 @@ export class CoconutModelBuilder {
         const c = (j + 1) * (radialSegs + 1) + (i + 1);
         const d = j * (radialSegs + 1) + (i + 1);
 
-        pushQuadCCW(greenIndices, a, b, c, d);
+        // Outward winding for bottom-to-top grid
+        greenIndices.push(a, d, c);
+        greenIndices.push(a, c, b);
       }
     }
 
-    // Cap bottom base pole so Coconut 2 is completely solid & watertight
+    // Clean bottom base pole cap
     const bottomCenterIdx = greenPositions.length / 3;
     greenPositions.push(0, 0, 0);
     greenUVs.push(0.5, 1.0);
@@ -878,47 +836,60 @@ export class CoconutModelBuilder {
     greenGeo.setIndex(new THREE.Uint32BufferAttribute(greenIndices, 1));
     greenGeo.computeVertexNormals();
 
+    // Weld normal vectors across the UV seam on green husk
+    const gNormAttr = greenGeo.getAttribute('normal');
+    for (let j = 0; j <= bodyHeightSegs; j++) {
+      const idx0 = (j * (radialSegs + 1) + 0) * 3;
+      const idxLast = (j * (radialSegs + 1) + radialSegs) * 3;
+      const avgNx = (gNormAttr.array[idx0] + gNormAttr.array[idxLast]) * 0.5;
+      const avgNy = (gNormAttr.array[idx0 + 1] + gNormAttr.array[idxLast + 1]) * 0.5;
+      const avgNz = (gNormAttr.array[idx0 + 2] + gNormAttr.array[idxLast + 2]) * 0.5;
+      const len = Math.hypot(avgNx, avgNy, avgNz) || 1.0;
+      gNormAttr.array[idx0] = gNormAttr.array[idxLast] = avgNx / len;
+      gNormAttr.array[idx0 + 1] = gNormAttr.array[idxLast + 1] = avgNy / len;
+      gNormAttr.array[idx0 + 2] = gNormAttr.array[idxLast + 2] = avgNz / len;
+    }
+    gNormAttr.needsUpdate = true;
+
     const greenHuskMesh = new THREE.Mesh(greenGeo, this.createHuskMaterial());
     greenHuskMesh.castShadow = true;
     greenHuskMesh.receiveShadow = true;
 
-    // B. AUTHENTIC MACHETE-CLEAVED FACETED WHITE MESOCARP DOME
-    // Slopes inward from scalloped green rim to a pyramidal apex crest matching reference photo
+    // B. AUTHENTIC MACHETE-CLEAVED 5-FACET WHITE MESOCARP
+    // 5 clean planar machete strikes tapering gently inward to a gentle soft apex peak
     const facetPositions = [];
     const facetUVs = [];
     const facetIndices = [];
     const topPlateauRim = [];
 
-    const plateauY = totalHeight * 0.94; // Top apex peak level (~20.7 cm)
-    const plateauR = 0.012;              // Soft apex crest matching reference photo
+    const plateauY = totalHeight * 0.98; // ~17.8 cm height
+    const plateauR = 0.012;              // Soft gentle apex peak matching reference photograph
 
     for (let j = 0; j <= facetHeightSegs; j++) {
-      const v = j / facetHeightSegs; // 0 at scalloped green rim, 1 at top apex crest
+      const v = j / facetHeightSegs; // 0 at scalloped green rim, 1 at soft apex peak
 
       for (let i = 0; i <= radialSegs; i++) {
         const basePoint = scallopedCutRim[i];
         const phi = basePoint.phi;
         const u = basePoint.u;
+        const deltaPhi = basePoint.deltaPhi;
 
-        // 5 distinct flat cut planes of the machete strikes
-        const facetAngle = (phi * numStrikePlanes) % (Math.PI * 2.0) - Math.PI;
-        const facetFlatness = Math.cos(facetAngle * 0.5); // flat chord modulation
-        // Modulate from 1.0 at green rim (v=0) to full strike flatness along the cut slope
-        const flatMod = 1.0 - (0.08 - 0.08 * facetFlatness) * Math.sin(v * Math.PI * 0.5);
+        // Planar machete strike chord flattening:
+        // Knife shaves inward to produce authentic flat facet strike faces
+        const chordFactor = Math.cos(deltaPhi);
+        const rInterp = basePoint.r * (1.0 - v) + plateauR * v;
+        const curR = rInterp * (0.84 + 0.16 * chordFactor);
 
-        // Radius tapers from green scalloped rim to apex crest (seamless at v=0)
-        const curR = (basePoint.r * (1.0 - v) + plateauR * v) * flatMod;
-
-        // Subtle blade stroke tilt (~5° natural slant as seen in photo)
-        const strokeTilt = Math.sin(phi + 0.3) * 0.003 * v;
-        const curY = basePoint.y * (1.0 - v) + (plateauY + strokeTilt) * v;
+        const curY = basePoint.y * (1.0 - v) + plateauY * v;
 
         const x = curR * Math.sin(phi);
         const y = curY;
         const z = curR * Math.cos(phi);
 
         facetPositions.push(x, y, z);
-        facetUVs.push(u, v);
+        // Authentic planar UV projection: succulent fibrous grain flows down each cut face
+        const localU = 0.5 + Math.sin(deltaPhi) * 0.45;
+        facetUVs.push(localU, v * 1.2);
 
         if (j === facetHeightSegs) {
           topPlateauRim.push({ x, y, z, phi, u });
@@ -933,7 +904,9 @@ export class CoconutModelBuilder {
         const c = (j + 1) * (radialSegs + 1) + (i + 1);
         const d = j * (radialSegs + 1) + (i + 1);
 
-        pushQuadCCW(facetIndices, a, b, c, d);
+        // Outward winding
+        facetIndices.push(a, d, c);
+        facetIndices.push(a, c, b);
       }
     }
 
@@ -947,11 +920,13 @@ export class CoconutModelBuilder {
       map: this.textures.cutMesocarpAlbedo,
       normalMap: this.textures.cutMesocarpNormal,
       normalScale: new THREE.Vector2(0.40, 0.40),
-      color: new THREE.Color(0xfcfbfa), // Fresh ivory white young coconut pith
-      roughness: 0.40,                 // Fresh moist fibrous cut surface
+      color: new THREE.Color(0xfcfdfa), // Pristine fresh succulent ivory young coconut pith
+      roughness: 0.48,                 // Soft succulent juicy pith
       metalness: 0.0,
-      clearcoat: 0.28,                 // Glistening natural moisture
-      clearcoatRoughness: 0.22,
+      clearcoat: 0.22,                 // Glistening natural moisture
+      clearcoatRoughness: 0.28,
+      sheen: 0.15,
+      sheenColor: new THREE.Color(0xffffff),
       side: THREE.DoubleSide
     });
 
@@ -959,21 +934,20 @@ export class CoconutModelBuilder {
     facetMesh.castShadow = true;
     facetMesh.receiveShadow = true;
 
-    // C. TOP CUT OPENING: Fresh Tender Meat Apex Dome
+    // C. TOP CUT APEX CAP (Gently convex blunt peak)
     const plateauGeo = new THREE.BufferGeometry();
     const platPositions = [];
     const platUVs = [];
     const platIndices = [];
 
-    // Center point of top cut opening (soft apex crest)
     const avgPlatY = topPlateauRim.reduce((acc, p) => acc + p.y, 0) / topPlateauRim.length;
-    platPositions.push(0, avgPlatY + 0.001, 0); // Smooth apex crest
+    platPositions.push(0, avgPlatY + 0.004, 0); // Gentle 4mm convex soft peak in center
     platUVs.push(0.5, 0.5);
 
     for (let i = 0; i < topPlateauRim.length; i++) {
       const p = topPlateauRim[i];
       platPositions.push(p.x, p.y, p.z);
-      platUVs.push(0.5 + Math.sin(p.phi) * 0.48, 0.5 + Math.cos(p.phi) * 0.48);
+      platUVs.push(0.5 + Math.sin(p.phi) * 0.45, 0.5 + Math.cos(p.phi) * 0.45);
     }
 
     // Upward-pointing normals: CCW winding (0, i+1, i)
@@ -987,19 +961,7 @@ export class CoconutModelBuilder {
     plateauGeo.setIndex(new THREE.Uint32BufferAttribute(platIndices, 1));
     plateauGeo.computeVertexNormals();
 
-    const plateauMat = new THREE.MeshPhysicalMaterial({
-      map: this.textures.cutMesocarpAlbedo,
-      normalMap: this.textures.cutMesocarpNormal,
-      normalScale: new THREE.Vector2(0.40, 0.40),
-      color: new THREE.Color(0xfcfbfa), // Fresh ivory white young coconut pith
-      roughness: 0.40,                 // Moist, freshly cut interior surface
-      metalness: 0.0,
-      clearcoat: 0.28,                 // Glistening natural coconut moisture
-      clearcoatRoughness: 0.22,
-      side: THREE.DoubleSide
-    });
-
-    const plateauMesh = new THREE.Mesh(plateauGeo, plateauMat);
+    const plateauMesh = new THREE.Mesh(plateauGeo, whiteMesocarpMat);
     plateauMesh.castShadow = true;
     plateauMesh.receiveShadow = true;
 
@@ -1014,8 +976,8 @@ export class CoconutModelBuilder {
     group.add(bodyRig);
 
     // Ground Contact Shadow (tightened to resting base, behind bottle plane)
-    const shadow = this.createGroundShadow(0.11);
-    shadow.position.set(0, 0.001, -0.015);
+    const shadow = this.createGroundShadow(0.13);
+    shadow.position.set(0, -0.0005, -0.015);
     group.add(shadow);
 
     return group;
@@ -1029,8 +991,8 @@ export class CoconutModelBuilder {
     const group = new THREE.Group();
     group.name = '03_Tender_Coconut_Whole_Right';
 
-    const radialSegs = 160;
-    const heightSegs = 120;
+    const radialSegs = 180;
+    const heightSegs = 140;
     const totalHeight = 0.232; // ~23.2 cm length
     const maxR = 0.096;        // ~19.2 cm diameter
 
@@ -1047,7 +1009,8 @@ export class CoconutModelBuilder {
 
       for (let i = 0; i <= radialSegs; i++) {
         const u = i / radialSegs;
-        const phi = u * Math.PI * 2.0;
+        // Azimuth centered so seam u=0 and u=1 is on the resting back (-Z), front (+Z) is completely seamless
+        const phi = (u - 0.5) * Math.PI * 2.0;
 
         const ridge1 = Math.cos(phi * 3.0 + 0.3);
         const sutureWeight = Math.sin(t * Math.PI);
@@ -1104,6 +1067,21 @@ export class CoconutModelBuilder {
     geo.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
     geo.computeVertexNormals();
 
+    // Weld normal vectors across the UV seam (u=0 and u=1) to eliminate split-normal crease completely
+    const c3NormAttr = geo.getAttribute('normal');
+    for (let j = 0; j <= heightSegs; j++) {
+      const idx0 = (j * (radialSegs + 1) + 0) * 3;
+      const idxLast = (j * (radialSegs + 1) + radialSegs) * 3;
+      const avgNx = (c3NormAttr.array[idx0] + c3NormAttr.array[idxLast]) * 0.5;
+      const avgNy = (c3NormAttr.array[idx0 + 1] + c3NormAttr.array[idxLast + 1]) * 0.5;
+      const avgNz = (c3NormAttr.array[idx0 + 2] + c3NormAttr.array[idxLast + 2]) * 0.5;
+      const len = Math.hypot(avgNx, avgNy, avgNz) || 1.0;
+      c3NormAttr.array[idx0] = c3NormAttr.array[idxLast] = avgNx / len;
+      c3NormAttr.array[idx0 + 1] = c3NormAttr.array[idxLast + 1] = avgNy / len;
+      c3NormAttr.array[idx0 + 2] = c3NormAttr.array[idxLast + 2] = avgNz / len;
+    }
+    c3NormAttr.needsUpdate = true;
+
     // Coconut body resting naturally on its side (~73° tilt to the right)
     const bodyRig = new THREE.Group();
     const bodyMesh = new THREE.Mesh(geo, this.createHuskMaterial());
@@ -1125,12 +1103,12 @@ export class CoconutModelBuilder {
     const PITCH_X = 0.12;  // slight natural forward pitch
     bodyRig.rotation.z = TILT_Z;
     bodyRig.rotation.x = PITCH_X;
-    bodyRig.position.set(0, 0.042, 0); // resting stably on ground
+    bodyRig.position.set(0, 0.0635, 0); // resting stably on ground (lowest flank point exactly at Y=0)
     group.add(bodyRig);
 
     // Ground Contact Shadow centered under the resting body (behind bottle plane)
     const shadow = this.createGroundShadow(0.12);
-    shadow.position.set(0.085, 0.001, -0.015);
+    shadow.position.set(0.108, -0.0005, -0.011);
     group.add(shadow);
 
     return group;
@@ -1219,86 +1197,110 @@ export class CoconutModelBuilder {
     stalkGroup.add(pithMesh);
 
     // -------------------------------------------------------------
-    // Part B: Distinctive Tall Segmented Vertical Green Stalk
-    // Smooth, organic, continuous upward arch in world space (NO right-angle elbow!)
+    // Part B: Distinctive Tall Segmented Vertical Green Stalk (Rachilla)
+    // Rising vertically upward (+Y in world space) with 8 floral node notches
     // -------------------------------------------------------------
-    const stalkRadius = 0.0048;
-    const radialSegs = 24;
-    const heightSegs = 72;
+    const vertSubGroup = new THREE.Group();
+    vertSubGroup.name = 'VerticalStalkSubGroup';
+    vertSubGroup.position.set(-0.004, totalHeight - 0.001, 0.006);
+    // Counteract bodyRig's tilt (-1.28) and pitch (0.12) so +Y inside vertSubGroup is world UP!
+    vertSubGroup.rotation.z = 1.28;
+    vertSubGroup.rotation.x = -0.12;
 
-    const s0 = new THREE.Vector3(0.0012, totalHeight - 0.0045, -0.0037);
-    const s1 = new THREE.Vector3(-0.0204, totalHeight + 0.0228, -0.0011);
-    const s2 = new THREE.Vector3(-0.0499, totalHeight + 0.0358, -0.0030);
-    const s3 = new THREE.Vector3(-0.0881, totalHeight + 0.0347, -0.0114);
-    const s4 = new THREE.Vector3(-0.1270, totalHeight + 0.0422, -0.0181);
+    const s0 = new THREE.Vector3(0.000, 0.000, 0.000);
+    const s1 = new THREE.Vector3(-0.003, 0.038, 0.002);
+    const s2 = new THREE.Vector3(-0.005, 0.078, 0.005);
+    const s3 = new THREE.Vector3(-0.002, 0.118, 0.003);
+    const s4 = new THREE.Vector3(+0.003, 0.158, 0.000);
+    const stalkCurve = new THREE.CatmullRomCurve3([s0, s1, s2, s3, s4]);
 
-    const curve = new THREE.CatmullRomCurve3([s0, s1, s2, s3, s4]);
-    const stalkPositions = [], stalkUVs = [], stalkIndices = [];
+    const stalkSegs = 56;
+    const stalkRadSegs = 24;
+    const stalkPos = [];
+    const stalkUV = [];
+    const stalkIdx = [];
 
-    for (let j = 0; j <= heightSegs; j++) {
-      const v = j / heightSegs;
-      const center = curve.getPointAt(v);
-      const tangent = curve.getTangentAt(v);
+    const stalkBaseR = 0.0078;
+    const stalkNodePositions = [0.14, 0.25, 0.36, 0.47, 0.58, 0.69, 0.80, 0.91];
 
+    for (let j = 0; j <= stalkSegs; j++) {
+      const v = j / stalkSegs;
+      const center = stalkCurve.getPointAt(v);
+      const tangent = stalkCurve.getTangentAt(v);
       let normal = new THREE.Vector3(-tangent.y, tangent.x, 0).normalize();
-      if (normal.lengthSq() < 0.1) normal = new THREE.Vector3(0, 0, 1);
+      if (normal.lengthSq() < 0.1) normal = new THREE.Vector3(1, 0, 0);
       const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
 
-      const nodePhase = v * Math.PI * 14.0;
-      const nodeBulge = 1.0 + 0.13 * Math.pow(Math.max(0, Math.sin(nodePhase)), 3.5);
-      const baseFlare = (v < 0.16) ? (1.0 + 0.55 * Math.pow((0.16 - v) / 0.16, 2.0)) : 1.0;
-      const taper = 1.0 - v * 0.38;
-      const r = stalkRadius * nodeBulge * taper * baseFlare;
+      const taper = 1.0 - v * 0.44; // Tapers from 7.8mm at base down to ~4.4mm at top
 
-      for (let i = 0; i <= radialSegs; i++) {
-        const u = i / radialSegs;
+      // 8 alternate botanical floral scars / node swelling
+      let nodeBulge = 0.0;
+      for (let n = 0; n < stalkNodePositions.length; n++) {
+        const nodeDist = Math.abs(v - stalkNodePositions[n]);
+        if (nodeDist < 0.035) {
+          const nodeShape = 1.0 - nodeDist / 0.035;
+          nodeBulge += 0.0012 * Math.pow(nodeShape, 2.0);
+        }
+      }
+
+      for (let i = 0; i <= stalkRadSegs; i++) {
+        const u = i / stalkRadSegs;
         const phi = u * Math.PI * 2.0;
-        const fluting = 1.0 + 0.03 * Math.cos(phi * 4.0);
-        const lx = Math.cos(phi) * r * fluting;
-        const lz = Math.sin(phi) * r * fluting;
+
+        // Subtle longitudinal striation ridges
+        const flute = 1.0 + 0.035 * Math.cos(phi * 4.0);
+        const r = (stalkBaseR * taper + nodeBulge) * flute;
+
+        const lx = Math.cos(phi) * r;
+        const lz = Math.sin(phi) * r;
         const p = center.clone().addScaledVector(normal, lx).addScaledVector(binormal, lz);
-        stalkPositions.push(p.x, p.y, p.z);
-        stalkUVs.push(u, v * 2.5);
+
+        stalkPos.push(p.x, p.y, p.z);
+        stalkUV.push(u, v * 3.0);
       }
     }
 
-    for (let j = 0; j < heightSegs; j++) {
-      for (let i = 0; i < radialSegs; i++) {
-        const a = j * (radialSegs + 1) + i;
-        const b = (j + 1) * (radialSegs + 1) + i;
-        const c = (j + 1) * (radialSegs + 1) + (i + 1);
-        const d = j * (radialSegs + 1) + (i + 1);
-        pushQuadCCW(stalkIndices, a, b, c, d);
+    for (let j = 0; j < stalkSegs; j++) {
+      for (let i = 0; i < stalkRadSegs; i++) {
+        const a = j * (stalkRadSegs + 1) + i;
+        const b = (j + 1) * (stalkRadSegs + 1) + i;
+        const c = (j + 1) * (stalkRadSegs + 1) + (i + 1);
+        const d = j * (stalkRadSegs + 1) + (i + 1);
+        pushQuadCCW(stalkIdx, a, b, c, d);
       }
-    }
-
-    const baseCenterIdx = stalkPositions.length / 3;
-    const b0 = curve.getPointAt(0);
-    stalkPositions.push(b0.x, b0.y, b0.z);
-    stalkUVs.push(0.5, 0.0);
-    for (let i = 0; i < radialSegs; i++) {
-      stalkIndices.push(baseCenterIdx, i + 1, i);
     }
 
     const stalkGeo = new THREE.BufferGeometry();
-    stalkGeo.setAttribute('position', new THREE.Float32BufferAttribute(stalkPositions, 3));
-    stalkGeo.setAttribute('uv', new THREE.Float32BufferAttribute(stalkUVs, 2));
-    stalkGeo.setIndex(new THREE.Uint32BufferAttribute(stalkIndices, 1));
+    stalkGeo.setAttribute('position', new THREE.Float32BufferAttribute(stalkPos, 3));
+    stalkGeo.setAttribute('uv', new THREE.Float32BufferAttribute(stalkUV, 2));
+    stalkGeo.setIndex(new THREE.Uint32BufferAttribute(stalkIdx, 1));
     stalkGeo.computeVertexNormals();
 
-    const stalkMesh = new THREE.Mesh(stalkGeo, pedMat);
-    stalkMesh.castShadow = true;
-    stalkGroup.add(stalkMesh);
+    const stalkMat = new THREE.MeshPhysicalMaterial({
+      map: this.textures.stalkGreen,
+      color: new THREE.Color(0x7da438),
+      roughness: 0.54,
+      metalness: 0.0,
+      clearcoat: 0.28,
+      clearcoatRoughness: 0.25,
+      sheen: 0.22,
+      sheenColor: new THREE.Color(0xb8e24c)
+    });
 
-    // Blunt cut tip at stalk top
-    const tipCenter = curve.getPointAt(1.0);
-    const tipTangent = curve.getTangentAt(1.0);
-    const tipRadius = stalkRadius * (1.0 - 0.38);
-    const capGeo = new THREE.CircleGeometry(tipRadius, 24);
-    const capMesh = new THREE.Mesh(capGeo, pithMat);
-    capMesh.position.copy(tipCenter);
-    capMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tipTangent);
-    stalkGroup.add(capMesh);
+    const vertStalkMesh = new THREE.Mesh(stalkGeo, stalkMat);
+    vertStalkMesh.castShadow = true;
+    vertSubGroup.add(vertStalkMesh);
+
+    // Flat blunt cut tip showing spongy pale pith
+    const tipCenterS = stalkCurve.getPointAt(1.0);
+    const tipTangentS = stalkCurve.getTangentAt(1.0);
+    const tipPithGeo = new THREE.CircleGeometry(stalkBaseR * (1.0 - 0.44) * 0.95, 24);
+    const tipPithMesh = new THREE.Mesh(tipPithGeo, pithMat);
+    tipPithMesh.position.copy(tipCenterS);
+    tipPithMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tipTangentS);
+    vertSubGroup.add(tipPithMesh);
+
+    stalkGroup.add(vertSubGroup);
 
     return stalkGroup;
   }

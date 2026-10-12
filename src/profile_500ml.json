@@ -1,0 +1,113 @@
+{
+  "bottleType": "500ml_cylinder",
+  "totalHeight": 0.236,
+  "maxBodyRadius": 0.0315,
+  "sleeveBottomZ": 0.0055,
+  "sleeveTopZ": 0.198,
+  "capBottomZ": 0.2185,
+  "capTopZ": 0.236,
+  "capRadius": 0.0182,
+  "capColor": 7263768,
+  "points": [
+    {
+      "r": 0,
+      "z": 0.001,
+      "desc": "base center pushup"
+    },
+    {
+      "r": 0.013,
+      "z": 0.001,
+      "desc": "pushup inner dome"
+    },
+    {
+      "r": 0.0245,
+      "z": 0,
+      "desc": "resting foot ring"
+    },
+    {
+      "r": 0.027,
+      "z": 0.0022,
+      "desc": "heel curve lower"
+    },
+    {
+      "r": 0.029,
+      "z": 0.0055,
+      "desc": "sleeve bottom heel"
+    },
+    {
+      "r": 0.0305,
+      "z": 0.011,
+      "desc": "heel curve upper"
+    },
+    {
+      "r": 0.0312,
+      "z": 0.02,
+      "desc": "cylinder lower transition"
+    },
+    {
+      "r": 0.0315,
+      "z": 0.04,
+      "desc": "cylinder body"
+    },
+    {
+      "r": 0.0315,
+      "z": 0.08,
+      "desc": "cylinder body"
+    },
+    {
+      "r": 0.0315,
+      "z": 0.12,
+      "desc": "cylinder body"
+    },
+    {
+      "r": 0.0315,
+      "z": 0.16,
+      "desc": "cylinder body"
+    },
+    {
+      "r": 0.0315,
+      "z": 0.18,
+      "desc": "cylinder body top"
+    },
+    {
+      "r": 0.0308,
+      "z": 0.187,
+      "desc": "shoulder curve lower"
+    },
+    {
+      "r": 0.029,
+      "z": 0.193,
+      "desc": "shoulder dome"
+    },
+    {
+      "r": 0.0255,
+      "z": 0.198,
+      "desc": "sleeve top seam"
+    },
+    {
+      "r": 0.0215,
+      "z": 0.203,
+      "desc": "neck transition"
+    },
+    {
+      "r": 0.0175,
+      "z": 0.209,
+      "desc": "neck conical flare"
+    },
+    {
+      "r": 0.0155,
+      "z": 0.214,
+      "desc": "neck waist cylinder"
+    },
+    {
+      "r": 0.0172,
+      "z": 0.2165,
+      "desc": "neck collar ring"
+    },
+    {
+      "r": 0.016,
+      "z": 0.2185,
+      "desc": "neck under cap"
+    }
+  ]
+}
