@@ -283,7 +283,7 @@ body {
 }
 
 /* ============================================================ */
-/* SUBTLE SCROLL PROMPT (SCROLL TO EXPERIENCE)                   */
+/* SUBTLE SCROLL PROMPT (SCROLL TO WONDER)                       */
 /* ============================================================ */
 .hero-scroll-prompt {
   position: absolute;
@@ -328,13 +328,13 @@ body {
 }
 
 .hero-scroll-prompt span {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2.2px;
+  letter-spacing: 2.4px;
   color: #2b6118;
-  opacity: 0.85;
+  opacity: 0.88;
 }
 
 

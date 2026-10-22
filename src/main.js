@@ -1183,60 +1183,67 @@ if (heroStage) {
 
   const texLoader = new THREE.TextureLoader();
 
-  // Unified factory to build an authentic 3D commercial bottle with PET, liquid, shrink sleeve, and cap
+  // Unified factory to build an authentic 3D commercial bottle with crystal-clear PET bottle, pure liquid, shrink sleeve, and cap
   function createBottleMeshGroup(profile, labelTexturePath, labelOffsetX, capColorHex, name) {
     const points = profile.points;
 
-    // A. Translucent PET Bottle (Exposed Neck & Base Foot)
-    const neckPts = points.filter(p => p.z >= profile.sleeveTopZ - 0.001);
-    const neckGeo = createRevolvedGeometry(neckPts, 64, neckPts[0].z, neckPts[neckPts.length - 1].z);
-
-    const basePts = points.filter(p => p.z <= profile.sleeveBottomZ + 0.001);
-    const baseGeo = createRevolvedGeometry(basePts, 64, basePts[0].z, basePts[basePts.length - 1].z);
+    // A. Full Crystal-Clear Transparent PET Bottle
+    const bottleGeo = createRevolvedGeometry(points, 64, points[0].z, points[points.length - 1].z);
 
     const petMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0xb8c5a4), // natural cloudy coconut water tint
-      transparent: true,
-      opacity: 0.28,
-      roughness: 0.04,
-      ior: 1.52,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.03,
-      side: THREE.FrontSide
-    });
-    const neckMesh = new THREE.Mesh(neckGeo, petMat);
-    const baseMesh = new THREE.Mesh(baseGeo, petMat);
-
-    // B. Natural Coconut Water Liquid (Inner Core)
-    const liquidPts = points
-      .filter(p => p.z <= profile.capBottomZ)
-      .map(p => ({
-        r: Math.max(0, p.r - 0.0008),
-        z: Math.min(profile.capBottomZ - 0.0005, p.z)
-      }));
-
-    const topLiquidZ = liquidPts[liquidPts.length - 1].z;
-    const liquidGeo = createRevolvedGeometry(liquidPts, 64, liquidPts[0].z, topLiquidZ);
-
-    const topLiquidRadius = liquidPts[liquidPts.length - 1].r;
-    const meniscusGeo = new THREE.CircleGeometry(topLiquidRadius, 64);
-    meniscusGeo.rotateX(-Math.PI / 2);
-    meniscusGeo.translate(0, topLiquidZ, 0);
-
-    const liquidMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0xa4b28c), // authentic tender coconut water color
-      roughness: 0.2,
+      color: new THREE.Color(0xffffff), // Pristine crystal-clear PET bottle plastic
+      roughness: 0.03,
       metalness: 0.0,
       transparent: true,
-      opacity: 1.0
+      opacity: 0.18,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      ior: 1.52,
+      side: THREE.DoubleSide,
+      depthWrite: false
     });
+    petMat.userData = { baseOpacity: 0.18 };
+    const bottleMesh = new THREE.Mesh(bottleGeo, petMat);
+
+    // B. Natural Tender Coconut Water Liquid (Inner Core)
+    // The liquid fills up to the neck base / fill line, leaving the upper neck clear
+    const sleeveTopZ = profile.sleeveTopZ || (profile.capBottomZ - 0.025);
+    const liquidTopZ = Math.min(profile.capBottomZ - 0.012, sleeveTopZ + 0.006);
+    const liquidPts = points
+      .filter(p => p.z <= liquidTopZ)
+      .map(p => ({
+        r: Math.max(0, p.r - 0.0009),
+        z: p.z
+      }));
+    const rNeck = Math.max(0.010, (points.find(p => p.z >= liquidTopZ)?.r || 0.018) - 0.0009);
+    liquidPts.push({ r: rNeck, z: liquidTopZ });
+
+    const liquidGeo = createRevolvedGeometry(liquidPts, 64, liquidPts[0].z, liquidTopZ);
+
+    const meniscusGeo = new THREE.CircleGeometry(rNeck, 64);
+    meniscusGeo.rotateX(-Math.PI / 2);
+    meniscusGeo.translate(0, liquidTopZ, 0);
+
+    const liquidMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(0xf6fbf2), // Pure, clear, authentic tender coconut water
+      roughness: 0.08,
+      metalness: 0.0,
+      transparent: true,
+      opacity: 0.22,
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.04,
+      side: THREE.FrontSide,
+      depthWrite: false
+    });
+    liquidMat.userData = { baseOpacity: 0.22 };
     const liquidMesh = new THREE.Mesh(liquidGeo, liquidMat);
     const meniscusMesh = new THREE.Mesh(meniscusGeo, liquidMat);
 
     // C. Shrink Sleeve Label
+    const sleeveBottomZ = profile.sleeveBottomZ || 0.008;
     const sleevePts = points
-      .filter(p => p.z >= profile.sleeveBottomZ - 0.001 && p.z <= profile.sleeveTopZ + 0.001)
-      .map(p => ({ r: p.r + 0.00015, z: p.z }));
+      .filter(p => p.z >= sleeveBottomZ - 0.001 && p.z <= sleeveTopZ + 0.001)
+      .map(p => ({ r: p.r + 0.00025, z: p.z }));
 
     const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
@@ -1254,31 +1261,31 @@ if (heroStage) {
 
     const sleeveMat = new THREE.MeshStandardMaterial({
       map: labelTex,
-      roughness: 0.32,
+      roughness: 0.28,
       metalness: 0.0,
       side: THREE.FrontSide,
-      transparent: true,
-      opacity: 1.0
+      transparent: false // Pure, opaque, vibrant label graphics
     });
+    sleeveMat.userData = { baseOpacity: 1.0 };
     const sleeveMesh = new THREE.Mesh(sleeveGeo, sleeveMat);
 
     // D. Precision Screw Cap
     const capGeo = createCapGeometry(profile);
     const capMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(capColorHex),
-      roughness: 0.32,
+      roughness: 0.30,
       metalness: 0.02,
       transparent: true,
       opacity: 1.0
     });
+    capMat.userData = { baseOpacity: 1.0 };
     const capMesh = new THREE.Mesh(capGeo, capMat);
 
     const totalH = profile.totalHeight || profile.capTopZ || 0.3033;
     const centerY = totalH * 0.5;
     const group = new THREE.Group();
     group.name = name;
-    group.add(neckMesh);
-    group.add(baseMesh);
+    group.add(bottleMesh);
     group.add(liquidMesh);
     group.add(meniscusMesh);
     group.add(sleeveMesh);
@@ -1289,8 +1296,7 @@ if (heroStage) {
       group,
       centerY,
       totalHeight: totalH,
-      neckMesh,
-      baseMesh,
+      bottleMesh,
       liquidMesh,
       meniscusMesh,
       sleeveMesh,
@@ -1305,28 +1311,24 @@ if (heroStage) {
   // ====================================================================
   const BOTTLE_CENTER_Y = 0.1516; // Exact center of 303.3mm tall commercial 1L bottle
 
-  // 1. Center Hero Bottle (1L)
-  const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.png?v=21', -0.045, 0x6ed618, 'Bottle1L');
+  // 1. Center Hero Bottle (1L) - Authentic commercial green cap & centered previous label
+  const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.png?v=29', 0.025, 0x6ed618, 'Bottle1L');
   const bottleMeshGroup = bottle1LData.group;
   window.bottleMeshGroup = bottleMeshGroup;
   window.labelAlbedoTex = bottle1LData.labelTex;
 
-  // 2. Left Flanking Bottle (500ml Cylinder)
-  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.png', 0.40, 0x6ed618, 'Bottle500ml');
+  // 2. Left Flanking Bottle (500ml Cylinder) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 500ml master vector label
+  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.png?v=29', 0.0, 0xf4f6f8, 'Bottle500ml');
   window.bottle500Data = bottle500Data;
 
-  // 3. Right Flanking Bottle (250ml Hourglass)
-  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.png', 0.38, 0x6ed618, 'Bottle250ml');
+  // 3. Right Flanking Bottle (250ml Hourglass) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 250ml master vector label
+  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.png?v=29', 0.0, 0xf4f6f8, 'Bottle250ml');
   window.bottle250Data = bottle250Data;
 
-  // Calibrated size scaling for authentic volume relationships & viewport framing
-  const BOTTLE_1L_SCALE = 0.90; // Elegant viewport height framing for hero 1L bottle
-  const B500_SCALE_X = 1.18;
-  const B500_SCALE_Y = 1.10;
-  const B500_SCALE_Z = 1.18;
-  const B250_SCALE_X = 1.22;
-  const B250_SCALE_Y = 1.18;
-  const B250_SCALE_Z = 1.22;
+  // Uniform size scaling preserving exact physical aspect ratios and silhouettes
+  const BOTTLE_1L_SCALE = 0.90; // Primary hero focus
+  const B500_SCALE = 0.92;      // Authentic medium cylinder height
+  const B250_SCALE = 0.95;      // Authentic compact hourglass height
 
   // Interactive Rigs for independent rotation around each bottle's center
   const bottleInteractiveRig = new THREE.Group();
@@ -1338,38 +1340,74 @@ if (heroStage) {
   const bottle500InteractiveRig = new THREE.Group();
   bottle500InteractiveRig.name = 'Bottle500InteractiveRig';
   bottle500InteractiveRig.add(bottle500Data.group);
-  bottle500InteractiveRig.scale.set(B500_SCALE_X, B500_SCALE_Y, B500_SCALE_Z);
+  bottle500InteractiveRig.scale.set(B500_SCALE, B500_SCALE, B500_SCALE);
   window.bottle500InteractiveRig = bottle500InteractiveRig;
 
   const bottle250InteractiveRig = new THREE.Group();
   bottle250InteractiveRig.name = 'Bottle250InteractiveRig';
   bottle250InteractiveRig.add(bottle250Data.group);
-  bottle250InteractiveRig.scale.set(B250_SCALE_X, B250_SCALE_Y, B250_SCALE_Z);
+  bottle250InteractiveRig.scale.set(B250_SCALE, B250_SCALE, B250_SCALE);
   window.bottle250InteractiveRig = bottle250InteractiveRig;
 
-  // Exact shared tabletop baseline: all 3 bottles rest solidly on baseline
-  // 1L bottom is at -BOTTLE_CENTER_Y * BOTTLE_1L_SCALE = -0.1516 * 0.90 = -0.13644
-  // 500ml scaled total height = 0.236 * 1.10 = 0.2596 -> Center Y = -0.13644 + 0.1298 = -0.0066
-  const B500_POS_X = -0.125;
-  const B500_POS_Y = -0.007;
-  const B500_POS_Z = -0.035;
+  // Shared Tabletop Ground Plane Baseline:
+  // Baseline is at -BOTTLE_CENTER_Y * BOTTLE_1L_SCALE = -0.1516 * 0.90 = -0.13644
+  // 500ml: totalHeight = 0.236m, halfHeight = 0.118m -> center Y = -0.13644 + (0.118 * 0.92) = -0.02788
+  // 250ml: totalHeight = 0.192m, halfHeight = 0.096m -> center Y = -0.13644 + (0.096 * 0.95) = -0.04524
+  const B500_POS_X = -0.128;
+  const B500_POS_Y = -0.0279;
+  const B500_POS_Z = -0.032;
 
   const bottle500Rig = new THREE.Group();
   bottle500Rig.name = 'Bottle500Rig';
   bottle500Rig.position.set(B500_POS_X, B500_POS_Y, B500_POS_Z);
-  bottle500Rig.rotation.set(0.015, 0.16, -0.02);
+  bottle500Rig.rotation.set(0.015, 0.12, -0.02);
   bottle500Rig.add(bottle500InteractiveRig);
 
-  // 250ml scaled total height = 0.192 * 1.18 = 0.2265 -> Center Y = -0.13644 + 0.1132 = -0.0232
-  const B250_POS_X = +0.118;
-  const B250_POS_Y = -0.023;
-  const B250_POS_Z = -0.025;
+  const B250_POS_X = +0.122;
+  const B250_POS_Y = -0.0452;
+  const B250_POS_Z = -0.024;
 
   const bottle250Rig = new THREE.Group();
   bottle250Rig.name = 'Bottle250Rig';
   bottle250Rig.position.set(B250_POS_X, B250_POS_Y, B250_POS_Z);
-  bottle250Rig.rotation.set(0.015, -0.18, 0.025);
+  bottle250Rig.rotation.set(0.015, -0.14, 0.025);
   bottle250Rig.add(bottle250InteractiveRig);
+
+  // Soft Radial Contact Shadows for photorealistic tabletop grounding
+  function createContactShadowMesh(rx, rz) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(25, 45, 15, 0.45)');
+    grad.addColorStop(0.35, 'rgba(25, 45, 15, 0.22)');
+    grad.addColorStop(0.70, 'rgba(25, 45, 15, 0.06)');
+    grad.addColorStop(1.0, 'rgba(25, 45, 15, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const geo = new THREE.PlaneGeometry(rx * 2, rz * 2);
+    geo.rotateX(-Math.PI / 2);
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false
+    });
+    return new THREE.Mesh(geo, mat);
+  }
+
+  const BASELINE_Y = -0.1360;
+  const shadow1L = createContactShadowMesh(0.052, 0.046);
+  shadow1L.position.set(0, BASELINE_Y, 0);
+
+  const shadow500 = createContactShadowMesh(0.044, 0.038);
+  shadow500.position.set(B500_POS_X, BASELINE_Y, B500_POS_Z);
+
+  const shadow250 = createContactShadowMesh(0.040, 0.035);
+  shadow250.position.set(B250_POS_X, BASELINE_Y, B250_POS_Z);
 
   // Outer Master Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
@@ -1377,10 +1415,16 @@ if (heroStage) {
   bottleRig.add(bottleInteractiveRig);
   bottleRig.add(bottle500Rig);
   bottleRig.add(bottle250Rig);
+  bottleRig.add(shadow1L);
+  bottleRig.add(shadow500);
+  bottleRig.add(shadow250);
   scene.add(bottleRig);
   window.bottleRig = bottleRig;
   window.bottle500Rig = bottle500Rig;
   window.bottle250Rig = bottle250Rig;
+  window.shadow1L = shadow1L;
+  window.shadow500 = shadow500;
+  window.shadow250 = shadow250;
 
   // ====================================================================
   // ULTRA-REALISTIC 3D TENDER COCONUT SUITE (THREE INDEPENDENT OBJECTS)
@@ -1947,15 +1991,15 @@ if (heroStage) {
     const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
 
     // Dynamic rotation flourish while emerging from behind center bottle:
-    // 500ml spins smoothly as it slides out to the left
-    const emerge500RotY = THREE.MathUtils.lerp(0.16 - Math.PI * 1.5, 0.16, tEmerge);
-    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
-    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, -0.02, tEmerge);
+    // 500ml spins smoothly as it slides out to the left and settles squarely facing forward
+    const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
+    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
+    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, 0.0, tEmerge);
 
-    // 250ml spins in opposite direction as it slides out to the right
-    const emerge250RotY = THREE.MathUtils.lerp(-0.18 + Math.PI * 1.5, -0.18, tEmerge);
-    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
-    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.025, tEmerge);
+    // 250ml spins in opposite direction as it slides out to the right and settles squarely facing forward
+    const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, 0.0, tEmerge);
+    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
+    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, B500_POS_X, tEmerge);
@@ -1981,10 +2025,11 @@ if (heroStage) {
       bottle500Rig.rotation.set(emerge500RotX, emerge500RotY, emerge500RotZ);
 
       if (bottle500Data && bottle500Data.materials) {
-        bottle500Data.materials.forEach(mat => {
-          if (mat.opacity !== undefined) {
-            mat.opacity = mat.isMeshPhysicalMaterial ? (0.28 * sideBottleFade) : sideBottleFade;
-          }
+        bottle500Data.materials.forEach((mat, idx) => {
+          const base = mat.userData?.baseOpacity !== undefined ? mat.userData.baseOpacity : 1.0;
+          mat.opacity = base * sideBottleFade;
+          // Keep shrink sleeve and cap completely opaque when settled for maximum vibrancy
+          mat.transparent = (sideBottleFade < 0.99) || (idx === 0 || idx === 1);
         });
       }
     }
@@ -2001,12 +2046,29 @@ if (heroStage) {
       bottle250Rig.rotation.set(emerge250RotX, emerge250RotY, emerge250RotZ);
 
       if (bottle250Data && bottle250Data.materials) {
-        bottle250Data.materials.forEach(mat => {
-          if (mat.opacity !== undefined) {
-            mat.opacity = mat.isMeshPhysicalMaterial ? (0.28 * sideBottleFade) : sideBottleFade;
-          }
+        bottle250Data.materials.forEach((mat, idx) => {
+          const base = mat.userData?.baseOpacity !== undefined ? mat.userData.baseOpacity : 1.0;
+          mat.opacity = base * sideBottleFade;
+          // Keep shrink sleeve and cap completely opaque when settled for maximum vibrancy
+          mat.transparent = (sideBottleFade < 0.99) || (idx === 0 || idx === 1);
         });
       }
+    }
+
+    // Soft Contact Shadows tracking
+    if (window.shadow1L) {
+      const shadowFade1L = Math.max(0, (tCenter - 0.4) / 0.6) * Math.max(0, 1.0 - ease2 * 2.0);
+      window.shadow1L.material.opacity = shadowFade1L * 0.45;
+    }
+    if (window.shadow500) {
+      window.shadow500.material.opacity = sideBottleFade * 0.40;
+      window.shadow500.position.x = emerge500X;
+      window.shadow500.position.z = emerge500Z;
+    }
+    if (window.shadow250) {
+      window.shadow250.material.opacity = sideBottleFade * 0.40;
+      window.shadow250.position.x = emerge250X;
+      window.shadow250.position.z = emerge250Z;
     }
 
     if (coconutRig) {
