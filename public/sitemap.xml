@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://tenderwonder.net/</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://tenderwonder.net/assets/tender_wonder_logo.png</image:loc>
+      <image:title>Tender Wonder - 100% Pure Natural Tender Coconut Water</image:title>
+      <image:caption>Pure natural tender coconut water beverages with natural electrolytes, no added sugar, and no preservatives.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://tenderwonder.net/assets_clean/catalog_card_1_full.png</image:loc>
+      <image:title>Tender Wonder Natural Coconut Water 250ml</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://tenderwonder.net/assets_clean/catalog_card_2_full.png</image:loc>
+      <image:title>Tender Wonder Natural Coconut Water 500ml</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://tenderwonder.net/assets_clean/catalog_card_3_full.png</image:loc>
+      <image:title>Tender Wonder Natural Coconut Water 1 Litre</image:title>
+    </image:image>
+  </url>
+</urlset>

@@ -28,29 +28,29 @@ window.addEventListener('load', () => {
 });
 
 // ======================================================================
-// 0. INTRO LOADING SCREEN (INITIAL ASSET LOAD ONLY)
+// 0. INTRO LOADING SCREEN (FAST NON-BLOCKING ASSET INITIALIZATION)
 // ======================================================================
 const loadingScreen = document.getElementById('loading-screen');
 const progressBar = document.getElementById('loading-progress-bar');
 
-let progress = 0;
-const loadInterval = setInterval(() => {
-  progress += Math.random() * 25 + 15;
-  if (progress > 100) progress = 100;
-  if (progressBar) progressBar.style.width = `${progress}%`;
-
-  if (progress >= 100) {
-    clearInterval(loadInterval);
+function dismissLoadingScreen() {
+  if (!loadingScreen || loadingScreen.classList.contains('fade-out')) return;
+  if (progressBar) progressBar.style.width = '100%';
+  setTimeout(() => {
+    loadingScreen.classList.add('fade-out');
     setTimeout(() => {
-      if (loadingScreen) {
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-          loadingScreen.style.display = 'none';
-        }, 600);
-      }
-    }, 350);
-  }
-}, 75);
+      loadingScreen.style.display = 'none';
+    }, 450);
+  }, 120);
+}
+
+// Fast dismiss: as soon as DOM and WebGL initialize, or max 350ms safety fallback
+if (document.readyState === 'complete') {
+  dismissLoadingScreen();
+} else {
+  window.addEventListener('load', dismissLoadingScreen, { once: true });
+  setTimeout(dismissLoadingScreen, 350);
+}
 
 // ======================================================================
 // 1. SLIDE NAVIGATION & SCROLL ENGINE (NATIVE SCROLL-LINKED)
@@ -139,7 +139,11 @@ function updateScrollMetrics() {
       }
       heroStage.style.opacity = stageOpacity > 0.01 ? stageOpacity.toFixed(3) : '0';
       const visible = stageOpacity > 0.05;
-      heroStage.style.pointerEvents = (visible && p2 < 0.95) ? 'auto' : 'none';
+      const isInteractive = visible && p2 < 0.95;
+      heroStage.classList.toggle('interactive', isInteractive);
+      heroStage.style.pointerEvents = isInteractive ? 'auto' : 'none';
+      heroStage.style.display = stageOpacity > 0.01 ? 'flex' : 'none';
+      isHeroStageVisible = stageOpacity > 0.01;
 
       if (s2Rect.top <= vh * 0.5 && s2Rect.bottom > vh * 0.5) {
         updateActiveSlideUI(2);
@@ -262,8 +266,21 @@ window.canAdvancePastSlide2 = () => leftBottlesStep === 3;
 
 window.addEventListener('scroll', onWindowScroll, { passive: true });
 
-// Initial render: starting nothing is there (progress = 0)
-renderHeroText(0.0);
+// Initial hero presentation: establish fast LCP and readable headline immediately
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (prefersReducedMotion) {
+  targetPhase1CenterProgress = 1.0;
+  currentPhase1CenterProgress = 1.0;
+  targetPhase1EmergeProgress = 1.0;
+  currentPhase1EmergeProgress = 1.0;
+  renderHeroText(1.0, 0.0);
+} else {
+  // Smooth initial hero entrance on arrival
+  targetPhase1CenterProgress = 1.0;
+  currentPhase1CenterProgress = 0.0;
+  renderHeroText(1.0, 0.0);
+}
+
 // In case page was reloaded at a scrolled position, sync immediately:
 setTimeout(onWindowScroll, 50);
 
@@ -551,6 +568,7 @@ function setProcessStep(step) {
     const vid = item.querySelector('video.stage-process-video');
     if (vid) {
       if (isActive) {
+        if (vid.preload !== 'auto') vid.preload = 'auto';
         vid.currentTime = 0;
         const p = vid.play();
         if (p !== undefined) p.catch(() => {});
@@ -559,6 +577,13 @@ function setProcessStep(step) {
       }
     }
   });
+
+  // Lazy-preload next step's video metadata so it plays seamlessly on advance
+  const nextItem = document.querySelector(`#process-viewport .process-stage-item[data-stage="${currentProcessStep + 1}"]`);
+  const nextVid = nextItem?.querySelector('video.stage-process-video');
+  if (nextVid && nextVid.preload === 'none') {
+    nextVid.preload = 'metadata';
+  }
 
   // 2. Timeline nodes
   const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
@@ -995,11 +1020,12 @@ if (heroStage) {
   renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
-    preserveDrawingBuffer: true,
+    preserveDrawingBuffer: false,
     powerPreference: 'high-performance'
   });
   renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  const maxDpr = (window.innerWidth < 768) ? 1.25 : 1.5;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = false;
@@ -2114,8 +2140,8 @@ if (heroStage) {
       c3Vel.x *= 0.91;
     }
 
-    if (controls && controls.enabled) controls.update();
-    // Occlusion culling: only render when heroStage is in viewport
+    if (controls && controls.enabled && isHeroStageVisible) controls.update();
+    // Occlusion culling: strictly render only when heroStage is visible in viewport
     if (isHeroStageVisible && renderer && scene && camera) {
       renderer.render(scene, camera);
     }
@@ -2160,10 +2186,10 @@ document.querySelectorAll('.luxury-product-card').forEach(card => {
   const qtyVal = card.querySelector('.qty-spin-val');
   const addBtn = card.querySelector('.btn-add-to-cart-luxury');
 
-  let qty = 2;
+  let qty = parseInt(qtyVal?.textContent || '0', 10) || 0;
 
   minus?.addEventListener('click', () => {
-    if (qty > 1) {
+    if (qty > 0) {
       qty--;
       qtyVal.textContent = qty;
     }
@@ -2175,8 +2201,13 @@ document.querySelectorAll('.luxury-product-card').forEach(card => {
   });
 
   addBtn?.addEventListener('click', () => {
+    if (qty <= 0) {
+      showToast('Please select at least 1 item before adding to cart');
+      return;
+    }
+
     const size = addBtn.dataset.size;
-    const price = parseFloat(addBtn.dataset.price);
+    const price = parseFloat(addBtn.dataset.price) || 0;
 
     const existing = cart.find(i => i.size === size);
     if (existing) {
@@ -2233,16 +2264,142 @@ document.getElementById('btn-floating-cart')?.addEventListener('click', () => {
 });
 
 // ======================================================================
-// 4. CUSTOMER DETAILS FORM SUBMISSION
+// 4. CONTACT US & DIRECT WHATSAPP INTEGRATION (+971 503130165)
 // ======================================================================
-window.submitOrder = function() {
+window.submitContactForm = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
   const nameInput = document.getElementById('cust-name');
+  const phoneInput = document.getElementById('cust-phone');
+  const emailInput = document.getElementById('cust-email');
+  const subjectInput = document.getElementById('cust-subject');
+  const messageInput = document.getElementById('cust-message');
+
   const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Valued Customer';
-  showToast(`Thank you, ${name}! Your order has been placed.`);
-  setTimeout(() => {
-    window.goToSlide(7); // Scroll smoothly to Valued Clients page
-  }, 1200);
+  const phone = phoneInput && phoneInput.value.trim() ? phoneInput.value.trim() : '';
+  const email = emailInput && emailInput.value.trim() ? emailInput.value.trim() : '';
+  const subject = subjectInput ? subjectInput.value : 'General Inquiry';
+  const message = messageInput && messageInput.value.trim() ? messageInput.value.trim() : '';
+
+  let cartDetails = '';
+  if (typeof cart !== 'undefined' && Array.isArray(cart) && cart.length > 0) {
+    const items = cart.map(item => `  • ${item.size}: ${item.qty} pcs @ $${item.price.toFixed(2)} = $${(item.qty * item.price).toFixed(2)}`).join('\n');
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    cartDetails = `\n\n🛒 *Selected Bottles from Catalog (${totalQty} pcs):*\n${items}\n💰 *Total Price: $${total}*`;
+  }
+
+  const textLines = [
+    `🌴 *Tender Wonder Contact Inquiry* 🌴`,
+    `--------------------------------------`,
+    `👤 *Name:* ${name}`,
+    `📞 *Phone / WhatsApp:* ${phone || 'Not specified'}`,
+    `✉️ *Email:* ${email || 'Not specified'}`,
+    `📌 *Inquiry Type:* ${subject}`,
+    message ? `💬 *Message:* ${message}` : `💬 *Message:* Hello, I would like to inquire about Tender Wonder pure tender coconut water.`,
+    cartDetails
+  ].filter(Boolean).join('\n');
+
+  const whatsappUrl = `https://wa.me/971503130165?text=${encodeURIComponent(textLines)}`;
+
+  showToast('Connecting to WhatsApp (+971 50 313 0165)...');
+  
+  // Open WhatsApp in new tab, with failover to same-window navigation if popups are blocked
+  try {
+    const newWin = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+      window.location.href = whatsappUrl;
+    }
+  } catch (err) {
+    window.location.href = whatsappUrl;
+  }
 };
+
+window.submitOrder = window.submitContactForm;
+
+// Direct WhatsApp Order from Shopping Cart Drawer with Order Items & Price
+window.sendCartOrderToWhatsApp = function() {
+  if (!cart || cart.length === 0) {
+    showToast('Your cart is empty! Please add bottles from the catalog.');
+    window.goToSlide(4);
+    return;
+  }
+
+  const itemsList = cart.map(item => {
+    const itemTotal = (item.price * item.qty).toFixed(2);
+    return `  • ${item.size} — ${item.qty} pcs @ $${item.price.toFixed(2)} = $${itemTotal}`;
+  }).join('\n');
+
+  const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+  const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+  const textLines = [
+    `🌴 *Tender Wonder — WhatsApp Order* 🌴`,
+    `----------------------------------------`,
+    `Hello! I would like to place an order for Tender Wonder 100% Pure Natural Tender Coconut Water:`,
+    ``,
+    `🛒 *Order Details (${totalQty} bottles):*`,
+    itemsList,
+    ``,
+    `💰 *Total Price: $${total}*`,
+    `----------------------------------------`,
+    `📍 Please share delivery details and confirm my order. Thank you!`
+  ].join('\n');
+
+  const whatsappUrl = `https://wa.me/971503130165?text=${encodeURIComponent(textLines)}`;
+  showToast('Connecting to WhatsApp with your order...');
+
+  try {
+    const newWin = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+      window.location.href = whatsappUrl;
+    }
+  } catch (err) {
+    window.location.href = whatsappUrl;
+  }
+};
+
+const btnCartCheckout = document.getElementById('btn-cart-checkout');
+if (btnCartCheckout) {
+  btnCartCheckout.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.sendCartOrderToWhatsApp();
+  });
+}
+
+// Explicit Click Handlers for Contact Us Buttons
+const whatsappDirectBanner = document.getElementById('whatsapp-direct-banner') || document.querySelector('.whatsapp-direct-banner');
+if (whatsappDirectBanner) {
+  whatsappDirectBanner.addEventListener('click', (e) => {
+    e.preventDefault();
+    const chatUrl = 'https://wa.me/971503130165?text=' + encodeURIComponent('Hello Tender Wonder, I would like to inquire about pure tender coconut water.');
+    showToast('Connecting to WhatsApp (+971 50 313 0165)...');
+    try {
+      const win = window.open(chatUrl, '_blank', 'noopener,noreferrer');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = chatUrl;
+      }
+    } catch (err) {
+      window.location.href = chatUrl;
+    }
+  });
+}
+
+const btnChatNow = document.getElementById('btn-chat-now');
+if (btnChatNow) {
+  btnChatNow.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    whatsappDirectBanner?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  });
+}
+
+const btnWhatsappConnect = document.getElementById('btn-whatsapp-connect') || document.querySelector('.btn-form-whatsapp');
+if (btnWhatsappConnect) {
+  btnWhatsappConnect.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.submitContactForm(e);
+  });
+}
 
 // ======================================================================
 // 5. VALUED CLIENTS (SLIDE 7) & PROCESS JOURNEY (SLIDE 3) INITIALIZATION

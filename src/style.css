@@ -13,6 +13,14 @@
   /* Brand Typography: Title Text = Basic Sans, Body Text = Inter */
   --font-display: 'Basic Sans', 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Standard Animation Timing & Easing System */
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration-micro: 180ms;
+  --duration-ui: 260ms;
+  --duration-reveal: 450ms;
+  --duration-cinematic: 850ms;
 }
 
 * {
@@ -356,8 +364,12 @@ body {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  pointer-events: auto;
+  pointer-events: none;
   cursor: default;
+}
+
+.bottle-3d-stage.interactive canvas {
+  pointer-events: auto;
 }
 
 .bottle-3d-stage canvas.is-dragging {
@@ -1949,6 +1961,40 @@ body {
   100% { transform: scale(1.04) rotate(2deg); }
 }
 
+/* Dynamic SVG Global Trade & Export Arcs */
+.reach-routes-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.route-base {
+  fill: none;
+  stroke: rgba(12, 86, 46, 0.22);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-dasharray: 2 4;
+}
+
+.route-beam {
+  fill: none;
+  stroke: #46C154;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 8 28;
+  filter: drop-shadow(0 0 4px rgba(70, 193, 84, 0.85));
+  animation: routePulseFlow 5s linear infinite;
+}
+
+@keyframes routePulseFlow {
+  from { stroke-dashoffset: 72; }
+  to { stroke-dashoffset: 0; }
+}
+
 /* Interactive Map Destination Pins */
 .reach-pins-overlay {
   position: absolute;
@@ -1957,6 +2003,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 8;
 }
 
 .reach-interactive-pin {
@@ -2137,6 +2184,9 @@ body {
   padding: clamp(24px, 2.5vw, 36px);
   border: 1.5px solid var(--color-light-neutral);
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 30;
+  pointer-events: auto !important;
 }
 
 .form-title-block {
@@ -2219,6 +2269,126 @@ body {
   margin-bottom: 20px;
 }
 
+/* Instant WhatsApp Direct Connect Banner */
+.whatsapp-direct-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.08) 0%, rgba(12, 86, 46, 0.05) 100%);
+  border: 1.5px solid rgba(37, 211, 102, 0.35);
+  border-radius: 16px;
+  padding: 11px 16px;
+  margin-bottom: 18px;
+  text-decoration: none;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 32;
+  user-select: none;
+  transition: all 0.25s ease;
+}
+
+.whatsapp-direct-banner:hover {
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.16) 0%, rgba(12, 86, 46, 0.1) 100%);
+  border-color: #25D366;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.2);
+}
+
+.whatsapp-direct-banner:active {
+  transform: scale(0.985);
+}
+
+.whatsapp-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.whatsapp-badge-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #25D366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+.whatsapp-banner-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.whatsapp-banner-subtitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-forest-green);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.whatsapp-banner-number {
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 900;
+  color: var(--color-dark-green);
+  letter-spacing: 0.4px;
+}
+
+.whatsapp-banner-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #25D366;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.4px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  border: none;
+  outline: none;
+  user-select: none;
+}
+
+.whatsapp-banner-btn:hover {
+  background: #1eb956;
+  transform: translateY(-1px);
+}
+
+.whatsapp-banner-btn:active {
+  transform: scale(0.96);
+}
+
+.whatsapp-direct-banner:hover .whatsapp-banner-btn {
+  background: #1eb956;
+}
+
+.input-box-textarea {
+  align-items: flex-start;
+  padding: 10px 14px;
+}
+
+.input-box-textarea textarea {
+  width: 100%;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-charcoal);
+  outline: none;
+  resize: vertical;
+  min-height: 52px;
+}
+
 .btn-form-continue {
   display: flex;
   align-items: center;
@@ -2243,6 +2413,35 @@ body {
   color: var(--color-forest-green);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(70, 193, 84, 0.35);
+}
+
+.btn-form-whatsapp {
+  background: linear-gradient(135deg, #0C562E 0%, #15803d 100%);
+  color: #FFFFFF;
+  gap: 10px;
+  font-size: 13px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(12, 86, 46, 0.25);
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 32;
+  user-select: none;
+}
+
+.btn-form-whatsapp:hover {
+  background: linear-gradient(135deg, #25D366 0%, #1eb956 100%);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(37, 211, 102, 0.4);
+}
+
+.btn-form-whatsapp:active {
+  transform: scale(0.985);
+}
+
+.btn-form-whatsapp svg {
+  flex-shrink: 0;
 }
 
 .customer-right-tag {
@@ -2326,15 +2525,28 @@ body {
 
 .track-left {
   animation: marqueeScrollLeft 38s linear infinite;
+  will-change: transform;
 }
 
 .track-right {
   animation: marqueeScrollRight 42s linear infinite;
   margin-top: 36px;
+  will-change: transform;
 }
 
 .clients-marquee-container:hover .marquee-track {
   animation-play-state: paused;
+}
+
+/* Optimization: pause infinite marquee when Slide 7 is not active */
+.slide-panel:not(.active) .marquee-track {
+  animation-play-state: paused !important;
+}
+
+/* Optimization: pause sonar pulses when Slide 5 is not active */
+.slide-panel:not(.active) .hub-sonar-ring,
+.slide-panel:not(.active) .pin-pulse-dot {
+  animation-play-state: paused !important;
 }
 
 .marquee-group {
@@ -2345,13 +2557,13 @@ body {
 }
 
 @keyframes marqueeScrollLeft {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 @keyframes marqueeScrollRight {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 .client-logo-slot {
@@ -3046,12 +3258,29 @@ body {
 
   .customer-form-card {
     width: 100%;
-    padding: 24px 20px;
+    padding: 22px 18px;
+  }
+
+  .whatsapp-direct-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .whatsapp-banner-btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .form-inputs-row {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .btn-form-whatsapp {
+    font-size: 12px;
+    padding: 12px;
   }
 
   /* Slide 7 Valued Clients (Mobile) */
@@ -3166,15 +3395,37 @@ body {
   }
 }
 
-/* Accessibility: prefers-reduced-motion */
+/* Accessibility: Deliberate and Graceful prefers-reduced-motion System */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
   }
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+
+  /* Disable disorienting infinite motion loops */
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hub-sonar-ring,
+  .pin-pulse-dot {
+    animation: none !important;
+    opacity: 0.7 !important;
+  }
+
+  .scroll-wheel {
+    animation: none !important;
+  }
+
+  /* Replace 0.01ms snaps with gentle, instant-settled presentation */
+  .slide-panel .benefit-block,
+  .slide-panel .luxury-product-card,
+  .slide-panel .reach-card-wrapper,
+  .slide-panel .customer-form-card,
+  .slide-panel .clients-card-box,
+  .h-bottle-item {
+    transition: opacity 0.18s ease-out !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }
