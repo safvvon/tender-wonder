@@ -217,7 +217,78 @@
   <!-- ============================================================ -->
   <div id="website-app">
 
-    <!-- Floating Shopping Cart Button (Top Right) -->
+    <!-- Dedicated Mobile Responsive App Header (Visible only on mobile/tablet screens <= 768px) -->
+    <header id="mobile-site-header" class="mobile-site-header" aria-label="Site Header">
+      <a href="#slide-1" class="mobile-header-logo" aria-label="Tender Wonder Home">
+        <img src="/assets/tender_wonder_logo.png" alt="Tender Wonder Logo" width="115" height="60">
+      </a>
+      <div class="mobile-header-actions">
+        <!-- Floating Cart trigger embedded inside header for mobile -->
+        <button id="btn-mobile-cart" class="mobile-header-btn cart-btn" title="View Cart" aria-label="View Shopping Cart">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span class="mobile-cart-badge cart-counter-badge">0</span>
+        </button>
+        <!-- Mobile Menu Toggle Button (Hamburger) -->
+        <button id="btn-mobile-menu" class="mobile-header-btn menu-btn" title="Open Navigation Menu" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <span class="hamburger-line line-1"></span>
+          <span class="hamburger-line line-2"></span>
+          <span class="hamburger-line line-3"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Fullscreen / Slide-Over Mobile Navigation Drawer -->
+    <div id="mobile-nav-drawer" class="mobile-nav-drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+      <div class="mobile-nav-sheet">
+        <div class="mobile-nav-header">
+          <img src="/assets/tender_wonder_logo.png" alt="Tender Wonder" class="mobile-nav-brand-img" width="130" height="68">
+          <button id="btn-close-mobile-menu" class="btn-close-nav" aria-label="Close Menu">&times;</button>
+        </div>
+        <nav class="mobile-nav-links">
+          <a href="#slide-1" class="mobile-nav-link" data-slide="1">
+            <span class="nav-link-num">01</span>
+            <span class="nav-link-text">Taste Nature's Wonder</span>
+          </a>
+          <a href="#slide-2" class="mobile-nav-link" data-slide="2">
+            <span class="nav-link-num">02</span>
+            <span class="nav-link-text">New Collection</span>
+          </a>
+          <a href="#slide-3" class="mobile-nav-link" data-slide="3">
+            <span class="nav-link-num">03</span>
+            <span class="nav-link-text">From Coconut to Bottle</span>
+          </a>
+          <a href="#slide-4" class="mobile-nav-link" data-slide="4">
+            <span class="nav-link-num">04</span>
+            <span class="nav-link-text">Product Catalog</span>
+          </a>
+          <a href="#slide-5" class="mobile-nav-link" data-slide="5">
+            <span class="nav-link-num">05</span>
+            <span class="nav-link-text">Global Reach</span>
+          </a>
+          <a href="#slide-6" class="mobile-nav-link" data-slide="6">
+            <span class="nav-link-num">06</span>
+            <span class="nav-link-text">Contact Us</span>
+          </a>
+          <a href="#slide-7" class="mobile-nav-link" data-slide="7">
+            <span class="nav-link-num">07</span>
+            <span class="nav-link-text">Our Valued Clients</span>
+          </a>
+        </nav>
+        <div class="mobile-nav-footer">
+          <a href="https://wa.me/971503130165" target="_blank" rel="noopener noreferrer" class="mobile-nav-whatsapp-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.52 3.48A11.93 11.93 0 0 0 12.03 0C5.4 0 .02 5.38.02 12.01c0 2.12.55 4.18 1.6 6L0 24l6.19-1.62a11.97 11.97 0 0 0 5.84 1.51h.01c6.63 0 12.01-5.38 12.01-12.01 0-3.21-1.25-6.22-3.53-8.4zM12.04 21.89h-.01a9.92 9.92 0 0 1-5.06-1.39l-.36-.21-3.76.99 1-3.66-.23-.38a9.95 9.95 0 0 1-1.53-5.23c0-5.5 4.48-9.98 9.99-9.98 2.67 0 5.17 1.04 7.05 2.92a9.93 9.93 0 0 1 2.93 7.06c0 5.5-4.48 9.97-9.99 9.97zm5.48-7.48c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.95 1.18-.18.2-.35.23-.65.08-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.18-.3-.02-.46.13-.61.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52l-.58-.01c-.2 0-.53.08-.8.38-.28.3-1.05 1.03-1.05 2.51 0 1.49 1.08 2.92 1.23 3.12.15.2 2.13 3.25 5.16 4.56.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.08-.12-.28-.2-.58-.35z"/></svg>
+            <span>Chat on WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Shopping Cart Button (Top Right Desktop) -->
     <button id="btn-floating-cart" class="floating-cart-btn" title="View Cart">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -361,6 +432,14 @@
 
           <!-- Main Interactive Process Frame -->
           <div class="process-visual-viewport" id="process-viewport">
+
+            <!-- Mobile Stage Navigation Chevrons -->
+            <button class="mobile-process-nav-btn prev" id="btn-process-prev" aria-label="Previous Step">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="mobile-process-nav-btn next" id="btn-process-next" aria-label="Next Step">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
             
             <!-- Stage 01: Coconut Cutting -->
             <div class="process-stage-item active" data-stage="1">
@@ -569,6 +648,13 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Mobile Catalog Carousel Dots Indicator -->
+          <div class="catalog-carousel-dots" aria-hidden="true">
+            <span class="cat-dot active" data-cat-index="0" title="1 Litre Bottle"></span>
+            <span class="cat-dot" data-cat-index="1" title="500ml Bottle"></span>
+            <span class="cat-dot" data-cat-index="2" title="250ml Bottle"></span>
           </div>
         </div>
       </section>
@@ -839,60 +925,60 @@
             <!-- Row 1 Track (Moves Left) -->
             <div class="marquee-track track-left" aria-hidden="true">
               <div class="marquee-group">
-                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="eager" decoding="async"></div>
               </div>
               <!-- Cloned Group for Seamless 100% Infinite Loop -->
               <div class="marquee-group">
-                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/09_amazon.png" alt="Amazon" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/11_noon.png" alt="Noon" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/01_air_arabia.png" alt="Air Arabia" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/02_lulu.png" alt="LuLu Hypermarket" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/03_union_coop.png" alt="Union Coop" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/04_sharjah_coop.png" alt="Sharjah Co-op" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/06_adnoc.png" alt="ADNOC" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/07_emarat.png" alt="Emarat" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/08_capital_catering.png" alt="Capital Catering+" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/05_al_ain_coop.png" alt="Al Ain Co-op" class="client-logo-img" loading="eager" decoding="async"></div>
               </div>
             </div>
 
             <!-- Row 2 Track (Moves Right) -->
             <div class="marquee-track track-right" aria-hidden="true">
               <div class="marquee-group">
-                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot f-mart-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img logo-f-mart" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari" class="client-logo-img logo-safari" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/23_nesto.png" alt="Nesto" class="client-logo-img logo-nesto" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/22_mall_mart.png" alt="Mall Mart" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot f-mart-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img logo-f-mart" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari" class="client-logo-img logo-safari" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/23_nesto.png" alt="Nesto" class="client-logo-img logo-nesto" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/22_mall_mart.png" alt="Mall Mart" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="eager" decoding="async"></div>
               </div>
               <!-- Cloned Group for Seamless 100% Infinite Loop -->
               <div class="marquee-group">
-                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot f-mart-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img logo-f-mart" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari" class="client-logo-img logo-safari" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/23_nesto.png" alt="Nesto" class="client-logo-img logo-nesto" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/22_mall_mart.png" alt="Mall Mart" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="lazy"></div>
-                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="lazy"></div>
+                <div class="client-logo-slot"><img src="/clients/17_instashop.png" alt="InstaShop" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/18_al_madina.png" alt="Al Madina" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot f-mart-slot"><img src="/clients/19_f_mart.png" alt="F Mart" class="client-logo-img logo-f-mart" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/20_enoc.png" alt="ENOC" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/21_safari_mall.png" alt="Safari" class="client-logo-img logo-safari" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/23_nesto.png" alt="Nesto" class="client-logo-img logo-nesto" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/12_adcoop.png" alt="ADCOOP" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/22_mall_mart.png" alt="Mall Mart" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/14_grandiose.png" alt="Grandiose Supermarket" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/15_talabat.png" alt="Talabat" class="client-logo-img" loading="eager" decoding="async"></div>
+                <div class="client-logo-slot"><img src="/clients/16_talal_group.png" alt="Talal Group" class="client-logo-img" loading="eager" decoding="async"></div>
               </div>
             </div>
           </div>

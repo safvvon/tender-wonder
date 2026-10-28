@@ -128,8 +128,16 @@ function updateScrollMetrics() {
     // Update active slide indicator and 3D stage visibility
     if (heroStage) {
       let stageOpacity = 0;
+      const isMobile = window.innerWidth <= 768;
       if (slide2El) {
-        if (scrollY <= slide2El.offsetTop) {
+        if (isMobile) {
+          // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
+          if (scrollY <= slide2El.offsetTop) {
+            stageOpacity = Math.max(0, 1.0 - p2 * 1.8);
+          } else {
+            stageOpacity = 0;
+          }
+        } else if (scrollY <= slide2El.offsetTop) {
           stageOpacity = (s2Rect.bottom > vh * 0.15) ? 1 : 0;
         } else {
           // Leaving Slide 2 towards Slide 3: cleanly fade out so bottle never lingers on Slide 3
@@ -213,6 +221,7 @@ function setLeftBottlesStep(step) {
   if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
   if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
 }
+window.setLeftBottlesStep = setLeftBottlesStep;
 
 function advanceSlide2BottlesOnScroll() {
   const now = performance.now();
@@ -364,7 +373,13 @@ window.goToSlide = function(index) {
   }
 
   if (index === 2) {
-    resetLeftBottlesSequence();
+    if (window.innerWidth <= 768) {
+      setTimeout(() => setLeftBottlesStep(1), 250);
+      setTimeout(() => setLeftBottlesStep(2), 550);
+      setTimeout(() => setLeftBottlesStep(3), 850);
+    } else {
+      resetLeftBottlesSequence();
+    }
   } else if (index >= 3) {
     setLeftBottlesStep(3);
   }
@@ -398,6 +413,11 @@ const slideObserver = new IntersectionObserver((entries) => {
       const vh = window.innerHeight || 800;
       if (idx && (idx > 1 || scrollY < vh * 0.5)) {
         updateActiveSlideUI(idx);
+        if (idx === 2 && window.innerWidth <= 768) {
+          setTimeout(() => setLeftBottlesStep(1), 250);
+          setTimeout(() => setLeftBottlesStep(2), 550);
+          setTimeout(() => setLeftBottlesStep(3), 850);
+        }
       }
     }
   });
@@ -967,12 +987,14 @@ function handleGlobalWheel(e) {
 
 window.addEventListener('wheel', handleGlobalWheel, { passive: false });
 
-// Touch Gestures
+// Touch Gestures with horizontal protection (for carousels/swiping)
+let touchStartX = 0;
 let touchStartY = 0;
 let touchMoved = false;
 
 window.addEventListener('touchstart', (e) => {
   if (e.touches && e.touches[0]) {
+    touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchMoved = false;
   }
@@ -980,11 +1002,20 @@ window.addEventListener('touchstart', (e) => {
 
 window.addEventListener('touchmove', (e) => {
   if (!e.touches || !e.touches[0]) return;
+  const currentX = e.touches[0].clientX;
   const currentY = e.touches[0].clientY;
+  const deltaX = touchStartX - currentX;
   const deltaY = touchStartY - currentY;
-  if (Math.abs(deltaY) > 10) {
+
+  if (Math.abs(deltaY) > 8 || Math.abs(deltaX) > 8) {
     touchMoved = true;
   }
+
+  // If user is swiping horizontally on catalog cards, world map or process, allow natural touch scrolling
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    return;
+  }
+
   if (!isScrollableInside(e.target, deltaY) && e.cancelable) {
     e.preventDefault();
   }
@@ -992,12 +1023,20 @@ window.addEventListener('touchmove', (e) => {
 
 window.addEventListener('touchend', (e) => {
   if (!touchMoved || isStepTransitioning) return;
+  const currentX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : touchStartX;
   const currentY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : touchStartY;
+  const deltaX = touchStartX - currentX;
   const deltaY = touchStartY - currentY;
 
-  if (deltaY > 25) {
+  // If predominantly horizontal swipe, don't trigger vertical slide transition
+  if (Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
+    return;
+  }
+
+  // Measured threshold for vertical slide advance/retreat
+  if (deltaY > 38) {
     handleAdvance();
-  } else if (deltaY < -25) {
+  } else if (deltaY < -38) {
     handleRetreat();
   }
 }, { passive: true });
@@ -2027,12 +2066,17 @@ if (heroStage) {
     const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
+    // Dynamic bottle spacing calibrated for screen width
+    const isMobileViewport = window.innerWidth <= 768;
+    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
+
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
-    const emerge500X = THREE.MathUtils.lerp(0.0, B500_POS_X, tEmerge);
+    const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
     const emerge500Y = THREE.MathUtils.lerp(B500_POS_Y - 0.015, B500_POS_Y, tEmerge);
     const emerge500Z = THREE.MathUtils.lerp(-0.090, B500_POS_Z, tEmerge);
 
-    const emerge250X = THREE.MathUtils.lerp(0.0, B250_POS_X, tEmerge);
+    const emerge250X = THREE.MathUtils.lerp(0.0, targetB250X, tEmerge);
     const emerge250Y = THREE.MathUtils.lerp(B250_POS_Y - 0.015, B250_POS_Y, tEmerge);
     const emerge250Z = THREE.MathUtils.lerp(-0.090, B250_POS_Z, tEmerge);
 
@@ -2153,12 +2197,26 @@ if (heroStage) {
     const w = heroStage.clientWidth || window.innerWidth;
     const h = heroStage.clientHeight || window.innerHeight;
     camera.aspect = w / h;
+
+    // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
+    if (w <= 768) {
+      const mobileZ = Math.min(1.22, Math.max(0.92, 0.76 * (540 / Math.max(300, w))));
+      camera.position.set(0.0, 0.213, mobileZ);
+      if (controls) controls.target.set(0.0, 0.213, 0.0);
+    } else {
+      camera.position.set(0.0, 0.213, 0.76);
+      if (controls) controls.target.set(0.0, 0.213, 0.0);
+    }
+
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     if (typeof window.updateSlide2TargetCache === 'function') {
       window.updateSlide2TargetCache();
     }
   }
+
+  // Ensure camera distance and aspect ratio are calibrated on startup
+  onStageResize();
 
   window.addEventListener('resize', onStageResize);
 }
@@ -2249,10 +2307,11 @@ function updateCartUI() {
 
   if (totalVal) totalVal.textContent = `$${total.toFixed(2)}`;
 
-  // Update floating cart counter badge
-  const counter = document.getElementById('cart-counter');
+  // Update all cart counter badges (desktop + mobile header)
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
-  if (counter) counter.textContent = count;
+  document.querySelectorAll('.cart-counter-badge').forEach(badge => {
+    badge.textContent = count;
+  });
 }
 
 document.getElementById('btn-close-cart')?.addEventListener('click', () => {
@@ -2419,10 +2478,157 @@ if (clientsSection) {
   clientObserver.observe(clientsSection);
 }
 
-// Initialize Slide 3 process stage controls & sync to step 1
-if (typeof initProcessControls === 'function') {
-  initProcessControls();
-  setProcessStep(1);
+// ======================================================================
+// 6. MOBILE RESPONSIVE UI CONTROLS & INTERACTIONS
+// ======================================================================
+
+// Mobile Menu Drawer Toggle
+const btnMobileMenu = document.getElementById('btn-mobile-menu');
+const mobileNavDrawer = document.getElementById('mobile-nav-drawer');
+const mobileNavBackdrop = document.getElementById('mobile-nav-backdrop');
+const btnCloseMobileMenu = document.getElementById('btn-close-mobile-menu');
+
+function openMobileMenu() {
+  if (!mobileNavDrawer) return;
+  mobileNavDrawer.classList.add('open');
+  mobileNavDrawer.setAttribute('aria-hidden', 'false');
+  if (btnMobileMenu) {
+    btnMobileMenu.classList.add('active');
+    btnMobileMenu.setAttribute('aria-expanded', 'true');
+  }
 }
 
-console.log('Tender Wonder native website experience running.');
+function closeMobileMenu() {
+  if (!mobileNavDrawer) return;
+  mobileNavDrawer.classList.remove('open');
+  mobileNavDrawer.setAttribute('aria-hidden', 'true');
+  if (btnMobileMenu) {
+    btnMobileMenu.classList.remove('active');
+    btnMobileMenu.setAttribute('aria-expanded', 'false');
+  }
+}
+
+if (btnMobileMenu) {
+  btnMobileMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (mobileNavDrawer && mobileNavDrawer.classList.contains('open')) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  });
+}
+
+if (btnCloseMobileMenu) {
+  btnCloseMobileMenu.addEventListener('click', closeMobileMenu);
+}
+if (mobileNavBackdrop) {
+  mobileNavBackdrop.addEventListener('click', closeMobileMenu);
+}
+
+document.querySelectorAll('.mobile-nav-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeMobileMenu();
+    const slideNum = parseInt(link.dataset.slide, 10);
+    let targetStop = STOP_HERO_TOP;
+    if (slideNum === 1) targetStop = STOP_HERO_TOP;
+    else if (slideNum === 2) targetStop = STOP_SLIDE_2;
+    else if (slideNum === 3) targetStop = STOP_SLIDE_3;
+    else if (slideNum === 4) targetStop = STOP_SLIDE_4;
+    else if (slideNum === 5) targetStop = STOP_SLIDE_5;
+    else if (slideNum === 6) targetStop = STOP_SLIDE_6;
+    else if (slideNum === 7) targetStop = STOP_SLIDE_7;
+
+    navigateToStop(targetStop);
+
+    if (slideNum === 2) {
+      setTimeout(() => setLeftBottlesStep(1), 350);
+      setTimeout(() => setLeftBottlesStep(2), 650);
+      setTimeout(() => setLeftBottlesStep(3), 950);
+    }
+  });
+});
+
+// Mobile Header Cart Button
+const btnMobileCart = document.getElementById('btn-mobile-cart');
+if (btnMobileCart) {
+  btnMobileCart.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (cartDrawer) {
+      cartDrawer.classList.toggle('hidden');
+    }
+  });
+}
+
+// Mobile Slide 4 Catalog Horizontal Snap Dots
+const catalogGridRow = document.querySelector('.catalog-grid-row');
+const catalogDots = document.querySelectorAll('.catalog-carousel-dots .cat-dot');
+
+if (catalogGridRow && catalogDots.length) {
+  catalogGridRow.addEventListener('scroll', () => {
+    const scrollLeft = catalogGridRow.scrollLeft;
+    const cardWidth = catalogGridRow.firstElementChild ? catalogGridRow.firstElementChild.offsetWidth + 14 : 280;
+    const activeIndex = Math.min(catalogDots.length - 1, Math.max(0, Math.round(scrollLeft / cardWidth)));
+    catalogDots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === activeIndex);
+    });
+  }, { passive: true });
+
+  catalogDots.forEach((dot, idx) => {
+    dot.addEventListener('click', () => {
+      const card = catalogGridRow.children[idx];
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    });
+  });
+}
+
+// Mobile Slide 3 Process Navigation Chevrons
+const btnProcessPrev = document.getElementById('btn-process-prev');
+const btnProcessNext = document.getElementById('btn-process-next');
+
+if (btnProcessPrev) {
+  btnProcessPrev.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentProcessStep > 1) {
+      setProcessStep(currentProcessStep - 1);
+      lastProcessStepTime = performance.now();
+    }
+  });
+}
+
+if (btnProcessNext) {
+  btnProcessNext.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentProcessStep < 10) {
+      setProcessStep(currentProcessStep + 1);
+      lastProcessStepTime = performance.now();
+    }
+  });
+}
+
+// Touch Swiping on Process Video Viewport
+const processViewport = document.getElementById('process-viewport');
+if (processViewport) {
+  let pStartX = 0;
+  processViewport.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches[0]) pStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  processViewport.addEventListener('touchend', (e) => {
+    if (e.changedTouches && e.changedTouches[0]) {
+      const diffX = pStartX - e.changedTouches[0].clientX;
+      if (diffX > 40 && currentProcessStep < 10) {
+        setProcessStep(currentProcessStep + 1);
+        lastProcessStepTime = performance.now();
+      } else if (diffX < -40 && currentProcessStep > 1) {
+        setProcessStep(currentProcessStep - 1);
+        lastProcessStepTime = performance.now();
+      }
+    }
+  }, { passive: true });
+}
+
+console.log('Tender Wonder mobile-optimized native website experience running.');

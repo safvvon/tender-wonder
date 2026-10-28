@@ -2639,38 +2639,6 @@ body {
   }
 }
 
-@media (max-width: 768px) {
-  .clients-marquee-container {
-    display: none; /* On tablet and mobile, grid is primary */
-  }
-  .clients-responsive-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px 12px;
-  }
-  .client-grid-item {
-    height: 56px;
-    padding: 6px 8px;
-  }
-  .client-logo-img {
-    max-height: 38px;
-    max-width: 105px;
-  }
-}
-
-@media (max-width: 480px) {
-  .clients-responsive-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px 10px;
-  }
-  .client-grid-item {
-    height: 52px;
-  }
-  .client-logo-img {
-    max-height: 34px;
-    max-width: 95px;
-  }
-}
-
 /* ============================================================ */
 /* FLOATING UI: CART BUTTON, DRAWER, DOTS & TOAST               */
 /* ============================================================ */
@@ -3002,147 +2970,650 @@ body {
   }
 }
 
-/* Mobile Devices (<= 768px) */
+/* ============================================================ */
+/* BASE MOBILE-ONLY ELEMENTS (HIDDEN ON DESKTOP > 768px)        */
+/* ============================================================ */
+.mobile-site-header {
+  display: none;
+}
+.mobile-nav-drawer {
+  display: none;
+}
+.mobile-process-nav-btn {
+  display: none;
+}
+.catalog-carousel-dots {
+  display: none;
+}
+
+/* ============================================================ */
+/* MOBILE & TABLET RESPONSIVE SYSTEM (<= 768px)                 */
+/* ============================================================ */
 @media (max-width: 768px) {
-  .section-inner {
-    padding: 24px 20px;
+  :root {
+    --app-vh: 100dvh;
+  }
+
+  html, body {
+    overflow-x: clip !important;
+    width: 100vw;
     max-width: 100vw;
   }
 
-  /* Slide 1 Hero */
-  .screen-logo-corner {
-    top: 20px;
-    left: 20px;
+  #website-app {
+    width: 100vw;
+    max-width: 100vw;
+    overflow-x: clip;
   }
 
-  .logo-text-cursive {
-    font-size: 26px;
+  .deck-viewport {
+    width: 100vw;
+    max-width: 100vw;
+    overflow-x: clip;
   }
 
-  .logo-text-sub {
-    font-size: 11px;
-    letter-spacing: 1.8px;
+  /* Fullscreen Slide Panels on Mobile: Exact 100dvh (or 100vh fallback) with strict boundary containment */
+  .slide-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
   }
 
-  .bg-word {
-    font-size: clamp(68px, 19vw, 120px) !important;
+  .section-inner {
+    padding: 64px 16px 16px !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* Hide distracting vertical side tags on mobile */
+  /* ------------------------------------------------------------ */
+  /* HEADER & NAVIGATION (MOBILE VIEW)                            */
+  /* ------------------------------------------------------------ */
+  .mobile-site-header {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    z-index: 10000;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(12, 86, 46, 0.08);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  }
+
+  .mobile-header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .mobile-header-logo img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+  }
+
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-header-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(12, 86, 46, 0.16);
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-forest-green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-header-btn:active {
+    transform: scale(0.94);
+    background: #F4F8F5;
+  }
+
+  .mobile-cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #25D366;
+    color: #FFFFFF;
+    font-size: 10.5px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #FFFFFF;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Hamburger Lines with Luxury Morph Transition */
+  .hamburger-line {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--color-forest-green);
+    border-radius: 2px;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    margin: 2.2px 0;
+  }
+
+  .menu-btn.active .line-1 {
+    transform: translateY(6.4px) rotate(45deg);
+  }
+  .menu-btn.active .line-2 {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .menu-btn.active .line-3 {
+    transform: translateY(-6.4px) rotate(-45deg);
+  }
+
+  /* Fullscreen / Slide-Over Mobile Navigation Drawer */
+  .mobile-nav-drawer {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .mobile-nav-drawer.open {
+    pointer-events: auto;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-nav-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 43, 23, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .mobile-nav-sheet {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(85vw, 340px);
+    background: #FFFFFF;
+    box-shadow: -10px 0 36px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 20px 26px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+  }
+
+  .mobile-nav-drawer.open .mobile-nav-sheet {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(12, 86, 46, 0.1);
+  }
+
+  .mobile-nav-brand-img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .btn-close-nav {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(12, 86, 46, 0.15);
+    background: #F4F8F5;
+    color: var(--color-forest-green);
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--color-charcoal);
+    font-size: 14.5px;
+    font-weight: 700;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .mobile-nav-link:active,
+  .mobile-nav-link:hover {
+    background: #F0F7F2;
+    transform: translateX(4px);
+  }
+
+  .nav-link-num {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--color-forest-green);
+    background: rgba(70, 193, 84, 0.14);
+    padding: 3px 7px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-link-text {
+    flex: 1;
+    letter-spacing: -0.2px;
+  }
+
+  .mobile-nav-footer {
+    padding-top: 14px;
+    border-top: 1px solid rgba(12, 86, 46, 0.1);
+  }
+
+  .mobile-nav-whatsapp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13.5px;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    letter-spacing: 0.3px;
+  }
+
+  /* Hide Desktop Redundant Overlapping Navigation on Mobile */
+  .screen-logo-corner,
+  .floating-cart-btn,
+  .scroll-dots-nav,
   .clients-side-tag,
   .customer-right-tag {
     display: none !important;
   }
 
-  /* Slide 2 New Collection */
+  /* ------------------------------------------------------------ */
+  /* SLIDE 1: HERO PRODUCT DETAIL                                 */
+  /* ------------------------------------------------------------ */
+  #slide-1 {
+    width: 100vw !important;
+    height: 300vh !important;
+    height: 300dvh !important;
+    min-height: 300vh !important;
+    min-height: 300dvh !important;
+  }
+
+  #slide-1 .hero-detail-stage {
+    padding: 64px 16px 16px !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  .giant-bg-text {
+    width: 100vw !important;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+
+  .bg-word {
+    font-size: clamp(38px, 12vw, 62px) !important;
+    letter-spacing: -0.015em !important;
+    line-height: 0.96 !important;
+    opacity: 0.82;
+  }
+
+  .hero-scroll-prompt {
+    bottom: 24px !important;
+    gap: 8px !important;
+  }
+
+  .hero-scroll-prompt span {
+    font-size: 11px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .scroll-mouse {
+    width: 18px !important;
+    height: 28px !important;
+    border-width: 1.5px !important;
+  }
+
+  .scroll-wheel {
+    width: 2.5px !important;
+    height: 5px !important;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* SLIDE 2: NEW COLLECTION OF DRINKS                            */
+  /* ------------------------------------------------------------ */
+  .new-collection-stage {
+    padding: 62px 14px 14px !important;
+    justify-content: center !important;
+  }
+
   .collection-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .collection-col-left {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    width: 100%;
-    margin-left: 0;
-    overflow: visible;
-    order: 2;
-  }
-
-  .h-bottles-stagger-group {
-    height: 175px;
-    margin-left: -15px;
-    width: 100%;
-    flex-direction: column;
-    justify-content: space-between;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    text-align: center !important;
   }
 
   .collection-col-center {
-    max-width: 100%;
-    order: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+    order: 1 !important;
   }
 
   .section-hero-title {
-    font-size: 28px;
-    margin-top: 0;
-    margin-bottom: 20px;
+    font-size: clamp(21px, 5.4vw, 27px) !important;
+    margin: 0 0 10px 0 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.3px !important;
   }
 
   .formula-badges-row {
-    gap: 12px;
-    margin-bottom: 20px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 0 10px 0 !important;
   }
 
   .formula-badge {
-    width: 90px;
+    width: clamp(74px, 24vw, 86px) !important;
+    padding: 4px 2px !important;
+    box-sizing: border-box;
   }
 
   .formula-icon-wrap {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 6px;
+    width: clamp(42px, 13vw, 50px) !important;
+    height: clamp(42px, 13vw, 50px) !important;
+    margin: 0 auto 4px !important;
   }
 
   .badge-label {
-    font-size: 10px;
+    font-size: clamp(8px, 2.3vw, 9.5px) !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.3px !important;
   }
 
   .formula-math-plus {
-    font-size: 20px;
-    height: 60px;
+    font-size: 16px !important;
+    height: clamp(42px, 13vw, 50px) !important;
+    margin: 0 -2px !important;
+    opacity: 0.7;
   }
 
   .collection-paragraph {
-    font-size: 13.5px;
-    line-height: 1.6;
-    padding: 0 10px;
+    font-size: clamp(12px, 3.1vw, 13px) !important;
+    line-height: 1.48 !important;
+    padding: 0 8px !important;
+    max-width: 420px !important;
+    margin: 0 auto 10px !important;
+    color: #1e3825 !important;
+  }
+
+  .collection-col-left {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    order: 2 !important;
+  }
+
+  .h-bottles-stagger-group {
+    height: clamp(110px, 17vh, 140px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 4px auto 0 !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+
+  .h-bottle-item {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+  }
+
+  .h-bottle-item.entered {
+    transform: translate3d(0, 0, 0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .h-bottle-1 { height: 32% !important; }
+  .h-bottle-2 { height: 30% !important; margin: 0 !important; }
+  .h-bottle-3 { height: 28% !important; margin: 0 !important; }
+
+  .h-bottle-img {
+    max-height: 100% !important;
+    max-width: 92% !important;
+    width: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));
   }
 
   .collection-col-right {
-    display: none;
+    display: none !important;
   }
 
-  /* Slide 3: From Coconut to Bottle (Process Journey Mobile) */
+  /* ------------------------------------------------------------ */
+  /* SLIDE 3: OUR PROCESS (FROM COCONUT TO BOTTLE)                 */
+  /* ------------------------------------------------------------ */
   .process-journey-stage {
-    padding: 10px 14px 16px;
+    padding: 60px 14px 12px !important;
+    justify-content: center !important;
   }
 
   .process-header {
-    margin-bottom: 12px;
+    margin-bottom: 6px !important;
   }
 
   .process-main-title {
-    font-size: 26px;
+    font-size: clamp(20px, 5.2vw, 26px) !important;
+    margin-bottom: 2px !important;
+    letter-spacing: 1px !important;
   }
 
   .process-subtitle {
-    font-size: 12px;
-    max-width: 90vw;
+    font-size: clamp(10.5px, 2.7vw, 12px) !important;
+    max-width: 92vw !important;
+    margin: 0 auto !important;
+    line-height: 1.35 !important;
   }
 
   .process-visual-viewport {
-    height: 48vh;
-    max-height: 380px;
-    border-radius: 20px;
-    margin-bottom: 12px;
+    width: 94vw !important;
+    max-width: 420px !important;
+    height: clamp(170px, 26vh, 215px) !important;
+    border-radius: 18px !important;
+    margin-bottom: 8px !important;
+    position: relative !important;
   }
 
-  .process-vector-svg {
-    max-width: 95%;
-    max-height: 88%;
+  .mobile-process-nav-btn {
+    display: flex !important;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(6, 40, 22, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(70, 193, 84, 0.5);
+    color: #FFFFFF;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-process-nav-btn:active {
+    background: var(--color-primary-green);
+    color: var(--color-forest-green);
+  }
+
+  .mobile-process-nav-btn.prev { left: 8px; }
+  .mobile-process-nav-btn.next { right: 8px; }
+
+  .quality-tests-cert-overlay {
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+  }
+
+  .cert-shield-badge {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .cert-svg-shield {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .cert-tag {
+    font-size: 7.5px !important;
+    letter-spacing: 0.8px !important;
+  }
+
+  .cert-title {
+    font-size: 11px !important;
+  }
+
+  .cert-meta {
+    font-size: 8px !important;
+  }
+
+  .final-reveal-visual {
+    padding: 12px !important;
+  }
+
+  .reveal-motto {
+    font-size: clamp(16px, 4.2vw, 20px) !important;
+    margin-bottom: 6px !important;
+  }
+
+  .reveal-sub {
+    font-size: clamp(11px, 2.8vw, 12.5px) !important;
+    margin-bottom: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .btn-replay-process {
+    padding: 8px 16px !important;
+    font-size: 11px !important;
+  }
+
+  /* Timeline Bar (Mobile Compact Dots System) */
+  .process-timeline-wrapper {
+    width: 94vw !important;
+    max-width: 420px !important;
   }
 
   .process-timeline-bar {
-    padding: 8px 0 2px;
+    padding: 6px 0 2px !important;
+  }
+
+  .process-track-bg,
+  .process-track-fill {
+    top: 14px !important;
   }
 
   .process-node-item {
-    width: auto;
-    flex: 1;
-    min-width: 38px;
+    width: auto !important;
+    flex: 1 !important;
+    min-width: 28px !important;
+    padding: 2px 0 !important;
+  }
+
+  .process-node-item .node-label {
+    display: none !important;
   }
 
   .node-num {
@@ -3150,214 +3621,524 @@ body {
   }
 
   .node-bullet {
-    margin-bottom: 5px;
-    height: 12px;
+    margin-bottom: 0 !important;
+    height: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .node-dot {
-    width: 10px;
-    height: 10px;
+    width: 9px !important;
+    height: 9px !important;
   }
 
-  .node-label {
-    font-size: 8.5px;
-    line-height: 1.15;
-    word-break: break-word;
-    height: 22px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-  }
-
-  .process-track-bg,
-  .process-track-fill {
-    top: 14px;
+  .node-badge-pill {
+    top: -16px !important;
+    font-size: 7px !important;
+    padding: 1px 5px !important;
+    letter-spacing: 0.3px !important;
   }
 
   .process-desc-viewport {
-    height: 96px;
-    min-height: 96px;
-    max-height: 96px;
-    margin-top: 8px;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    height: clamp(58px, 9.2vh, 72px) !important;
+    min-height: unset !important;
+    max-height: unset !important;
+    margin-top: 4px !important;
+    padding: 6px 12px !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .process-desc-heading {
-    font-size: 13px;
-    margin-bottom: 3px;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    color: var(--color-forest-green) !important;
+    margin-bottom: 2px !important;
   }
 
   .process-desc-text {
-    font-size: 11.5px;
-    line-height: 1.4;
-    padding: 0 8px;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    padding: 0 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  /* Slide 4 Catalog */
+  /* ------------------------------------------------------------ */
+  /* SLIDE 4: CATALOG (HORIZONTAL TOUCH SNAP CAROUSEL)            */
+  /* ------------------------------------------------------------ */
+  .catalog-stage {
+    padding: 60px 0 14px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    justify-content: center !important;
+  }
+
   .catalog-main-title {
-    font-size: 32px;
-    margin-bottom: 20px;
+    font-size: clamp(24px, 6vw, 32px) !important;
+    margin-bottom: 8px !important;
+    letter-spacing: 2px !important;
+    text-align: center;
   }
 
   .catalog-grid-row {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    overflow-y: auto;
-    max-height: 72vh;
-    padding: 10px 0;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 14px !important;
+    padding: 4px 24px 10px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    max-height: none !important;
+  }
+
+  .catalog-grid-row::-webkit-scrollbar {
+    display: none !important;
   }
 
   .luxury-product-card {
-    width: 100%;
-    max-width: 320px;
-    height: auto;
-    min-height: 360px;
-    padding: 20px;
+    width: clamp(240px, 78vw, 290px) !important;
+    min-width: clamp(240px, 78vw, 290px) !important;
+    max-width: 290px !important;
+    height: clamp(330px, 50vh, 390px) !important;
+    min-height: unset !important;
+    scroll-snap-align: center !important;
+    flex-shrink: 0 !important;
+    padding: 16px 14px 14px !important;
+    border-radius: 24px !important;
+    box-sizing: border-box !important;
   }
 
-  /* Slide 5 Global Reach */
+  .card-art-box {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-bottom: 6px !important;
+  }
+
+  .catalog-bottle-img {
+    max-height: clamp(160px, 27vh, 210px) !important;
+    width: auto !important;
+    object-fit: contain !important;
+  }
+
+  .catalog-bottle-img.medium { max-height: clamp(150px, 25vh, 195px) !important; }
+  .catalog-bottle-img.small { max-height: clamp(138px, 23vh, 180px) !important; }
+
+  .card-action-bar {
+    padding-top: 10px !important;
+    gap: 6px !important;
+  }
+
+  .card-price-tag {
+    font-size: 15.5px !important;
+    font-weight: 800 !important;
+  }
+
+  .card-qty-spinner {
+    padding: 2px 5px !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+  }
+
+  .btn-qty-spin {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 14px !important;
+  }
+
+  .qty-spin-val {
+    font-size: 12px !important;
+  }
+
+  .btn-add-to-cart-luxury {
+    padding: 9px 12px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    border-radius: 16px !important;
+    letter-spacing: 0.4px !important;
+    white-space: nowrap !important;
+  }
+
+  .catalog-carousel-dots {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(12, 86, 46, 0.2);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cat-dot.active {
+    width: 22px;
+    background: var(--color-forest-green);
+    border-radius: 4px;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* SLIDE 5: GLOBAL REACH (WORLD MAP)                            */
+  /* ------------------------------------------------------------ */
   .global-reach-stage {
-    padding: 16px 12px;
+    padding: 60px 12px 14px !important;
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+
+  .reach-header-title {
+    margin-bottom: 4px !important;
+  }
+
+  .reach-header-title .top-accent-bar {
+    width: 32px !important;
+    height: 3px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .reach-header-title h2 {
+    font-size: clamp(17px, 4.6vw, 23px) !important;
+    letter-spacing: 0.3px !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.2 !important;
+    text-wrap: balance !important;
+    max-width: 90vw !important;
+  }
+
+  .reach-header-title .reach-subtitle {
+    font-size: clamp(9px, 2.4vw, 10.5px) !important;
+    letter-spacing: 1.8px !important;
+  }
+
+  .reach-card-container {
+    padding: 0 4px !important;
   }
 
   .reach-card-wrapper {
-    width: 96vw;
-    max-width: 560px;
-    border-radius: 18px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    width: min(94vw, 480px) !important;
+    aspect-ratio: 945 / 527 !important;
+    height: auto !important;
+    max-height: 48vh !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
   }
 
   .reach-interactive-pin {
-    width: 20px;
-    height: 20px;
+    width: 22px !important;
+    height: 22px !important;
   }
 
   .reach-interactive-pin .pin-pulse-dot {
-    width: 6px;
-    height: 6px;
+    width: 6.5px !important;
+    height: 6.5px !important;
   }
 
-  /* Slide 6 Customer Details */
+  .reach-interactive-pin.hub .hub-pulse-core {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  .reach-interactive-pin.hub .hub-sonar-ring {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* SLIDE 6: CONTACT US (WHATSAPP FAST RESPONSE)                 */
+  /* ------------------------------------------------------------ */
+  .customer-details-stage {
+    padding: 60px 14px 14px !important;
+    justify-content: center !important;
+  }
+
   .customer-split-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-height: 78vh;
-    overflow-y: auto;
-    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .customer-left-side {
-    display: none;
+    display: none !important;
   }
 
   .customer-form-card {
-    width: 100%;
-    padding: 22px 18px;
+    width: 100% !important;
+    padding: 14px 14px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(12, 86, 46, 0.12) !important;
+    box-sizing: border-box !important;
+  }
+
+  .form-title-block {
+    margin-bottom: 8px !important;
+  }
+
+  .form-title-block .top-accent-bar {
+    width: 28px !important;
+    height: 2.5px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .form-title-block h2 {
+    font-size: 19px !important;
+    margin: 0 !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  .form-title-block p {
+    font-size: 9.5px !important;
+    letter-spacing: 1px !important;
+    margin-top: 2px !important;
   }
 
   .whatsapp-direct-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 14px;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 7px 10px !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  .whatsapp-banner-left {
+    gap: 8px !important;
+  }
+
+  .whatsapp-badge-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .whatsapp-badge-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .whatsapp-banner-subtitle {
+    font-size: 8px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .whatsapp-banner-number {
+    font-size: 12.5px !important;
   }
 
   .whatsapp-banner-btn {
-    width: 100%;
-    justify-content: center;
+    padding: 5px 10px !important;
+    font-size: 10.5px !important;
+    width: auto !important;
+    gap: 4px !important;
+  }
+
+  .whatsapp-banner-btn svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 
   .form-inputs-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .input-field {
+    gap: 3px !important;
+  }
+
+  .input-field.full {
+    margin-bottom: 8px !important;
+  }
+
+  .input-field label {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+  }
+
+  .input-box {
+    padding: 6px 9px !important;
+    border-radius: 9px !important;
+    gap: 6px !important;
+  }
+
+  .input-box svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .input-box input,
+  .input-box select {
+    font-size: 12px !important;
+  }
+
+  .input-box-textarea {
+    padding: 6px 9px !important;
+  }
+
+  .input-box-textarea textarea {
+    min-height: 38px !important;
+    height: 38px !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
   }
 
   .btn-form-whatsapp {
-    font-size: 12px;
-    padding: 12px;
+    padding: 10px 12px !important;
+    font-size: 11.5px !important;
+    border-radius: 12px !important;
+    gap: 6px !important;
   }
 
-  /* Slide 7 Valued Clients (Mobile) */
+  .btn-form-whatsapp svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* SLIDE 7: OUR VALUED CLIENTS                                  */
+  /* ------------------------------------------------------------ */
   .valued-clients-stage {
-    padding: 12px 14px 20px;
-    min-height: 84vh;
+    padding: 60px 0 16px !important;
+    min-height: unset !important;
+    justify-content: center !important;
   }
 
   .clients-head-block {
-    margin-bottom: 16px;
+    margin-bottom: 12px !important;
+    padding: 0 16px !important;
+  }
+
+  .clients-head-block .top-accent-bar {
+    width: 32px !important;
+    height: 3px !important;
+    margin-bottom: 4px !important;
   }
 
   .clients-main-title {
-    font-size: 28px;
+    font-size: clamp(22px, 5.5vw, 30px) !important;
+    margin-top: 2px !important;
   }
 
   .clients-subtitle {
-    font-size: 12px;
-    max-width: 92vw;
+    font-size: clamp(10.5px, 2.7vw, 12px) !important;
+    max-width: 90vw !important;
+    margin-top: 4px !important;
   }
 
   .clients-marquee-container {
-    display: block;
-    width: 100vw;
-    margin: 20px 0 26px;
-    padding: 6px 0;
+    display: block !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow: hidden !important;
+    margin: 8px 0 16px !important;
+    padding: 2px 0 !important;
   }
 
   .marquee-track.track-right {
-    margin-top: 22px;
+    margin-top: 14px !important;
   }
 
   .marquee-group {
-    gap: 40px;
-    padding-right: 40px;
+    gap: 32px !important;
+    padding-right: 32px !important;
   }
 
   .client-logo-slot {
-    min-width: 150px;
-    height: 75px;
-    padding: 4px 10px;
+    min-width: 120px !important;
+    height: 52px !important;
+    padding: 2px 6px !important;
   }
 
   .client-logo-img {
-    max-height: 52px;
-    max-width: 150px;
+    max-height: 38px !important;
+    max-width: 110px !important;
   }
 
   .client-logo-img.logo-f-mart,
   .client-logo-slot.f-mart-slot .client-logo-img {
-    max-height: 52px;
-    max-width: 80px;
-    transform: none;
+    max-height: 38px !important;
+    max-width: 65px !important;
   }
 
   .client-logo-img.logo-safari,
   .client-logo-img.logo-nesto {
-    max-height: 54px;
+    max-height: 40px !important;
   }
 
-  /* Navigation elements */
-  .scroll-dots-nav {
-    right: 8px;
-    padding: 10px 6px;
-    gap: 8px;
+  .clients-footer-banner {
+    font-size: 8.5px !important;
+    letter-spacing: 0.8px !important;
+    padding: 0 14px !important;
   }
 
-  .floating-cart-btn {
-    top: 18px;
-    right: 18px;
-    width: 44px;
-    height: 44px;
+  .clients-footer-banner .thin-green-line {
+    width: 24px !important;
   }
 
+  /* ------------------------------------------------------------ */
+  /* CART DRAWER (MOBILE)                                         */
+  /* ------------------------------------------------------------ */
   .cart-drawer {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 25000 !important;
+  }
+}
+
+/* Extra Small Mobile Screens (<= 360px) */
+@media (max-width: 360px) {
+  .section-inner {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .formula-badge {
+    width: 68px !important;
+  }
+
+  .formula-icon-wrap {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .form-inputs-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .luxury-product-card {
+    width: 82vw !important;
   }
 }
 
