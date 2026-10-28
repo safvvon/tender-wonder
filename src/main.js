@@ -1044,6 +1044,12 @@ window.addEventListener('touchend', (e) => {
     return;
   }
 
+  // If user is scrolling inside an active scrollable container (e.g. catalog vertical product feed, cart),
+  // allow natural scrolling inside without triggering slide transition until boundaries are reached:
+  if (isScrollableInside(e.target, deltaY)) {
+    return;
+  }
+
   // Measured threshold for vertical slide advance/retreat
   if (deltaY > 38) {
     handleAdvance();
@@ -2570,15 +2576,18 @@ if (btnMobileCart) {
   });
 }
 
-// Mobile Slide 4 Catalog Horizontal Snap Dots
+// Mobile Slide 4 Catalog Vertical / Horizontal Snap Dots
 const catalogGridRow = document.querySelector('.catalog-grid-row');
 const catalogDots = document.querySelectorAll('.catalog-carousel-dots .cat-dot');
 
 if (catalogGridRow && catalogDots.length) {
   catalogGridRow.addEventListener('scroll', () => {
-    const scrollLeft = catalogGridRow.scrollLeft;
-    const cardWidth = catalogGridRow.firstElementChild ? catalogGridRow.firstElementChild.offsetWidth + 14 : 280;
-    const activeIndex = Math.min(catalogDots.length - 1, Math.max(0, Math.round(scrollLeft / cardWidth)));
+    const isVertical = window.innerWidth <= 768;
+    const scrollPos = isVertical ? catalogGridRow.scrollTop : catalogGridRow.scrollLeft;
+    const cardSize = catalogGridRow.firstElementChild
+      ? (isVertical ? catalogGridRow.firstElementChild.offsetHeight + 16 : catalogGridRow.firstElementChild.offsetWidth + 14)
+      : 280;
+    const activeIndex = Math.min(catalogDots.length - 1, Math.max(0, Math.round(scrollPos / cardSize)));
     catalogDots.forEach((dot, idx) => {
       dot.classList.toggle('active', idx === activeIndex);
     });
@@ -2588,7 +2597,7 @@ if (catalogGridRow && catalogDots.length) {
     dot.addEventListener('click', () => {
       const card = catalogGridRow.children[idx];
       if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
       }
     });
   });

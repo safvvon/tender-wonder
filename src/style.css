@@ -3756,38 +3756,48 @@ body {
   }
 
   /* ------------------------------------------------------------ */
-  /* SLIDE 4: CATALOG (HORIZONTAL TOUCH SNAP CAROUSEL)            */
+  /* SLIDE 4: CATALOG (VERTICAL STACK - ONE BY ONE DOWN)          */
   /* ------------------------------------------------------------ */
   .catalog-stage {
-    padding: 60px 0 14px !important;
+    padding: 58px 16px 12px !important;
     width: 100vw !important;
     max-width: 100vw !important;
-    justify-content: center !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .catalog-main-title {
-    font-size: clamp(24px, 6vw, 32px) !important;
+    font-size: clamp(22px, 5.5vw, 28px) !important;
     margin-bottom: 8px !important;
     letter-spacing: 2px !important;
     text-align: center;
+    flex-shrink: 0 !important;
   }
 
   .catalog-grid-row {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: stretch !important;
+    flex-direction: column !important;
+    align-items: center !important;
     justify-content: flex-start !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    scroll-snap-type: x mandatory !important;
-    gap: 14px !important;
-    padding: 4px 24px 10px !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scroll-snap-type: y mandatory !important;
+    scroll-padding: 8px 0 !important;
+    gap: 16px !important;
+    padding: 6px 12px 32px !important;
+    width: 100% !important;
+    max-width: 360px !important;
+    flex: 1 1 0 !important;
     box-sizing: border-box !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    max-height: none !important;
+    overscroll-behavior-y: contain !important;
   }
 
   .catalog-grid-row::-webkit-scrollbar {
@@ -3795,92 +3805,89 @@ body {
   }
 
   .luxury-product-card {
-    width: clamp(240px, 78vw, 290px) !important;
-    min-width: clamp(240px, 78vw, 290px) !important;
-    max-width: 290px !important;
-    height: clamp(330px, 50vh, 390px) !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    min-width: unset !important;
+    height: clamp(310px, 48vh, 390px) !important;
     min-height: unset !important;
     scroll-snap-align: center !important;
+    scroll-snap-stop: normal !important;
     flex-shrink: 0 !important;
-    padding: 16px 14px 14px !important;
+    padding: 16px 16px 14px !important;
     border-radius: 24px !important;
     box-sizing: border-box !important;
+    background: var(--color-card-white) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06) !important;
+    border: 1.5px solid var(--color-border-subtle) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
 
   .card-art-box {
-    flex: 1 !important;
+    flex: 1 1 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding-bottom: 6px !important;
+    overflow: hidden !important;
+    width: 100% !important;
   }
 
   .catalog-bottle-img {
-    max-height: clamp(160px, 27vh, 210px) !important;
+    max-height: clamp(170px, 28vh, 230px) !important;
     width: auto !important;
     object-fit: contain !important;
   }
 
-  .catalog-bottle-img.medium { max-height: clamp(150px, 25vh, 195px) !important; }
-  .catalog-bottle-img.small { max-height: clamp(138px, 23vh, 180px) !important; }
+  .catalog-bottle-img.medium { max-height: clamp(155px, 25vh, 210px) !important; }
+  .catalog-bottle-img.small { max-height: clamp(140px, 23vh, 190px) !important; }
 
   .card-action-bar {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
     padding-top: 10px !important;
-    gap: 6px !important;
+    border-top: 1px solid #EDEDED !important;
   }
 
   .card-price-tag {
-    font-size: 15.5px !important;
+    font-size: 16px !important;
     font-weight: 800 !important;
+    color: var(--color-charcoal) !important;
   }
 
   .card-qty-spinner {
-    padding: 2px 5px !important;
-    gap: 4px !important;
-    border-radius: 10px !important;
+    padding: 3px 6px !important;
+    gap: 5px !important;
+    border-radius: 12px !important;
+    background: #F4F6F4 !important;
   }
 
   .btn-qty-spin {
-    width: 20px !important;
-    height: 20px !important;
-    font-size: 14px !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 15px !important;
   }
 
   .qty-spin-val {
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
 
   .btn-add-to-cart-luxury {
-    padding: 9px 12px !important;
-    font-size: 10px !important;
+    padding: 9px 14px !important;
+    font-size: 10.5px !important;
     font-weight: 800 !important;
     border-radius: 16px !important;
-    letter-spacing: 0.4px !important;
+    letter-spacing: 0.5px !important;
     white-space: nowrap !important;
   }
 
   .catalog-carousel-dots {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 6px;
-  }
-
-  .cat-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 4px;
-    background: rgba(12, 86, 46, 0.2);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .cat-dot.active {
-    width: 22px;
-    background: var(--color-forest-green);
-    border-radius: 4px;
+    display: none !important;
   }
 
   /* ------------------------------------------------------------ */
