@@ -2992,6 +2992,9 @@ body {
 .catalog-carousel-dots {
   display: none;
 }
+.menu-btn {
+  display: none !important;
+}
 
 /* ============================================================ */
 /* MOBILE & TABLET RESPONSIVE SYSTEM (<= 768px)                 */
