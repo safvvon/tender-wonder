@@ -217,9 +217,18 @@ function setLeftBottlesStep(step) {
   const b1 = document.querySelector('.h-bottle-1');
   const b2 = document.querySelector('.h-bottle-2');
   const b3 = document.querySelector('.h-bottle-3');
-  if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
-  if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
-  if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    // Mobile: bottom bottle (250ml) -> middle (500ml) -> top (1L)
+    if (b3) b3.classList.toggle('entered', leftBottlesStep >= 1);
+    if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
+    if (b1) b1.classList.toggle('entered', leftBottlesStep >= 3);
+  } else {
+    // Desktop: top bottle (1L) -> middle (500ml) -> bottom (250ml)
+    if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
+    if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
+    if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
+  }
 }
 window.setLeftBottlesStep = setLeftBottlesStep;
 
@@ -253,7 +262,22 @@ function stepLeftBottlesBackward() {
   return false;
 }
 
+let bottleTimers = [];
+
+function clearBottleTimers() {
+  bottleTimers.forEach(id => clearTimeout(id));
+  bottleTimers = [];
+}
+
+function triggerMobileBottlesSequence() {
+  clearBottleTimers();
+  bottleTimers.push(setTimeout(() => setLeftBottlesStep(1), 250));
+  bottleTimers.push(setTimeout(() => setLeftBottlesStep(2), 550));
+  bottleTimers.push(setTimeout(() => setLeftBottlesStep(3), 850));
+}
+
 function resetLeftBottlesSequence() {
+  clearBottleTimers();
   lastBottleStepTime = 0;
   setLeftBottlesStep(0);
 }
@@ -374,9 +398,7 @@ window.goToSlide = function(index) {
 
   if (index === 2) {
     if (window.innerWidth <= 768) {
-      setTimeout(() => setLeftBottlesStep(1), 250);
-      setTimeout(() => setLeftBottlesStep(2), 550);
-      setTimeout(() => setLeftBottlesStep(3), 850);
+      triggerMobileBottlesSequence();
     } else {
       resetLeftBottlesSequence();
     }
@@ -414,9 +436,7 @@ const slideObserver = new IntersectionObserver((entries) => {
       if (idx && (idx > 1 || scrollY < vh * 0.5)) {
         updateActiveSlideUI(idx);
         if (idx === 2 && window.innerWidth <= 768) {
-          setTimeout(() => setLeftBottlesStep(1), 250);
-          setTimeout(() => setLeftBottlesStep(2), 550);
-          setTimeout(() => setLeftBottlesStep(3), 850);
+          triggerMobileBottlesSequence();
         }
       }
     }
@@ -2542,10 +2562,8 @@ document.querySelectorAll('.mobile-nav-link').forEach(link => {
 
     navigateToStop(targetStop);
 
-    if (slideNum === 2) {
-      setTimeout(() => setLeftBottlesStep(1), 350);
-      setTimeout(() => setLeftBottlesStep(2), 650);
-      setTimeout(() => setLeftBottlesStep(3), 950);
+    if (slideNum === 2 && window.innerWidth <= 768) {
+      triggerMobileBottlesSequence();
     }
   });
 });
