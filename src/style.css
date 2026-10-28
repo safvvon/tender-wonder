@@ -3349,18 +3349,24 @@ body {
   /* SLIDE 2: NEW COLLECTION OF DRINKS                            */
   /* ------------------------------------------------------------ */
   .new-collection-stage {
-    padding: 62px 14px 14px !important;
-    justify-content: center !important;
+    padding: 68px 16px 20px !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
   }
 
   .collection-layout {
     display: flex !important;
     flex-direction: column !important;
+    justify-content: space-between !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
+    height: 100% !important;
+    flex: 1 !important;
     width: 100% !important;
-    max-width: 480px !important;
+    max-width: 420px !important;
     margin: 0 auto !important;
     text-align: center !important;
   }
@@ -3369,78 +3375,114 @@ body {
     width: 100% !important;
     max-width: 100% !important;
     order: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
   }
 
   .section-hero-title {
-    font-size: clamp(21px, 5.4vw, 27px) !important;
-    margin: 0 0 10px 0 !important;
+    font-size: clamp(22px, 6vw, 29px) !important;
     line-height: 1.15 !important;
+    margin: 0 !important;
     letter-spacing: -0.3px !important;
+    color: var(--color-forest-green) !important;
   }
 
   .formula-badges-row {
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
     width: 100% !important;
-    margin: 0 0 10px 0 !important;
+    max-width: 370px !important;
+    margin: 2px 0 !important;
+    padding: 8px 12px !important;
+    background: rgba(242, 248, 244, 0.9) !important;
+    border: 1px solid rgba(12, 86, 46, 0.1) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(12, 86, 46, 0.04) !important;
+    box-sizing: border-box !important;
   }
 
   .formula-badge {
-    width: clamp(74px, 24vw, 86px) !important;
-    padding: 4px 2px !important;
-    box-sizing: border-box;
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 2px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
   }
 
   .formula-icon-wrap {
-    width: clamp(42px, 13vw, 50px) !important;
-    height: clamp(42px, 13vw, 50px) !important;
+    width: clamp(38px, 10.5vw, 44px) !important;
+    height: clamp(38px, 10.5vw, 44px) !important;
+    background: #FFFFFF !important;
+    border: 1.5px solid rgba(12, 86, 46, 0.12) !important;
+    border-radius: 50% !important;
     margin: 0 auto 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    color: var(--color-forest-green) !important;
   }
 
   .badge-label {
-    font-size: clamp(8px, 2.3vw, 9.5px) !important;
+    font-size: clamp(8px, 2.2vw, 9.5px) !important;
+    font-weight: 800 !important;
     line-height: 1.2 !important;
     letter-spacing: 0.3px !important;
+    color: var(--color-forest-green) !important;
+    display: block !important;
   }
 
   .formula-math-plus {
-    font-size: 16px !important;
-    height: clamp(42px, 13vw, 50px) !important;
-    margin: 0 -2px !important;
-    opacity: 0.7;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--color-mint-light) !important;
+    padding: 0 2px !important;
+    opacity: 0.85 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .collection-paragraph {
-    font-size: clamp(12px, 3.1vw, 13px) !important;
+    font-size: clamp(12px, 3.1vw, 13.5px) !important;
     line-height: 1.48 !important;
-    padding: 0 8px !important;
-    max-width: 420px !important;
-    margin: 0 auto 10px !important;
-    color: #1e3825 !important;
+    color: #243d2a !important;
+    margin: 0 auto !important;
+    padding: 0 4px !important;
+    max-width: 360px !important;
   }
 
   .collection-col-left {
     display: flex !important;
+    flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
-    max-width: 320px !important;
-    margin: 0 auto !important;
-    overflow: hidden !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    min-height: 220px !important;
+    max-height: 290px !important;
+    margin: 10px auto 0 !important;
     order: 2 !important;
+    overflow: visible !important;
   }
 
   .h-bottles-stagger-group {
-    height: clamp(110px, 17vh, 140px) !important;
+    height: 100% !important;
     width: 100% !important;
-    max-width: 100% !important;
-    margin: 4px auto 0 !important;
+    max-width: 360px !important;
+    display: flex !important;
     flex-direction: column !important;
-    justify-content: space-between !important;
+    justify-content: space-evenly !important;
     align-items: center !important;
-    overflow: hidden !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
   }
 
   .h-bottle-item {
@@ -3450,7 +3492,7 @@ body {
     align-items: center !important;
     transform: translate3d(-100%, 0, 0);
     opacity: 0;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out !important;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease-out !important;
   }
 
   .h-bottle-item.entered {
@@ -3459,16 +3501,17 @@ body {
     pointer-events: auto !important;
   }
 
-  .h-bottle-1 { height: 32% !important; }
-  .h-bottle-2 { height: 30% !important; margin: 0 !important; }
-  .h-bottle-3 { height: 28% !important; margin: 0 !important; }
+  .h-bottle-1 { height: 33% !important; }
+  .h-bottle-2 { height: 31% !important; margin: 0 !important; }
+  .h-bottle-3 { height: 29% !important; margin: 0 !important; }
 
   .h-bottle-img {
+    height: 100% !important;
     max-height: 100% !important;
-    max-width: 92% !important;
     width: auto !important;
+    max-width: 95% !important;
     object-fit: contain !important;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));
+    filter: drop-shadow(0 6px 14px rgba(12, 86, 46, 0.16)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08)) !important;
   }
 
   .collection-col-right {
