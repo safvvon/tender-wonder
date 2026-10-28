@@ -217,18 +217,9 @@ function setLeftBottlesStep(step) {
   const b1 = document.querySelector('.h-bottle-1');
   const b2 = document.querySelector('.h-bottle-2');
   const b3 = document.querySelector('.h-bottle-3');
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile) {
-    // Mobile: bottom bottle (250ml) -> middle (500ml) -> top (1L)
-    if (b3) b3.classList.toggle('entered', leftBottlesStep >= 1);
-    if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
-    if (b1) b1.classList.toggle('entered', leftBottlesStep >= 3);
-  } else {
-    // Desktop: top bottle (1L) -> middle (500ml) -> bottom (250ml)
-    if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
-    if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
-    if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
-  }
+  if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
+  if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
+  if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
 }
 window.setLeftBottlesStep = setLeftBottlesStep;
 

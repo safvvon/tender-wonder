@@ -446,6 +446,13 @@ body {
   pointer-events: auto;
 }
 
+.h-bottle-item picture {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 /* Harmonized proportional heights and gentle stagger matching authentic brand reference */
 .h-bottle-1 {
   height: 27%;
@@ -3461,7 +3468,7 @@ body {
   .collection-col-left {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
     align-items: center !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -3478,18 +3485,22 @@ body {
     width: 100% !important;
     max-width: 360px !important;
     display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-evenly !important;
-    align-items: center !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    gap: clamp(10px, 3.2vw, 20px) !important;
     margin: 0 auto !important;
     overflow: visible !important;
   }
 
   .h-bottle-item {
-    width: 100% !important;
     display: flex !important;
-    justify-content: center !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
     align-items: center !important;
+    height: 100% !important;
+    flex: 1 1 0 !important;
+    max-width: 95px !important;
     transform: translate3d(0, 60px, 0) !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -3503,17 +3514,42 @@ body {
     pointer-events: auto !important;
   }
 
-  .h-bottle-1 { height: 33% !important; }
-  .h-bottle-2 { height: 31% !important; margin: 0 !important; }
-  .h-bottle-3 { height: 29% !important; margin: 0 !important; }
+  .h-bottle-item picture {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .h-bottle-1 {
+    height: 100% !important;
+    max-height: 250px !important;
+    z-index: 3 !important;
+  }
+
+  .h-bottle-2 {
+    height: 88% !important;
+    max-height: 220px !important;
+    margin: 0 !important;
+    z-index: 2 !important;
+  }
+
+  .h-bottle-3 {
+    height: 76% !important;
+    max-height: 190px !important;
+    margin: 0 !important;
+    z-index: 1 !important;
+  }
 
   .h-bottle-img {
     height: 100% !important;
     max-height: 100% !important;
-    width: auto !important;
-    max-width: 95% !important;
+    width: 100% !important;
+    max-width: 100% !important;
     object-fit: contain !important;
-    filter: drop-shadow(0 6px 14px rgba(12, 86, 46, 0.16)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08)) !important;
+    object-position: bottom center !important;
+    filter: drop-shadow(0 8px 18px rgba(12, 86, 46, 0.20)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.10)) !important;
   }
 
   .collection-col-right {
