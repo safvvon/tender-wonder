@@ -418,10 +418,32 @@ function updateActiveSlideUI(index) {
 }
 
 // Track active slide when user scrolls between slides 2 to 7
+let isSlide3Active = false;
+
+function onSlide3VisibilityChange(active) {
+  isSlide3Active = active;
+  const stageVideos = document.querySelectorAll('#process-viewport video.stage-process-video');
+  if (!active) {
+    stageVideos.forEach(v => v.pause());
+  } else {
+    // Resume current step's video
+    const currentItem = document.querySelector(`#process-viewport .process-stage-item[data-stage="${currentProcessStep}"]`);
+    const vid = currentItem?.querySelector('video.stage-process-video');
+    if (vid) {
+      if (vid.preload !== 'auto') vid.preload = 'auto';
+      const p = vid.play();
+      if (p !== undefined) p.catch(() => {});
+    }
+  }
+}
+
 const slideObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
+    const idx = parseInt(entry.target.dataset.index);
+    if (idx === 3) {
+      onSlide3VisibilityChange(entry.isIntersecting);
+    }
     if (entry.isIntersecting) {
-      const idx = parseInt(entry.target.dataset.index);
       const scrollY = window.scrollY || 0;
       const vh = window.innerHeight || 800;
       if (idx && (idx > 1 || scrollY < vh * 0.5)) {
@@ -433,7 +455,7 @@ const slideObserver = new IntersectionObserver((entries) => {
     }
   });
 }, {
-  threshold: 0.4
+  threshold: 0.25
 });
 
 document.querySelectorAll('.slide-panel').forEach(panel => {
@@ -598,7 +620,7 @@ function setProcessStep(step) {
 
     const vid = item.querySelector('video.stage-process-video');
     if (vid) {
-      if (isActive) {
+      if (isActive && isSlide3Active) {
         if (vid.preload !== 'auto') vid.preload = 'auto';
         vid.currentTime = 0;
         const p = vid.play();
@@ -609,11 +631,13 @@ function setProcessStep(step) {
     }
   });
 
-  // Lazy-preload next step's video metadata so it plays seamlessly on advance
-  const nextItem = document.querySelector(`#process-viewport .process-stage-item[data-stage="${currentProcessStep + 1}"]`);
-  const nextVid = nextItem?.querySelector('video.stage-process-video');
-  if (nextVid && nextVid.preload === 'none') {
-    nextVid.preload = 'metadata';
+  // Lazy-preload next step's video metadata so it plays seamlessly on advance (only if Slide 3 is active)
+  if (isSlide3Active) {
+    const nextItem = document.querySelector(`#process-viewport .process-stage-item[data-stage="${currentProcessStep + 1}"]`);
+    const nextVid = nextItem?.querySelector('video.stage-process-video');
+    if (nextVid && nextVid.preload === 'none') {
+      nextVid.preload = 'metadata';
+    }
   }
 
   // 2. Timeline nodes
@@ -1140,9 +1164,12 @@ if (heroStage) {
     const numPts = profilePts.length;
     const zSpan = Math.max(0.0001, zMax - zMin);
 
-    const positions = [];
-    const uvs = [];
-    const indices = [];
+    const totalVerts = (radialSegs + 1) * numPts;
+    const positions = new Float32Array(totalVerts * 3);
+    const uvs = new Float32Array(totalVerts * 2);
+
+    let vIdx = 0;
+    let uvIdx = 0;
 
     for (let s = 0; s <= radialSegs; s++) {
       const u = s / radialSegs;
@@ -1152,10 +1179,17 @@ if (heroStage) {
 
       for (let i = 0; i < numPts; i++) {
         const pt = profilePts[i];
-        positions.push(pt.r * sinPhi, pt.z, pt.r * cosPhi);
-        uvs.push(u, Math.max(0, Math.min(1, (pt.z - zMin) / zSpan)));
+        positions[vIdx++] = pt.r * sinPhi;
+        positions[vIdx++] = pt.z;
+        positions[vIdx++] = pt.r * cosPhi;
+        uvs[uvIdx++] = u;
+        uvs[uvIdx++] = Math.max(0, Math.min(1, (pt.z - zMin) / zSpan));
       }
     }
+
+    const totalIndices = radialSegs * (numPts - 1) * 6;
+    const indices = new Uint32Array(totalIndices);
+    let iIdx = 0;
 
     // Counter-clockwise winding for true outward normals
     for (let s = 0; s < radialSegs; s++) {
@@ -1164,15 +1198,19 @@ if (heroStage) {
         const b = (s + 1) * numPts + i;
         const c = (s + 1) * numPts + (i + 1);
         const d = s * numPts + (i + 1);
-        indices.push(a, b, c);
-        indices.push(a, c, d);
+        indices[iIdx++] = a;
+        indices[iIdx++] = b;
+        indices[iIdx++] = c;
+        indices[iIdx++] = a;
+        indices[iIdx++] = c;
+        indices[iIdx++] = d;
       }
     }
 
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geo.setIndex(indices);
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geo.setIndex(new THREE.BufferAttribute(indices, 1));
     geo.computeVertexNormals();
     return geo;
   }
@@ -1329,17 +1367,7 @@ if (heroStage) {
 
     const sleeveGeo = createRevolvedGeometry(sleevePts, 64, sleevePts[0].z, sleevePts[sleevePts.length - 1].z);
 
-    const labelTex = texLoader.load(labelTexturePath, (t) => {
-      t.colorSpace = THREE.SRGBColorSpace;
-      t.wrapS = THREE.RepeatWrapping;
-      t.wrapT = THREE.ClampToEdgeWrapping;
-      t.offset.x = labelOffsetX;
-      if (renderer && renderer.capabilities) {
-        t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      }
-    });
-    labelTex.wrapS = THREE.RepeatWrapping;
-    labelTex.offset.x = labelOffsetX;
+    const labelTex = loadOptimizedTexture(labelTexturePath, labelOffsetX);
 
     const sleeveMat = new THREE.MeshStandardMaterial({
       map: labelTex,
@@ -1388,24 +1416,37 @@ if (heroStage) {
     };
   }
 
+  // Texture Cache & Device-Aware Anisotropy for Optimal Shader Execution
+  const textureCache = new Map();
+  function loadOptimizedTexture(path, offsetX) {
+    const key = path + ':' + offsetX;
+    if (textureCache.has(key)) return textureCache.get(key);
+    const labelTex = texLoader.load(path, (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.ClampToEdgeWrapping;
+      t.offset.x = offsetX;
+      if (renderer && renderer.capabilities) {
+        const maxAniso = renderer.capabilities.getMaxAnisotropy();
+        t.anisotropy = Math.min(window.innerWidth <= 768 ? 4 : 8, maxAniso);
+      }
+    });
+    labelTex.wrapS = THREE.RepeatWrapping;
+    labelTex.offset.x = offsetX;
+    textureCache.set(key, labelTex);
+    return labelTex;
+  }
+
   // ====================================================================
   // THREE-BOTTLE 3D HOMEPAGE SHOWCASE (1L Hero Center, 500ml Left, 250ml Right)
   // ====================================================================
   const BOTTLE_CENTER_Y = 0.1516; // Exact center of 303.3mm tall commercial 1L bottle
 
-  // 1. Center Hero Bottle (1L) - Authentic commercial green cap & centered previous label
+  // 1. Center Hero Bottle (1L) - Immediately constructed & rendered for instant visual arrival
   const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.webp', 0.025, 0x6ed618, 'Bottle1L');
   const bottleMeshGroup = bottle1LData.group;
   window.bottleMeshGroup = bottleMeshGroup;
   window.labelAlbedoTex = bottle1LData.labelTex;
-
-  // 2. Left Flanking Bottle (500ml Cylinder) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 500ml master vector label
-  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle500ml');
-  window.bottle500Data = bottle500Data;
-
-  // 3. Right Flanking Bottle (250ml Hourglass) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 250ml master vector label
-  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle250ml');
-  window.bottle250Data = bottle250Data;
 
   // Uniform size scaling preserving exact physical aspect ratios and silhouettes
   const BOTTLE_1L_SCALE = 0.90; // Primary hero focus
@@ -1421,15 +1462,39 @@ if (heroStage) {
 
   const bottle500InteractiveRig = new THREE.Group();
   bottle500InteractiveRig.name = 'Bottle500InteractiveRig';
-  bottle500InteractiveRig.add(bottle500Data.group);
   bottle500InteractiveRig.scale.set(B500_SCALE, B500_SCALE, B500_SCALE);
   window.bottle500InteractiveRig = bottle500InteractiveRig;
 
   const bottle250InteractiveRig = new THREE.Group();
   bottle250InteractiveRig.name = 'Bottle250InteractiveRig';
-  bottle250InteractiveRig.add(bottle250Data.group);
   bottle250InteractiveRig.scale.set(B250_SCALE, B250_SCALE, B250_SCALE);
   window.bottle250InteractiveRig = bottle250InteractiveRig;
+
+  // Asynchronous prioritized loading for flanking side bottles (500ml & 250ml)
+  let bottle500Data = null;
+  let bottle250Data = null;
+
+  function loadSideBottles() {
+    if (bottle500Data && bottle250Data) return;
+    if (!bottle500Data) {
+      bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle500ml');
+      window.bottle500Data = bottle500Data;
+      bottle500InteractiveRig.add(bottle500Data.group);
+    }
+    if (!bottle250Data) {
+      bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle250ml');
+      window.bottle250Data = bottle250Data;
+      bottle250InteractiveRig.add(bottle250Data.group);
+    }
+  }
+  window.loadSideBottles = loadSideBottles;
+
+  // Non-blocking deferred loading: schedule side bottles right after initial frame renders
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadSideBottles);
+  } else {
+    setTimeout(loadSideBottles, 100);
+  }
 
   // Shared Tabletop Ground Plane Baseline:
   // Baseline is at -BOTTLE_CENTER_Y * BOTTLE_1L_SCALE = -0.1516 * 0.90 = -0.13644
@@ -1875,6 +1940,7 @@ if (heroStage) {
   const SETTLE_ROTZ = 0.0;
 
   window.forceSettle = () => {
+    loadSideBottles();
     const vh = window.innerHeight || 800;
     window.scrollTo(0, vh * 2);
     targetPhase1CenterProgress = 1.0;
@@ -1906,6 +1972,7 @@ if (heroStage) {
 
   // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
   window.replayBottleAnimation = function() {
+    loadSideBottles();
     const vh = window.innerHeight || 800;
     animateScrollTo(0, 500, () => {
       setTimeout(() => {
@@ -1978,11 +2045,22 @@ if (heroStage) {
 
   // Animation Loop with Real Physical Inertia, Scroll Scrubbing & Multi-Phase Motion
   let lastTime = performance.now();
+  let wasOffscreen = false;
 
   function animate() {
     requestAnimationFrame(animate);
 
+    // Occlusion culling: suspend expensive math and rendering when 3D hero stage is completely offscreen
+    if (!isHeroStageVisible) {
+      wasOffscreen = true;
+      return;
+    }
+
     const now = performance.now();
+    if (wasOffscreen) {
+      lastTime = now;
+      wasOffscreen = false;
+    }
     const dt = Math.min(0.1, (now - lastTime) / 1000);
     lastTime = now;
 
@@ -2011,6 +2089,10 @@ if (heroStage) {
     // ================================================================
     const tCenter = smoothstep5(currentPhase1CenterProgress);
     const tEmerge = smoothstep5(currentPhase1EmergeProgress);
+
+    if (tEmerge > 0.001) {
+      loadSideBottles();
+    }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
     const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
