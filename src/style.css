@@ -3337,37 +3337,14 @@ body {
     overflow: hidden !important;
   }
 
+  /* Remove "TASTE NATURE'S WONDER" background typography on mobile as requested */
   .giant-bg-text {
-    position: absolute !important;
-    top: 26% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 100vw !important;
-    padding: 0 16px !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 1 !important;
-    pointer-events: none !important;
-  }
-
-  .bg-word {
-    font-size: clamp(38px, 12vw, 56px) !important;
-    letter-spacing: 2px !important;
-    line-height: 0.95 !important;
-    color: var(--color-forest-green) !important;
-    font-weight: 900 !important;
-    text-align: center !important;
-    opacity: 0.14 !important;
-    transform: none !important;
-    will-change: auto !important;
+    display: none !important;
   }
 
   .hero-scroll-prompt {
     position: absolute !important;
-    top: 39% !important;
+    top: 46% !important;
     bottom: auto !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
