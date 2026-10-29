@@ -27,30 +27,86 @@ window.addEventListener('load', () => {
 });
 
 // ======================================================================
-// 0. INTRO LOADING SCREEN (FAST NON-BLOCKING ASSET INITIALIZATION)
+// 0. INTRO LOADING SCREEN (DISMISSES ONLY AFTER 3D MODEL IS COMPLETELY LOADED)
 // ======================================================================
 const loadingScreen = document.getElementById('loading-screen');
 const progressBar = document.getElementById('loading-progress-bar');
+const loadingStartTime = performance.now();
+let is3DModelLoaded = false;
+let is3DLoadingDismissed = false;
+
+function updateLoadingProgress(percent) {
+  if (!progressBar) return;
+  const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+  progressBar.style.width = `${clamped}%`;
+}
 
 function dismissLoadingScreen() {
-  if (!loadingScreen || loadingScreen.classList.contains('fade-out')) return;
-  if (progressBar) progressBar.style.width = '100%';
+  if (!loadingScreen || is3DLoadingDismissed) return;
+  is3DLoadingDismissed = true;
+  updateLoadingProgress(100);
+  loadingScreen.classList.add('fade-out');
   setTimeout(() => {
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-      loadingScreen.style.display = 'none';
-    }, 450);
-  }, 120);
+    loadingScreen.style.display = 'none';
+  }, 600);
 }
 
-// Fast dismiss: as soon as DOM and WebGL initialize, or max 180ms safety fallback
-if (document.readyState === 'complete') {
-  dismissLoadingScreen();
-} else {
-  window.addEventListener('DOMContentLoaded', dismissLoadingScreen, { once: true });
-  window.addEventListener('load', dismissLoadingScreen, { once: true });
-  setTimeout(dismissLoadingScreen, 180);
+function on3DModelCompletelyLoaded() {
+  if (is3DModelLoaded) return;
+  is3DModelLoaded = true;
+  updateLoadingProgress(100);
+
+  // Precompile shaders and pre-render initial frame so there is zero hitch or texture popping
+  const r = window.renderer;
+  const s = window.scene;
+  const c = window.camera;
+  if (r && s && c) {
+    try {
+      if (window.bottle500Rig && window.bottle250Rig) {
+        window.bottle500Rig.visible = true;
+        window.bottle250Rig.visible = true;
+        r.compile(s, c);
+        window.bottle500Rig.visible = false;
+        window.bottle250Rig.visible = false;
+      } else {
+        r.compile(s, c);
+      }
+      r.render(s, c);
+    } catch (e) {
+      console.warn('WebGL precompile note:', e);
+    }
+  }
+
+  function finishDismissal() {
+    // Graceful beat so user sees 100% complete bar, with minimum duration (450ms) to prevent flash
+    const elapsed = performance.now() - loadingStartTime;
+    const delay = Math.max(220, 450 - elapsed);
+    setTimeout(() => {
+      dismissLoadingScreen();
+    }, delay);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', finishDismissal, { once: true });
+  } else {
+    finishDismissal();
+  }
 }
+
+window.dismissLoadingScreen = dismissLoadingScreen;
+window.on3DModelCompletelyLoaded = on3DModelCompletelyLoaded;
+window.updateLoadingProgress = updateLoadingProgress;
+
+// Initial progress indicator
+updateLoadingProgress(15);
+
+// Fallback safety timeout: ensure page is never stuck if network fails
+setTimeout(() => {
+  if (!is3DModelLoaded) {
+    console.warn('Fallback safety timeout reached for 3D loading.');
+    on3DModelCompletelyLoaded();
+  }
+}, 7500);
 
 // ======================================================================
 // 1. SLIDE NAVIGATION & SCROLL ENGINE (NATIVE SCROLL-LINKED)
@@ -1301,7 +1357,26 @@ if (heroStage) {
     return geo;
   }
 
-  const texLoader = new THREE.TextureLoader();
+  // Dedicated Three.js LoadingManager tracking all 3D model textures and geometry assets
+  const loadingManager = new THREE.LoadingManager();
+  let total3DAssets = 3;
+
+  loadingManager.onProgress = (url, loaded, total) => {
+    total3DAssets = Math.max(total3DAssets, total);
+    // Smoothly scale progress from 20% to 95% as textures stream in
+    const pct = 20 + Math.round((loaded / total3DAssets) * 75);
+    updateLoadingProgress(pct);
+  };
+
+  loadingManager.onLoad = () => {
+    on3DModelCompletelyLoaded();
+  };
+
+  loadingManager.onError = (url) => {
+    console.warn('Error loading 3D asset texture:', url);
+  };
+
+  const texLoader = new THREE.TextureLoader(loadingManager);
 
   // Unified factory to build an authentic 3D commercial bottle with crystal-clear PET bottle, pure liquid, shrink sleeve, and cap
   function createBottleMeshGroup(profile, labelTexturePath, labelOffsetX, capColorHex, name) {
@@ -1426,6 +1501,7 @@ if (heroStage) {
       t.wrapS = THREE.RepeatWrapping;
       t.wrapT = THREE.ClampToEdgeWrapping;
       t.offset.x = offsetX;
+      t.needsUpdate = true;
       if (renderer && renderer.capabilities) {
         const maxAniso = renderer.capabilities.getMaxAnisotropy();
         t.anisotropy = Math.min(window.innerWidth <= 768 ? 4 : 8, maxAniso);
@@ -1489,12 +1565,8 @@ if (heroStage) {
   }
   window.loadSideBottles = loadSideBottles;
 
-  // Non-blocking deferred loading: schedule side bottles right after initial frame renders
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(loadSideBottles);
-  } else {
-    setTimeout(loadSideBottles, 100);
-  }
+  // Immediately load full 3D bottle suite so all models and textures are ready before loading screen completes
+  loadSideBottles();
 
   // Shared Tabletop Ground Plane Baseline:
   // Baseline is at -BOTTLE_CENTER_Y * BOTTLE_1L_SCALE = -0.1516 * 0.90 = -0.13644
@@ -1985,8 +2057,6 @@ if (heroStage) {
     });
   };
 
-
-
   // Cached target 3D transform for Slide 2 image place to prevent 60fps layout thrashing
   const slide2TargetEl = document.getElementById('slide-2-bottle-target');
   let cachedSlide2Slot = {
@@ -2298,7 +2368,6 @@ if (heroStage) {
     // Occlusion culling: strictly render only when heroStage is visible in viewport
     if (isHeroStageVisible && renderer && scene && camera) {
       renderer.render(scene, camera);
-      dismissLoadingScreen();
     }
   }
   animate();
@@ -2330,6 +2399,9 @@ if (heroStage) {
   onStageResize();
 
   window.addEventListener('resize', onStageResize);
+} else {
+  // If hero stage does not exist in DOM, dismiss loader safely
+  dismissLoadingScreen();
 }
 
 // ======================================================================
