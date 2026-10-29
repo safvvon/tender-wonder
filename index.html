@@ -47,6 +47,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   
+  <!-- High-Priority Preload for 3D Hero Bottle Texture -->
+  <link rel="preload" as="image" type="image/webp" href="/textures/label_albedo.webp" fetchpriority="high">
+  
   <!-- Structured Data JSON-LD (Organization, WebSite, Products, Breadcrumbs) -->
   <script type="application/ld+json">
   {
@@ -447,7 +450,7 @@
             <!-- Stage 01: Coconut Cutting -->
             <div class="process-stage-item active" data-stage="1">
               <div class="stage-visual-box stage-1-visual">
-                <video class="stage-process-video" src="/video/process_step_01_coconut_cutting.mp4" autoplay loop muted playsinline preload="auto"></video>
+                <video class="stage-process-video" src="/video/process_step_01_coconut_cutting.mp4" autoplay loop muted playsinline preload="metadata"></video>
               </div>
             </div>
 

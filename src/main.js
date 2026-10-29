@@ -4,7 +4,6 @@ import profile1L from './exact_profile.json';
 import profile500ml from './profile_500ml.json';
 import profile250ml from './profile_250ml.json';
 const profileData = profile1L;
-import { CoconutModelBuilder, exportCoconutToOBJ } from './coconut_model_builder.js';
 
 window.THREE = THREE;
 
@@ -44,12 +43,13 @@ function dismissLoadingScreen() {
   }, 120);
 }
 
-// Fast dismiss: as soon as DOM and WebGL initialize, or max 350ms safety fallback
+// Fast dismiss: as soon as DOM and WebGL initialize, or max 180ms safety fallback
 if (document.readyState === 'complete') {
   dismissLoadingScreen();
 } else {
+  window.addEventListener('DOMContentLoaded', dismissLoadingScreen, { once: true });
   window.addEventListener('load', dismissLoadingScreen, { once: true });
-  setTimeout(dismissLoadingScreen, 350);
+  setTimeout(dismissLoadingScreen, 180);
 }
 
 // ======================================================================
@@ -1394,17 +1394,17 @@ if (heroStage) {
   const BOTTLE_CENTER_Y = 0.1516; // Exact center of 303.3mm tall commercial 1L bottle
 
   // 1. Center Hero Bottle (1L) - Authentic commercial green cap & centered previous label
-  const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.png?v=29', 0.025, 0x6ed618, 'Bottle1L');
+  const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.webp', 0.025, 0x6ed618, 'Bottle1L');
   const bottleMeshGroup = bottle1LData.group;
   window.bottleMeshGroup = bottleMeshGroup;
   window.labelAlbedoTex = bottle1LData.labelTex;
 
   // 2. Left Flanking Bottle (500ml Cylinder) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 500ml master vector label
-  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.png?v=29', 0.0, 0xf4f6f8, 'Bottle500ml');
+  const bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle500ml');
   window.bottle500Data = bottle500Data;
 
   // 3. Right Flanking Bottle (250ml Hourglass) - AUTHENTIC WHITE CAP (0xf4f6f8) & centered 250ml master vector label
-  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.png?v=29', 0.0, 0xf4f6f8, 'Bottle250ml');
+  const bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle250ml');
   window.bottle250Data = bottle250Data;
 
   // Uniform size scaling preserving exact physical aspect ratios and silhouettes
@@ -1515,17 +1515,28 @@ if (heroStage) {
   // 2. 02_Tender_Coconut_Open_Center
   // 3. 03_Tender_Coconut_Whole_Right
   // ====================================================================
-  const coconutBuilder = new CoconutModelBuilder();
-  const c1Left = coconutBuilder.buildCoconut01Left();
-  const c2Center = coconutBuilder.buildCoconut02Center();
-  const c3Right = coconutBuilder.buildCoconut03Right();
+  // Lazy-load CoconutModelBuilder on demand
+  let coconutBuilder = null;
+  const c1Left = new THREE.Group();
+  const c2Center = new THREE.Group();
+  const c3Right = new THREE.Group();
 
   // Expose as separate global objects with exact requested naming
   window['01_Tender_Coconut_Whole_Left'] = c1Left;
   window['02_Tender_Coconut_Open_Center'] = c2Center;
   window['03_Tender_Coconut_Whole_Right'] = c3Right;
 
-  window.exportCoconutOBJ = (modelKey) => {
+  window.exportCoconutOBJ = async (modelKey) => {
+    const { CoconutModelBuilder, exportCoconutToOBJ } = await import('./coconut_model_builder.js');
+    if (!coconutBuilder) {
+      coconutBuilder = new CoconutModelBuilder();
+      const realC1 = coconutBuilder.buildCoconut01Left();
+      const realC2 = coconutBuilder.buildCoconut02Center();
+      const realC3 = coconutBuilder.buildCoconut03Right();
+      c1Left.add(realC1);
+      c2Center.add(realC2);
+      c3Right.add(realC3);
+    }
     if (modelKey === 'c1-left') exportCoconutToOBJ(c1Left, '01_Tender_Coconut_Whole_Left.obj');
     else if (modelKey === 'c2-center') exportCoconutToOBJ(c2Center, '02_Tender_Coconut_Open_Center.obj');
     else if (modelKey === 'c3-right') exportCoconutToOBJ(c3Right, '03_Tender_Coconut_Whole_Right.obj');
@@ -2205,6 +2216,7 @@ if (heroStage) {
     // Occlusion culling: strictly render only when heroStage is visible in viewport
     if (isHeroStageVisible && renderer && scene && camera) {
       renderer.render(scene, camera);
+      dismissLoadingScreen();
     }
   }
   animate();
