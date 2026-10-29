@@ -3399,7 +3399,7 @@ body {
   /* SLIDE 2: NEW COLLECTION OF DRINKS                            */
   /* ------------------------------------------------------------ */
   .new-collection-stage {
-    padding: clamp(72px, 10vh, 88px) 14px 10px !important;
+    padding: clamp(96px, 13.5vh, 122px) 14px 10px !important;
     height: 100vh !important;
     height: 100dvh !important;
     display: flex !important;
