@@ -1935,8 +1935,8 @@ if (heroStage) {
   const canvasEl = renderer.domElement;
 
   canvasEl.addEventListener('pointerdown', (e) => {
-    // Disable bottle touch/pointer control in mobile view only
-    if (window.innerWidth <= 768 || (e.pointerType === 'touch' && window.innerWidth <= 768)) {
+    // Disable bottle touch/pointer control in mobile view and on all touch interactions
+    if (e.pointerType === 'touch' || window.innerWidth <= 768) {
       return;
     }
     if (e.button !== 0) return;
