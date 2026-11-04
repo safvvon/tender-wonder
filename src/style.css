@@ -1752,6 +1752,7 @@ body {
   border-top: 1px solid #EDEDED;
 }
 
+.card-size-tag,
 .card-price-tag {
   font-family: var(--font-display);
   font-size: 17px;
@@ -2820,10 +2821,14 @@ body {
   color: #666;
 }
 
+.cart-item-badge,
 .cart-item-price {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--color-forest-green);
+  background: rgba(12, 86, 46, 0.08);
+  padding: 3px 9px;
+  border-radius: 12px;
 }
 
 .cart-footer {
@@ -3896,7 +3901,8 @@ body {
     border-top: 1px solid #EDEDED !important;
   }
 
-  .card-price-tag {
+  .card-size-tag,
+.card-price-tag {
     font-size: 16px !important;
     font-weight: 800 !important;
     color: var(--color-charcoal) !important;

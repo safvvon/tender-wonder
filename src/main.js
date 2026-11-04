@@ -27,86 +27,177 @@ window.addEventListener('load', () => {
 });
 
 // ======================================================================
-// 0. INTRO LOADING SCREEN (DISMISSES ONLY AFTER 3D MODEL IS COMPLETELY LOADED)
+// 0. INTRO LOADING SCREEN (DISMISSES ONLY AFTER 3D MODEL & VIDEOS ARE LOADED)
 // ======================================================================
 const loadingScreen = document.getElementById('loading-screen');
 const progressBar = document.getElementById('loading-progress-bar');
 const loadingStartTime = performance.now();
-let is3DModelLoaded = false;
-let is3DLoadingDismissed = false;
 
-function updateLoadingProgress(percent) {
+let is3DModelLoaded = false;
+let areVideosLoaded = false;
+let isPageLoadingDismissed = false;
+
+let progress3D = 15;
+let progressVideo = 0;
+
+function refreshLoadingBar() {
   if (!progressBar) return;
-  const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+  // Blend: 45% weight for 3D assets, 55% weight for process video assets
+  const combined = Math.round(progress3D * 0.45 + progressVideo * 0.55);
+  const clamped = Math.max(0, Math.min(100, combined));
   progressBar.style.width = `${clamped}%`;
 }
 
+function update3DProgress(percent) {
+  progress3D = Math.max(progress3D, Math.min(100, Math.round(percent)));
+  refreshLoadingBar();
+}
+
+function updateVideoProgress(percent) {
+  progressVideo = Math.max(progressVideo, Math.min(100, Math.round(percent)));
+  refreshLoadingBar();
+}
+
 function dismissLoadingScreen() {
-  if (!loadingScreen || is3DLoadingDismissed) return;
-  is3DLoadingDismissed = true;
-  updateLoadingProgress(100);
+  if (!loadingScreen || isPageLoadingDismissed) return;
+  isPageLoadingDismissed = true;
+  if (progressBar) progressBar.style.width = '100%';
   loadingScreen.classList.add('fade-out');
   setTimeout(() => {
     loadingScreen.style.display = 'none';
   }, 600);
 }
 
-function on3DModelCompletelyLoaded() {
-  if (is3DModelLoaded) return;
-  is3DModelLoaded = true;
-  updateLoadingProgress(100);
+function checkAllAssetsLoaded() {
+  if (is3DModelLoaded && areVideosLoaded && !isPageLoadingDismissed) {
+    if (progressBar) progressBar.style.width = '100%';
 
-  // Precompile shaders and pre-render initial frame so there is zero hitch or texture popping
-  const r = window.renderer;
-  const s = window.scene;
-  const c = window.camera;
-  if (r && s && c) {
-    try {
-      if (window.bottle500Rig && window.bottle250Rig) {
-        window.bottle500Rig.visible = true;
-        window.bottle250Rig.visible = true;
-        r.compile(s, c);
-        window.bottle500Rig.visible = false;
-        window.bottle250Rig.visible = false;
-      } else {
-        r.compile(s, c);
+    // Precompile shaders and pre-render initial frame so there is zero hitch or texture popping
+    const r = window.renderer;
+    const s = window.scene;
+    const c = window.camera;
+    if (r && s && c) {
+      try {
+        if (window.bottle500Rig && window.bottle250Rig) {
+          window.bottle500Rig.visible = true;
+          window.bottle250Rig.visible = true;
+          r.compile(s, c);
+          window.bottle500Rig.visible = false;
+          window.bottle250Rig.visible = false;
+        } else {
+          r.compile(s, c);
+        }
+        r.render(s, c);
+      } catch (e) {
+        console.warn('WebGL precompile note:', e);
       }
-      r.render(s, c);
-    } catch (e) {
-      console.warn('WebGL precompile note:', e);
     }
-  }
 
-  function finishDismissal() {
-    // Graceful beat so user sees 100% complete bar, with minimum duration (450ms) to prevent flash
     const elapsed = performance.now() - loadingStartTime;
-    const delay = Math.max(220, 450 - elapsed);
+    const delay = Math.max(220, 480 - elapsed);
     setTimeout(() => {
       dismissLoadingScreen();
     }, delay);
   }
+}
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', finishDismissal, { once: true });
-  } else {
-    finishDismissal();
+function on3DModelCompletelyLoaded() {
+  if (is3DModelLoaded) return;
+  is3DModelLoaded = true;
+  update3DProgress(100);
+  checkAllAssetsLoaded();
+}
+
+function initVideoPreloading() {
+  const stageVideos = Array.from(document.querySelectorAll('#process-viewport video.stage-process-video'));
+  if (stageVideos.length === 0) {
+    areVideosLoaded = true;
+    updateVideoProgress(100);
+    checkAllAssetsLoaded();
+    return;
   }
+
+  const totalVideos = stageVideos.length;
+  let readyCount = 0;
+
+  function onVideoReady() {
+    readyCount++;
+    const pct = Math.round((readyCount / totalVideos) * 100);
+    updateVideoProgress(pct);
+
+    if (readyCount >= totalVideos) {
+      areVideosLoaded = true;
+      checkAllAssetsLoaded();
+    }
+  }
+
+  stageVideos.forEach((video) => {
+    if (video.readyState >= 2) {
+      onVideoReady();
+      return;
+    }
+
+    let isMarked = false;
+    const markVideoReady = () => {
+      if (!isMarked) {
+        isMarked = true;
+        cleanup();
+        onVideoReady();
+      }
+    };
+
+    const cleanup = () => {
+      video.removeEventListener('loadeddata', markVideoReady);
+      video.removeEventListener('canplay', markVideoReady);
+      video.removeEventListener('canplaythrough', markVideoReady);
+      video.removeEventListener('error', markVideoReady);
+    };
+
+    video.addEventListener('loadeddata', markVideoReady, { once: true });
+    video.addEventListener('canplay', markVideoReady, { once: true });
+    video.addEventListener('canplaythrough', markVideoReady, { once: true });
+    video.addEventListener('error', markVideoReady, { once: true });
+
+    video.preload = 'auto';
+    try {
+      video.load();
+    } catch (e) {
+      markVideoReady();
+    }
+
+    // Safety timeout per individual video (5s) so network hiccup never stalls page
+    setTimeout(markVideoReady, 5000);
+  });
+
+  // Overall video timeout (6.5s)
+  setTimeout(() => {
+    if (!areVideosLoaded) {
+      areVideosLoaded = true;
+      updateVideoProgress(100);
+      checkAllAssetsLoaded();
+    }
+  }, 6500);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initVideoPreloading, { once: true });
+} else {
+  initVideoPreloading();
 }
 
 window.dismissLoadingScreen = dismissLoadingScreen;
 window.on3DModelCompletelyLoaded = on3DModelCompletelyLoaded;
-window.updateLoadingProgress = updateLoadingProgress;
+window.updateLoadingProgress = update3DProgress;
 
-// Initial progress indicator
-updateLoadingProgress(15);
-
-// Fallback safety timeout: ensure page is never stuck if network fails
+// Overall safety timeout (8.5s)
 setTimeout(() => {
-  if (!is3DModelLoaded) {
-    console.warn('Fallback safety timeout reached for 3D loading.');
-    on3DModelCompletelyLoaded();
+  if (!isPageLoadingDismissed) {
+    console.warn('Fallback safety timeout reached for asset loading.');
+    is3DModelLoaded = true;
+    areVideosLoaded = true;
+    dismissLoadingScreen();
   }
-}, 7500);
+}, 8500);
 
 // ======================================================================
 // 1. SLIDE NAVIGATION & SCROLL ENGINE (NATIVE SCROLL-LINKED)
@@ -1363,9 +1454,9 @@ if (heroStage) {
 
   loadingManager.onProgress = (url, loaded, total) => {
     total3DAssets = Math.max(total3DAssets, total);
-    // Smoothly scale progress from 20% to 95% as textures stream in
+    // Smoothly scale 3D progress from 20% to 95% as textures stream in
     const pct = 20 + Math.round((loaded / total3DAssets) * 75);
-    updateLoadingProgress(pct);
+    update3DProgress(pct);
   };
 
   loadingManager.onLoad = () => {
@@ -2400,8 +2491,8 @@ if (heroStage) {
 
   window.addEventListener('resize', onStageResize);
 } else {
-  // If hero stage does not exist in DOM, dismiss loader safely
-  dismissLoadingScreen();
+  // If hero stage does not exist in DOM, mark 3D as loaded
+  on3DModelCompletelyLoaded();
 }
 
 // ======================================================================
@@ -2448,13 +2539,12 @@ document.querySelectorAll('.luxury-product-card').forEach(card => {
     }
 
     const size = addBtn.dataset.size;
-    const price = parseFloat(addBtn.dataset.price) || 0;
 
     const existing = cart.find(i => i.size === size);
     if (existing) {
       existing.qty += qty;
     } else {
-      cart.push({ size, price, qty });
+      cart.push({ size, qty });
     }
 
     showToast(`Added ${qty}x ${size} to Cart!`);
@@ -2469,29 +2559,25 @@ function updateCartUI() {
 
   if (cart.length === 0) {
     list.innerHTML = '<div class="cart-empty-msg">Your cart is empty. Add fresh Tender Wonder bottles from the catalog!</div>';
-    if (totalVal) totalVal.textContent = '$0.00';
+    if (totalVal) totalVal.textContent = '0 Bottles';
     return;
   }
 
-  let total = 0;
   list.innerHTML = cart.map(item => {
-    const itemTotal = item.price * item.qty;
-    total += itemTotal;
     return `
       <div class="cart-item-row">
         <div>
           <div class="cart-item-name">${item.size}</div>
-          <div class="cart-item-qty">${item.qty} &times; $${item.price.toFixed(2)}</div>
+          <div class="cart-item-qty">${item.qty} ${item.qty === 1 ? 'bottle' : 'bottles'}</div>
         </div>
-        <div class="cart-item-price">$${itemTotal.toFixed(2)}</div>
+        <div class="cart-item-badge">${item.qty} pcs</div>
       </div>
     `;
   }).join('');
 
-  if (totalVal) totalVal.textContent = `$${total.toFixed(2)}`;
-
   // Update all cart counter badges (desktop + mobile header)
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
+  if (totalVal) totalVal.textContent = `${count} ${count === 1 ? 'Bottle' : 'Bottles'}`;
   document.querySelectorAll('.cart-counter-badge').forEach(badge => {
     badge.textContent = count;
   });
@@ -2524,10 +2610,9 @@ window.submitContactForm = function(e) {
 
   let cartDetails = '';
   if (typeof cart !== 'undefined' && Array.isArray(cart) && cart.length > 0) {
-    const items = cart.map(item => `  • ${item.size}: ${item.qty} pcs @ $${item.price.toFixed(2)} = $${(item.qty * item.price).toFixed(2)}`).join('\n');
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+    const items = cart.map(item => `  • ${item.size}: ${item.qty} pcs`).join('\n');
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    cartDetails = `\n\n🛒 *Selected Bottles from Catalog (${totalQty} pcs):*\n${items}\n💰 *Total Price: $${total}*`;
+    cartDetails = `\n\n🛒 *Selected Bottles from Catalog (${totalQty} pcs):*\n${items}`;
   }
 
   const textLines = [
@@ -2558,7 +2643,7 @@ window.submitContactForm = function(e) {
 
 window.submitOrder = window.submitContactForm;
 
-// Direct WhatsApp Order from Shopping Cart Drawer with Order Items & Price
+// Direct WhatsApp Order from Shopping Cart Drawer with Selected Bottle Quantities
 window.sendCartOrderToWhatsApp = function() {
   if (!cart || cart.length === 0) {
     showToast('Your cart is empty! Please add bottles from the catalog.');
@@ -2567,11 +2652,9 @@ window.sendCartOrderToWhatsApp = function() {
   }
 
   const itemsList = cart.map(item => {
-    const itemTotal = (item.price * item.qty).toFixed(2);
-    return `  • ${item.size} — ${item.qty} pcs @ $${item.price.toFixed(2)} = $${itemTotal}`;
+    return `  • ${item.size} — ${item.qty} pcs`;
   }).join('\n');
 
-  const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
   const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
   const textLines = [
@@ -2581,10 +2664,8 @@ window.sendCartOrderToWhatsApp = function() {
     ``,
     `🛒 *Order Details (${totalQty} bottles):*`,
     itemsList,
-    ``,
-    `💰 *Total Price: $${total}*`,
     `----------------------------------------`,
-    `📍 Please share delivery details and confirm my order. Thank you!`
+    `📍 Please share pricing, delivery details and confirm my order. Thank you!`
   ].join('\n');
 
   const whatsappUrl = `https://wa.me/971503130165?text=${encodeURIComponent(textLines)}`;
