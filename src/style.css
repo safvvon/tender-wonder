@@ -3019,6 +3019,18 @@ body {
     --app-vh: 100dvh;
   }
 
+  /* Disable bottle touch / pointer dragging on mobile view only so native scrolling is smooth and uninhibited */
+  #hero-3d-bottle-container,
+  #hero-3d-bottle-container.interactive,
+  #hero-3d-bottle-container canvas,
+  .bottle-3d-stage,
+  .bottle-3d-stage.interactive,
+  .bottle-3d-stage canvas,
+  .bottle-3d-stage.interactive canvas {
+    pointer-events: none !important;
+    touch-action: auto !important;
+  }
+
   html, body {
     overflow-x: clip !important;
     width: 100vw;
@@ -4370,6 +4382,11 @@ body {
 }
 
 @media (min-width: 769px) {
+  .bottle-3d-stage.interactive,
+  .bottle-3d-stage.interactive canvas {
+    pointer-events: auto !important;
+  }
+
   .slide-panel:not(.active) .benefit-block {
     opacity: 0.18;
     transform: translateY(12px);

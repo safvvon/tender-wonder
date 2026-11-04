@@ -294,7 +294,8 @@ function updateScrollMetrics() {
       }
       heroStage.style.opacity = stageOpacity > 0.01 ? stageOpacity.toFixed(3) : '0';
       const visible = stageOpacity > 0.05;
-      const isInteractive = visible && p2 < 0.95;
+      const isMobileView = window.innerWidth <= 768;
+      const isInteractive = visible && p2 < 0.95 && !isMobileView;
       heroStage.classList.toggle('interactive', isInteractive);
       heroStage.style.pointerEvents = isInteractive ? 'auto' : 'none';
       heroStage.style.display = stageOpacity > 0.01 ? 'flex' : 'none';
@@ -1272,6 +1273,10 @@ if (heroStage) {
   controls.maxAzimuthAngle = Math.PI / 4;
   controls.minPolarAngle = Math.PI / 2.8;
   controls.maxPolarAngle = Math.PI / 1.8;
+  if (window.innerWidth <= 768) {
+    controls.enabled = false;
+    renderer.domElement.style.touchAction = 'auto';
+  }
   window.controls = controls;
   window.camera = camera;
   window.scene = scene;
@@ -1930,6 +1935,10 @@ if (heroStage) {
   const canvasEl = renderer.domElement;
 
   canvasEl.addEventListener('pointerdown', (e) => {
+    // Disable bottle touch/pointer control in mobile view only
+    if (window.innerWidth <= 768 || (e.pointerType === 'touch' && window.innerWidth <= 768)) {
+      return;
+    }
     if (e.button !== 0) return;
     const hit = getHitObject(e.clientX, e.clientY);
     if (hit) {
@@ -1944,11 +1953,12 @@ if (heroStage) {
     } else {
       activeDragObject = null;
       isPointerDownOnObject = false;
-      if (controls) controls.enabled = true;
+      if (controls && window.innerWidth > 768) controls.enabled = true;
     }
   });
 
   canvasEl.addEventListener('pointermove', (e) => {
+    if (window.innerWidth <= 768) return;
     if (isPointerDownOnObject && activeDragObject) {
       const dx = e.clientX - lastPointerPos.x;
       const dy = e.clientY - lastPointerPos.y;
@@ -1985,9 +1995,9 @@ if (heroStage) {
     if (isPointerDownOnObject) {
       isPointerDownOnObject = false;
       activeDragObject = null;
-      if (controls) controls.enabled = true;
+      if (controls && window.innerWidth > 768) controls.enabled = true;
       canvasEl.classList.remove('is-dragging');
-      const hit = getHitObject(e.clientX, e.clientY);
+      const hit = window.innerWidth > 768 ? getHitObject(e.clientX, e.clientY) : null;
       canvasEl.style.cursor = hit ? 'grab' : 'default';
       if (canvasEl.releasePointerCapture) {
         try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) {}
@@ -1998,8 +2008,9 @@ if (heroStage) {
   canvasEl.addEventListener('pointerup', handlePointerRelease);
   canvasEl.addEventListener('pointercancel', handlePointerRelease);
 
-  // Double click resets the clicked object's orientation back to showcase default
+  // Double click resets the clicked object's orientation back to showcase default (desktop only)
   canvasEl.addEventListener('dblclick', (e) => {
+    if (window.innerWidth <= 768) return;
     const hit = getHitObject(e.clientX, e.clientY);
     if (hit === 'bottle' && bottleInteractiveRig) {
       bottleInteractiveRig.rotation.set(0, 0, 0);
@@ -2473,10 +2484,20 @@ if (heroStage) {
     if (w <= 768) {
       const mobileZ = Math.min(1.22, Math.max(0.92, 0.76 * (540 / Math.max(300, w))));
       camera.position.set(0.0, 0.213, mobileZ);
-      if (controls) controls.target.set(0.0, 0.213, 0.0);
+      if (controls) {
+        controls.target.set(0.0, 0.213, 0.0);
+        controls.enabled = false;
+      }
+      heroStage.classList.remove('interactive');
+      heroStage.style.pointerEvents = 'none';
+      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'auto';
     } else {
       camera.position.set(0.0, 0.213, 0.76);
-      if (controls) controls.target.set(0.0, 0.213, 0.0);
+      if (controls) {
+        controls.target.set(0.0, 0.213, 0.0);
+        if (!isPointerDownOnObject) controls.enabled = true;
+      }
+      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'none';
     }
 
     camera.updateProjectionMatrix();
