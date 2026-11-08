@@ -513,7 +513,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(14px, 1.8vw, 24px);
+  gap: clamp(20px, 2.8vw, 38px);
   margin-bottom: clamp(20px, 2.8vh, 30px);
   width: 100%;
 }
@@ -523,7 +523,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 112px;
+  width: clamp(105px, 10vw, 132px);
   background: transparent;
   border: none;
   border-radius: 18px;
@@ -539,9 +539,11 @@ body {
 }
 
 /* Staggered entrance when Slide 2 is active */
+#slide-2.active .formula-badge-pure,
 #slide-2.active .formula-badge-coconut {
   animation: badgePopIn 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
 }
+#slide-2.active .formula-badge-hydrating,
 #slide-2.active .formula-badge-palm {
   animation: badgePopIn 0.95s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
 }
@@ -561,14 +563,26 @@ body {
 }
 
 .formula-icon-wrap {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1.5px solid rgba(34, 197, 94, 0.22);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   will-change: transform;
+}
+
+.formula-svg-icon {
+  width: 36px;
+  height: 36px;
+  stroke: #16a34a;
+  color: #16a34a;
+  filter: drop-shadow(0 2px 6px rgba(22, 163, 74, 0.25));
+  transition: stroke 0.3s ease, filter 0.3s ease, transform 0.3s ease;
 }
 
 .formula-art-img {
@@ -580,67 +594,74 @@ body {
 }
 
 /* Organic Floating / Swaying Animations */
-@keyframes coconutFloat {
+@keyframes leafFloat {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
   }
   35% {
-    transform: translateY(-7px) rotate(-3.5deg);
+    transform: translateY(-5px) rotate(-3deg);
   }
   70% {
-    transform: translateY(3px) rotate(2deg);
+    transform: translateY(2px) rotate(2deg);
   }
 }
 
-@keyframes palmSway {
+@keyframes dropSway {
   0%, 100% {
-    transform: translateY(0px) rotate(0deg) scale(1);
+    transform: translateY(0px) scale(1);
   }
   30% {
-    transform: translateY(-5px) rotate(4.5deg) scale(1.03);
+    transform: translateY(-4px) scale(1.04);
   }
   65% {
-    transform: translateY(2px) rotate(-3deg) scale(0.99);
+    transform: translateY(2px) scale(0.98);
   }
 }
 
-@keyframes canePulse {
+@keyframes boltPulse {
   0%, 100% {
-    transform: translateY(0px) rotate(0deg) scale(1);
+    transform: translateY(0px) scale(1);
   }
   40% {
-    transform: translateY(-6px) rotate(-2.5deg) scale(1.04);
+    transform: translateY(-5px) scale(1.05);
   }
   80% {
-    transform: translateY(2px) rotate(1.5deg) scale(0.98);
+    transform: translateY(2px) scale(0.98);
   }
 }
 
+.formula-badge-pure .formula-icon-wrap,
 .formula-badge-coconut .formula-icon-wrap {
-  animation: coconutFloat 3.8s ease-in-out infinite;
+  animation: leafFloat 3.8s ease-in-out infinite;
 }
 
+.formula-badge-hydrating .formula-icon-wrap,
 .formula-badge-palm .formula-icon-wrap {
   transform-origin: 50% 88%;
-  animation: palmSway 4.4s ease-in-out 0.4s infinite;
+  animation: dropSway 4.4s ease-in-out 0.4s infinite;
 }
 
 .formula-badge-electrolytes .formula-icon-wrap {
   transform-origin: 50% 80%;
-  animation: canePulse 4.0s ease-in-out 0.8s infinite;
+  animation: boltPulse 4.0s ease-in-out 0.8s infinite;
 }
 
 /* Hover Micro-Interactions */
 .formula-badge:hover .formula-icon-wrap {
   animation-play-state: paused;
-  transform: translateY(-9px) scale(1.18) !important;
-  filter: drop-shadow(0 12px 24px rgba(70, 193, 84, 0.55)) drop-shadow(0 3px 6px rgba(12, 86, 46, 0.25));
+  transform: translateY(-6px) scale(1.12) !important;
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: 0 10px 24px rgba(34, 197, 94, 0.25);
+}
+
+.formula-badge:hover .formula-svg-icon {
+  stroke: #15803d;
 }
 
 .formula-badge:hover .badge-label {
   color: #052f18;
   transform: translateY(-2px);
-  letter-spacing: 1px;
 }
 
 .formula-badge:active .formula-icon-wrap {
@@ -649,13 +670,13 @@ body {
 
 .badge-label {
   font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--color-forest-green);
-  letter-spacing: 0.8px;
-  line-height: 1.35;
-  text-transform: uppercase;
-  transition: color 0.3s ease, transform 0.3s ease, letter-spacing 0.3s ease;
+  letter-spacing: 0.1px;
+  line-height: 1.3;
+  text-transform: none; /* Exact Title Case from image */
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .formula-math-plus {
@@ -3450,12 +3471,14 @@ body {
   }
 
   .formula-badge,
+  #slide-2.active .formula-badge-pure,
   #slide-2.active .formula-badge-coconut,
+  #slide-2.active .formula-badge-hydrating,
   #slide-2.active .formula-badge-palm,
   #slide-2.active .formula-badge-electrolytes {
     flex: 1 !important;
     min-width: 0 !important;
-    padding: 2px !important;
+    padding: 3px 2px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -3466,37 +3489,37 @@ body {
   }
 
   .formula-icon-wrap {
-    width: clamp(32px, 8.8vw, 38px) !important;
-    height: clamp(32px, 8.8vw, 38px) !important;
+    width: clamp(34px, 9vw, 42px) !important;
+    height: clamp(34px, 9vw, 42px) !important;
     background: #FFFFFF !important;
-    border: 1.5px solid rgba(12, 86, 46, 0.12) !important;
+    border: 1.5px solid rgba(34, 197, 94, 0.28) !important;
     border-radius: 50% !important;
-    margin: 0 auto 2px !important;
+    margin: 0 auto 3px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
-    color: var(--color-forest-green) !important;
+    color: #16a34a !important;
+  }
+
+  .formula-svg-icon {
+    width: clamp(18px, 5vw, 22px) !important;
+    height: clamp(18px, 5vw, 22px) !important;
+    stroke: #16a34a !important;
   }
 
   .badge-label {
-    font-size: clamp(7.5px, 2vw, 8.5px) !important;
-    font-weight: 800 !important;
-    line-height: 1.2 !important;
-    letter-spacing: 0.2px !important;
+    font-size: clamp(8px, 2.2vw, 9.5px) !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.1px !important;
     color: var(--color-forest-green) !important;
+    text-transform: none !important;
     display: block !important;
   }
 
   .formula-math-plus {
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    color: var(--color-mint-light) !important;
-    padding: 0 2px !important;
-    opacity: 0.85 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: none !important;
   }
 
   .collection-paragraph {
