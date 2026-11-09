@@ -42,8 +42,8 @@ let progressVideo = 0;
 
 function refreshLoadingBar() {
   if (!progressBar) return;
-  // Blend: 45% weight for 3D assets, 55% weight for process video assets
-  const combined = Math.round(progress3D * 0.45 + progressVideo * 0.55);
+  // Blend: 70% weight for 3D hero assets, 30% weight for initial process video asset
+  const combined = Math.round(progress3D * 0.70 + progressVideo * 0.30);
   const clamped = Math.max(0, Math.min(100, combined));
   progressBar.style.width = `${clamped}%`;
 }
@@ -117,66 +117,44 @@ function initVideoPreloading() {
     return;
   }
 
-  const totalVideos = stageVideos.length;
-  let readyCount = 0;
+  // Optimize: Primary video (Stage 1) determines page readiness so user reaches interactive state instantly
+  const primaryVideo = stageVideos[0];
+  let isPrimaryReady = false;
 
-  function onVideoReady() {
-    readyCount++;
-    const pct = Math.round((readyCount / totalVideos) * 100);
-    updateVideoProgress(pct);
+  const markPrimaryReady = () => {
+    if (isPrimaryReady) return;
+    isPrimaryReady = true;
+    areVideosLoaded = true;
+    updateVideoProgress(100);
+    checkAllAssetsLoaded();
+  };
 
-    if (readyCount >= totalVideos) {
-      areVideosLoaded = true;
-      checkAllAssetsLoaded();
+  if (primaryVideo) {
+    if (primaryVideo.readyState >= 2) {
+      markPrimaryReady();
+    } else {
+      primaryVideo.addEventListener('loadeddata', markPrimaryReady, { once: true });
+      primaryVideo.addEventListener('canplay', markPrimaryReady, { once: true });
+      primaryVideo.addEventListener('error', markPrimaryReady, { once: true });
+      try { primaryVideo.load(); } catch (_) { markPrimaryReady(); }
+      // Fast timeout for primary video (2.5s)
+      setTimeout(markPrimaryReady, 2500);
     }
+  } else {
+    markPrimaryReady();
   }
 
-  stageVideos.forEach((video) => {
-    if (video.readyState >= 2) {
-      onVideoReady();
-      return;
+  // Preload stage 2 in idle time so it is ready when user reaches Slide 3
+  const preloadSubsequent = () => {
+    if (stageVideos[1]) {
+      stageVideos[1].preload = 'metadata';
     }
-
-    let isMarked = false;
-    const markVideoReady = () => {
-      if (!isMarked) {
-        isMarked = true;
-        cleanup();
-        onVideoReady();
-      }
-    };
-
-    const cleanup = () => {
-      video.removeEventListener('loadeddata', markVideoReady);
-      video.removeEventListener('canplay', markVideoReady);
-      video.removeEventListener('canplaythrough', markVideoReady);
-      video.removeEventListener('error', markVideoReady);
-    };
-
-    video.addEventListener('loadeddata', markVideoReady, { once: true });
-    video.addEventListener('canplay', markVideoReady, { once: true });
-    video.addEventListener('canplaythrough', markVideoReady, { once: true });
-    video.addEventListener('error', markVideoReady, { once: true });
-
-    video.preload = 'auto';
-    try {
-      video.load();
-    } catch (e) {
-      markVideoReady();
-    }
-
-    // Safety timeout per individual video (5s) so network hiccup never stalls page
-    setTimeout(markVideoReady, 5000);
-  });
-
-  // Overall video timeout (6.5s)
-  setTimeout(() => {
-    if (!areVideosLoaded) {
-      areVideosLoaded = true;
-      updateVideoProgress(100);
-      checkAllAssetsLoaded();
-    }
-  }, 6500);
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preloadSubsequent, { timeout: 2000 });
+  } else {
+    setTimeout(preloadSubsequent, 1200);
+  }
 }
 
 if (document.readyState === 'loading') {
@@ -189,15 +167,14 @@ window.dismissLoadingScreen = dismissLoadingScreen;
 window.on3DModelCompletelyLoaded = on3DModelCompletelyLoaded;
 window.updateLoadingProgress = update3DProgress;
 
-// Overall safety timeout (8.5s)
+// Overall safety timeout (4.5s)
 setTimeout(() => {
   if (!isPageLoadingDismissed) {
-    console.warn('Fallback safety timeout reached for asset loading.');
     is3DModelLoaded = true;
     areVideosLoaded = true;
     dismissLoadingScreen();
   }
-}, 8500);
+}, 4500);
 
 // ======================================================================
 // 1. SLIDE NAVIGATION & SCROLL ENGINE (NATIVE SCROLL-LINKED)
@@ -383,6 +360,7 @@ function updateScrollMetrics() {
 
 // DIRECT SCROLL HANDLER: RAF-throttled to avoid redundant multi-fire layout reflows
 function onWindowScroll() {
+  if (typeof wake3DRenderer === 'function') wake3DRenderer();
   if (!isScrollPending) {
     isScrollPending = true;
     requestAnimationFrame(() => {
@@ -540,16 +518,19 @@ function animateScrollTo(targetY, duration = null, callback) {
   isStepTransitioning = true;
   const startTime = performance.now();
 
-  // Cinematic, slow, luxurious scroll duration (~980ms - 1300ms)
+  // Premium luxury scroll duration: responsive on mobile (500-750ms), cinematic on desktop (800-1100ms)
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const actualDuration = duration !== null
     ? duration
-    : Math.min(1300, Math.max(980, Math.abs(distance) * 0.45 + 600));
+    : (isMobile
+        ? Math.min(750, Math.max(500, Math.abs(distance) * 0.32 + 320))
+        : Math.min(1100, Math.max(800, Math.abs(distance) * 0.38 + 500)));
 
   function tick(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / actualDuration, 1.0);
 
-    if (progress >= 0.99) {
+    if (progress >= 0.996) {
       window.scrollTo(0, targetY);
       currentScrollAnimationId = null;
       isStepTransitioning = false;
@@ -558,10 +539,8 @@ function animateScrollTo(targetY, duration = null, callback) {
       return;
     }
 
-    // Quintic smoothstep ease (sublime luxury deceleration)
-    const ease = progress < 0.5
-      ? 4 * progress * progress * progress
-      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    // Ultra-smooth luxury ease-out curve matching cubic-bezier(0.16, 1, 0.3, 1)
+    const ease = 1 - Math.pow(1 - progress, 3.6);
 
     window.scrollTo(0, startY + distance * ease);
     currentScrollAnimationId = requestAnimationFrame(tick);
@@ -875,23 +854,47 @@ function setProcessStep(step) {
   }
 }
 
-function updateProcessTrackFill() {
-  const trackFill = document.getElementById('process-track-fill');
-  const trackBg = document.querySelector('.process-track-bg');
+let cachedTimelineMetrics = null;
+
+function measureTimelineMetrics() {
   const timelineBar = document.querySelector('.process-timeline-bar');
   const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
-  if (!trackFill || !timelineBar || !nodeItems.length) return;
+  if (!timelineBar || !nodeItems.length) return null;
 
   const barRect = timelineBar.getBoundingClientRect();
   const firstDot = nodeItems[0].querySelector('.node-dot');
   const lastDot = nodeItems[nodeItems.length - 1].querySelector('.node-dot');
-  if (!firstDot || !lastDot) return;
+  if (!firstDot || !lastDot) return null;
 
   const firstDotRect = firstDot.getBoundingClientRect();
   const lastDotRect = lastDot.getBoundingClientRect();
+  if (barRect.width === 0 || firstDotRect.width === 0) return null;
+
+  const startX = (firstDotRect.left + firstDotRect.width / 2) - barRect.left;
+  const endX = (lastDotRect.left + lastDotRect.width / 2) - barRect.left;
+  const centerY = (firstDotRect.top + firstDotRect.height / 2) - barRect.top;
+
+  const dotCenters = Array.from(nodeItems).map(node => {
+    const dot = node.querySelector('.node-dot');
+    if (!dot) return startX;
+    const r = dot.getBoundingClientRect();
+    return (r.left + r.width / 2) - barRect.left;
+  });
+
+  return { startX, endX, centerY, dotCenters };
+}
+
+function updateProcessTrackFill() {
+  const trackFill = document.getElementById('process-track-fill');
+  const trackBg = document.querySelector('.process-track-bg');
+  if (!trackFill) return;
+
+  if (!cachedTimelineMetrics) {
+    cachedTimelineMetrics = measureTimelineMetrics();
+  }
 
   // If bounding rects haven't rendered yet (e.g. 0 width), use fallback formula
-  if (barRect.width === 0 || firstDotRect.width === 0) {
+  if (!cachedTimelineMetrics) {
     const activeStep = Math.min(Math.max(currentProcessStep, 1), 9);
     const pct = (activeStep - 1) / 8;
     trackFill.style.left = '39px';
@@ -905,10 +908,7 @@ function updateProcessTrackFill() {
     return;
   }
 
-  // Exact pixel positions measured directly from the DOM
-  const startX = (firstDotRect.left + firstDotRect.width / 2) - barRect.left;
-  const endX = (lastDotRect.left + lastDotRect.width / 2) - barRect.left;
-  const centerY = (firstDotRect.top + firstDotRect.height / 2) - barRect.top;
+  const { startX, endX, centerY, dotCenters } = cachedTimelineMetrics;
 
   // Background track spanning from center of dot 1 to center of dot 9
   if (trackBg) {
@@ -920,19 +920,13 @@ function updateProcessTrackFill() {
 
   // Active step fill: terminates precisely at the center of the active dot
   const activeStep = Math.min(Math.max(currentProcessStep, 1), 9);
-  const activeNode = nodeItems[activeStep - 1];
-  const activeDot = activeNode ? activeNode.querySelector('.node-dot') : null;
+  const currentX = dotCenters[activeStep - 1] !== undefined ? dotCenters[activeStep - 1] : startX;
+  const fillWidth = Math.max(0, currentX - startX);
 
-  if (activeDot) {
-    const activeDotRect = activeDot.getBoundingClientRect();
-    const currentX = (activeDotRect.left + activeDotRect.width / 2) - barRect.left;
-    const fillWidth = Math.max(0, currentX - startX);
-
-    trackFill.style.left = `${startX}px`;
-    trackFill.style.width = `${fillWidth}px`;
-    trackFill.style.top = `${centerY - 1.5}px`;
-    trackFill.classList.toggle('has-progress', fillWidth > 0);
-  }
+  trackFill.style.left = `${startX}px`;
+  trackFill.style.width = `${fillWidth}px`;
+  trackFill.style.top = `${centerY - 1.5}px`;
+  trackFill.classList.toggle('has-progress', fillWidth > 0);
 }
 
 window.updateProcessTrackFill = updateProcessTrackFill;
@@ -959,8 +953,9 @@ function initProcessControls() {
   }
 
   window.addEventListener('resize', () => {
+    cachedTimelineMetrics = null;
     updateProcessTrackFill();
-  });
+  }, { passive: true });
 
   requestAnimationFrame(() => {
     updateProcessTrackFill();
@@ -1313,6 +1308,7 @@ if (heroStage) {
   renderer.setSize(width, height);
   const maxDpr = (window.innerWidth < 768) ? 1.25 : 1.5;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = false;
@@ -1423,6 +1419,8 @@ if (heroStage) {
     geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geo.setIndex(new THREE.BufferAttribute(indices, 1));
     geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    geo.computeBoundingBox();
     return geo;
   }
 
@@ -1509,6 +1507,8 @@ if (heroStage) {
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geo.setIndex(indices);
     geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    geo.computeBoundingBox();
     return geo;
   }
 
@@ -1615,7 +1615,7 @@ if (heroStage) {
       color: new THREE.Color(capColorHex),
       roughness: 0.30,
       metalness: 0.02,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
     capMat.userData = { baseOpacity: 1.0 };
@@ -1959,19 +1959,12 @@ if (heroStage) {
     mouseCoords.y = -(clientY / h) * 2 + 1;
     raycaster.setFromCamera(mouseCoords, camera);
 
-    // Filter to meshes whose parent groups are currently visible
-    const activeCandidates = hitCandidates.filter(m => {
-      let cur = m;
-      while (cur) {
-        if (!cur.visible) return false;
-        cur = cur.parent;
+    const hits = raycaster.intersectObjects(hitCandidates, false);
+    for (let i = 0; i < hits.length; i++) {
+      const obj = hits[i].object;
+      if (obj.visible && obj.parent && obj.parent.visible) {
+        return obj.userData.hitTarget;
       }
-      return true;
-    });
-
-    const hits = raycaster.intersectObjects(activeCandidates, false);
-    if (hits.length > 0) {
-      return hits[0].object.userData.hitTarget;
     }
     return null;
   }
@@ -2271,6 +2264,12 @@ if (heroStage) {
   let lastTime = performance.now();
   let wasOffscreen = false;
   let lastSideBottleFade = -1;
+  let settledFrames = 0;
+
+  function wake3DRenderer() {
+    settledFrames = 0;
+  }
+  window.wake3DRenderer = wake3DRenderer;
 
   function animate() {
     requestAnimationFrame(animate);
@@ -2285,6 +2284,7 @@ if (heroStage) {
     if (wasOffscreen) {
       lastTime = now;
       wasOffscreen = false;
+      settledFrames = 0;
     }
     const dt = Math.min(0.1, (now - lastTime) / 1000);
     lastTime = now;
@@ -2532,15 +2532,35 @@ if (heroStage) {
       c3Vel.x *= velDamping;
     }
 
-    if (controls && controls.enabled && isHeroStageVisible) controls.update();
-    // Occlusion culling: strictly render only when heroStage is visible in viewport
-    if (isHeroStageVisible && renderer && scene && camera) {
+    let hasMotion = false;
+    if (floatWeight > 0.0001) hasMotion = true;
+    if (Math.abs(targetPhase1CenterProgress - currentPhase1CenterProgress) > 0.0002) hasMotion = true;
+    if (Math.abs(targetPhase1EmergeProgress - currentPhase1EmergeProgress) > 0.0002) hasMotion = true;
+    if (Math.abs(targetPhase2Progress - currentPhase2Progress) > 0.0002) hasMotion = true;
+    if (Math.abs(bottleVel.x) > 0.0001 || Math.abs(bottleVel.y) > 0.0001) hasMotion = true;
+    if (Math.abs(bottle500Vel.x) > 0.0001 || Math.abs(bottle500Vel.y) > 0.0001) hasMotion = true;
+    if (Math.abs(bottle250Vel.x) > 0.0001 || Math.abs(bottle250Vel.y) > 0.0001) hasMotion = true;
+    if (isPointerDownOnObject) hasMotion = true;
+
+    if (controls && controls.enabled && isHeroStageVisible) {
+      if (controls.update()) hasMotion = true;
+    }
+
+    if (hasMotion) {
+      settledFrames = 0;
+    } else {
+      settledFrames++;
+    }
+
+    // Demand-based rendering: render during motion and for 3 frames after settling to ensure pixel-perfect docking
+    if (isHeroStageVisible && renderer && scene && camera && settledFrames <= 3) {
       renderer.render(scene, camera);
     }
   }
   animate();
 
   function onStageResize() {
+    wake3DRenderer();
     if (!heroStage || !camera || !renderer) return;
     const w = heroStage.clientWidth || window.innerWidth;
     const h = heroStage.clientHeight || window.innerHeight;

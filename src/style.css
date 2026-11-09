@@ -1465,7 +1465,7 @@ body {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  transition: all 0.35s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
   width: 78px;
 }
 
@@ -1488,7 +1488,7 @@ body {
   border-radius: 50%;
   background: #FFFFFF;
   border: 2.5px solid #a3b09d;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.35s ease, background-color 0.35s ease, box-shadow 0.35s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
@@ -1738,7 +1738,7 @@ body {
   justify-content: space-between;
   box-sizing: border-box;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out;
 }
 
 .luxury-product-card:hover {
@@ -1832,7 +1832,7 @@ body {
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
 .btn-add-to-cart-luxury:hover {
@@ -2282,7 +2282,7 @@ body {
   background: #FAFBFA;
   border-radius: 12px;
   padding: 10px 14px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-box:focus-within {
@@ -2447,7 +2447,7 @@ body {
   font-weight: 800;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-form-continue:hover {
@@ -2588,6 +2588,16 @@ body {
 /* Optimization: pause sonar pulses when Slide 5 is not active */
 .slide-panel:not(.active) .hub-sonar-ring,
 .slide-panel:not(.active) .pin-pulse-dot {
+  animation-play-state: paused !important;
+}
+
+/* Optimization: pause formula badge float animations when Slide 2 is not active */
+.slide-panel:not(.active) .formula-svg-icon {
+  animation-play-state: paused !important;
+}
+
+/* Optimization: pause vector animations when Slide 3 is not active */
+.slide-panel:not(.active) .process-stage-item * {
   animation-play-state: paused !important;
 }
 
@@ -2895,7 +2905,7 @@ body {
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-checkout:hover {
@@ -4439,7 +4449,7 @@ body {
 .slide-panel .clients-card-box {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s ease-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 769px) {
