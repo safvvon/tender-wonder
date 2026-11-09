@@ -357,7 +357,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.35s ease;
+  transition: none;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: opacity;
 }
 
 .bottle-3d-stage canvas {
@@ -437,6 +440,7 @@ body {
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 
 /* Active entered state */

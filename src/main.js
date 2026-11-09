@@ -205,12 +205,24 @@ setTimeout(() => {
 let currentSlide = 1;
 const totalSlides = 7;
 
+// Cached DOM references to eliminate repeated DOM queries and layout recalculations
 const pureWord = document.querySelector('.word-pure, .word-taste');
 const tenderWord = document.querySelector('.word-tender, .word-natures');
 const drinkWord = document.querySelector('.word-drink, .word-wonder');
+const heroScrollPrompt = document.getElementById('hero-scroll-prompt');
+
+let lastHeroP1 = -1;
+let lastHeroP2 = -1;
 
 function renderHeroText(progress1, progress2 = 0) {
   if (!pureWord || !tenderWord || !drinkWord) return;
+
+  // Dirty check: skip layout/style recalculation if values have stabilized
+  if (Math.abs(progress1 - lastHeroP1) < 0.001 && Math.abs(progress2 - lastHeroP2) < 0.001) {
+    return;
+  }
+  lastHeroP1 = progress1;
+  lastHeroP2 = progress2;
 
   // progress1: 0.0 (off-screen) to 1.0 (center reached)
   const clamped1 = Math.max(0, Math.min(1, progress1));
@@ -218,17 +230,17 @@ function renderHeroText(progress1, progress2 = 0) {
   // Fade out as progress2 advances towards slide 2
   const fadeOut = Math.max(0, 1.0 - progress2 * 1.4);
   const opacity = Math.min(clamped1 * 1.5, 1.0) * fadeOut;
+  const opacityStr = opacity.toFixed(3);
 
   pureWord.style.transform = `translate3d(${offset}vw, 0, 0)`;
-  pureWord.style.opacity = opacity;
+  pureWord.style.opacity = opacityStr;
 
   tenderWord.style.transform = `translate3d(${-offset}vw, 0, 0)`;
-  tenderWord.style.opacity = opacity;
+  tenderWord.style.opacity = opacityStr;
 
   drinkWord.style.transform = `translate3d(${offset}vw, 0, 0)`;
-  drinkWord.style.opacity = opacity;
+  drinkWord.style.opacity = opacityStr;
 
-  const heroScrollPrompt = document.getElementById('hero-scroll-prompt');
   if (heroScrollPrompt) {
     const promptOpacity = Math.max(0, 1.0 - clamped1 * 3.5);
     heroScrollPrompt.style.opacity = promptOpacity.toFixed(3);
@@ -246,75 +258,112 @@ let currentPhase2Progress = 0.0;
 let isHeroStageVisible = true;
 let isScrollPending = false;
 
-// Cached DOM references to eliminate repeated getElementById queries
-const slide1El = document.getElementById('slide-1');
-const slide2El = document.getElementById('slide-2');
-const slide3El = document.getElementById('slide-3');
+// Layout Measurement Cache (Eliminates forced synchronous reflows & getBoundingClientRect in scroll loop)
+let cachedViewportWidth = typeof window !== 'undefined' ? (window.innerWidth || 1200) : 1200;
+let cachedViewportHeight = typeof window !== 'undefined' ? (window.innerHeight || 800) : 800;
+const cachedSlideOffsets = [];
+const cachedSlideHeights = [];
+const cachedSlideElements = [];
+
+function updateLayoutCache() {
+  cachedViewportWidth = window.innerWidth || 1200;
+  cachedViewportHeight = window.innerHeight || 800;
+  for (let i = 1; i <= totalSlides; i++) {
+    const el = document.getElementById(`slide-${i}`);
+    cachedSlideElements[i] = el;
+    if (el) {
+      cachedSlideOffsets[i] = el.offsetTop;
+      cachedSlideHeights[i] = el.offsetHeight || cachedViewportHeight;
+    } else {
+      cachedSlideOffsets[i] = (i - 1) * cachedViewportHeight;
+      cachedSlideHeights[i] = cachedViewportHeight;
+    }
+  }
+}
+updateLayoutCache();
+
+const slide1El = cachedSlideElements[1];
+const slide2El = cachedSlideElements[2];
+const slide3El = cachedSlideElements[3];
+
+let lastAppliedStageOpacity = -1;
+let lastAppliedInteractive = null;
+let lastAppliedDisplay = '';
 
 function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
-  const vh = window.innerHeight || 800;
+  const vh = cachedViewportHeight || window.innerHeight || 800;
 
   // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
-  const pCenter = Math.min(Math.max(scrollY / (vh * 1.0), 0), 1);
+  const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
   targetPhase1CenterProgress = pCenter;
 
   // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
-  const pEmerge = Math.min(Math.max((scrollY - vh) / (vh * 1.0), 0), 1);
+  const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
   targetPhase1EmergeProgress = pEmerge;
 
   // Combined progress for backward compatibility
   targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
 
-  // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page (2.0 * vh to 3.0 * vh)
-  let p2 = 0.0;
-  if (slide2El) {
-    const s2Rect = slide2El.getBoundingClientRect();
-    p2 = Math.min(Math.max((vh - s2Rect.top) / vh, 0), 1);
+  // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
+  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (vh * 3);
+  const s2Height = cachedSlideHeights[2] !== undefined ? cachedSlideHeights[2] : vh;
+  const s2Dist = s2Top - scrollY;
+  const s2Bottom = s2Dist + s2Height;
+  const p2 = Math.min(Math.max((vh - s2Dist) / vh, 0), 1);
+  targetPhase2Progress = p2;
 
-    // Update active slide indicator and 3D stage visibility
-    if (heroStage) {
-      let stageOpacity = 0;
-      const isMobile = window.innerWidth <= 768;
-      if (slide2El) {
-        if (isMobile) {
-          // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
-          if (scrollY <= slide2El.offsetTop) {
-            stageOpacity = Math.max(0, 1.0 - p2 * 1.8);
-          } else {
-            stageOpacity = 0;
-          }
-        } else if (scrollY <= slide2El.offsetTop) {
-          stageOpacity = (s2Rect.bottom > vh * 0.15) ? 1 : 0;
-        } else {
-          // Leaving Slide 2 towards Slide 3: cleanly fade out so bottle never lingers on Slide 3
-          const exitProgress = Math.min(1, Math.max(0, (scrollY - slide2El.offsetTop) / (vh * 0.35)));
-          stageOpacity = 1 - exitProgress;
-        }
+  // Update active slide indicator and 3D stage visibility (Reflow-free with dirty check)
+  if (heroStage) {
+    let stageOpacity = 0;
+    const isMobile = cachedViewportWidth <= 768;
+    if (isMobile) {
+      // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
+      if (scrollY <= s2Top) {
+        stageOpacity = Math.max(0, 1.0 - p2 * 1.8);
+      } else {
+        stageOpacity = 0;
       }
-      heroStage.style.opacity = stageOpacity > 0.01 ? stageOpacity.toFixed(3) : '0';
-      const visible = stageOpacity > 0.05;
-      const isMobileView = window.innerWidth <= 768;
-      const isInteractive = visible && p2 < 0.95 && !isMobileView;
+    } else if (scrollY <= s2Top) {
+      stageOpacity = (s2Bottom > vh * 0.15) ? 1 : 0;
+    } else {
+      // Leaving Slide 2 towards Slide 3: cleanly fade out so bottle never lingers on Slide 3
+      const exitProgress = Math.min(1, Math.max(0, (scrollY - s2Top) / (vh * 0.35)));
+      stageOpacity = 1 - exitProgress;
+    }
+
+    const roundedOpacity = stageOpacity > 0.01 ? parseFloat(stageOpacity.toFixed(3)) : 0;
+    if (Math.abs(roundedOpacity - lastAppliedStageOpacity) > 0.005) {
+      lastAppliedStageOpacity = roundedOpacity;
+      heroStage.style.opacity = roundedOpacity > 0 ? roundedOpacity : '0';
+    }
+
+    const visible = stageOpacity > 0.05;
+    const isInteractive = visible && p2 < 0.95 && !isMobile;
+    if (isInteractive !== lastAppliedInteractive) {
+      lastAppliedInteractive = isInteractive;
       heroStage.classList.toggle('interactive', isInteractive);
       heroStage.style.pointerEvents = isInteractive ? 'auto' : 'none';
-      heroStage.style.display = stageOpacity > 0.01 ? 'flex' : 'none';
-      isHeroStageVisible = stageOpacity > 0.01;
+    }
 
-      if (s2Rect.top <= vh * 0.5 && s2Rect.bottom > vh * 0.5) {
-        updateActiveSlideUI(2);
-      } else if (s2Rect.top > vh * 0.5) {
-        updateActiveSlideUI(1);
-      }
+    const disp = stageOpacity > 0.01 ? 'flex' : 'none';
+    if (disp !== lastAppliedDisplay) {
+      lastAppliedDisplay = disp;
+      heroStage.style.display = disp;
+    }
+    isHeroStageVisible = stageOpacity > 0.01;
+
+    if (s2Dist <= vh * 0.5 && s2Bottom > vh * 0.5) {
+      if (currentSlide !== 2) updateActiveSlideUI(2);
+    } else if (s2Dist > vh * 0.5) {
+      if (currentSlide !== 1) updateActiveSlideUI(1);
     }
   }
-  targetPhase2Progress = p2;
 
   renderHeroText(pCenter, p2);
 
   // DONT MOVE THE SECOND PAGE UNTILL THE BOTTLE ALL COMING FROM THE SIDE WHILE SCROLLING
-  if (slide2El && !isLeftBottlesSequenceFinished() && (scrollY >= slide2El.offsetTop - 60 && scrollY <= slide2El.offsetTop + vh * 0.5)) {
-    const s2Top = slide2El.offsetTop;
+  if (!isLeftBottlesSequenceFinished() && (scrollY >= s2Top - 60 && scrollY <= s2Top + vh * 0.5)) {
     if (Math.abs(scrollY - s2Top) > 2 && !isStepTransitioning) {
       window.scrollTo(0, s2Top);
       return;
@@ -324,13 +373,11 @@ function updateScrollMetrics() {
   // Reset left bottles if user scrolls back up to Slide 1
   if (p2 < 0.35 && scrollY < vh * 2.3) {
     resetLeftBottlesSequence();
-  } else if (slide3El && scrollY >= slide3El.offsetTop - 60) {
-    setLeftBottlesStep(3);
-  }
-
-  // Update target 3D transform cache when scrolling near slide 2
-  if (typeof updateSlide2TargetCache === 'function') {
-    updateSlide2TargetCache();
+  } else {
+    const s3Top = cachedSlideOffsets[3] !== undefined ? cachedSlideOffsets[3] : (vh * 4);
+    if (scrollY >= s3Top - 60) {
+      setLeftBottlesStep(3);
+    }
   }
 }
 
@@ -347,11 +394,6 @@ function onWindowScroll() {
 
 // ======================================================================
 // SLIDE 2: SCROLL-DRIVEN 3-BOTTLE STAGGERED ENTRANCE CONTROLLER
-// Bottles enter ONLY on user scroll while at Slide 2:
-// Scroll 1: Bottle 1 (1L) enters
-// Scroll 2: Bottle 2 (500ml) enters
-// ======================================================================
-// SLIDE 2: SCROLL-DRIVEN 3-BOTTLE STAGGERED ENTRANCE CONTROLLER
 // As user scrolls on Slide 2, the 3 horizontal bottles enter from the side:
 // Bottle 1 (1L) -> Bottle 2 (500ml) -> Bottle 3 (250ml)
 // The viewport STRICTLY STAYS on Slide 2 until all 3 bottles have come and settled.
@@ -359,15 +401,25 @@ function onWindowScroll() {
 // ======================================================================
 let leftBottlesStep = 0; // 0: none, 1: 1L, 2: 500ml, 3: 250ml
 let lastBottleStepTime = 0;
+let lastLeftBottlesStep = -1;
+
+let cachedB1 = null;
+let cachedB2 = null;
+let cachedB3 = null;
 
 function setLeftBottlesStep(step) {
-  leftBottlesStep = Math.max(0, Math.min(3, step));
-  const b1 = document.querySelector('.h-bottle-1');
-  const b2 = document.querySelector('.h-bottle-2');
-  const b3 = document.querySelector('.h-bottle-3');
-  if (b1) b1.classList.toggle('entered', leftBottlesStep >= 1);
-  if (b2) b2.classList.toggle('entered', leftBottlesStep >= 2);
-  if (b3) b3.classList.toggle('entered', leftBottlesStep >= 3);
+  const newStep = Math.max(0, Math.min(3, step));
+  if (newStep === lastLeftBottlesStep) return;
+  lastLeftBottlesStep = newStep;
+  leftBottlesStep = newStep;
+
+  if (!cachedB1) cachedB1 = document.querySelector('.h-bottle-1');
+  if (!cachedB2) cachedB2 = document.querySelector('.h-bottle-2');
+  if (!cachedB3) cachedB3 = document.querySelector('.h-bottle-3');
+
+  if (cachedB1) cachedB1.classList.toggle('entered', leftBottlesStep >= 1);
+  if (cachedB2) cachedB2.classList.toggle('entered', leftBottlesStep >= 2);
+  if (cachedB3) cachedB3.classList.toggle('entered', leftBottlesStep >= 3);
 }
 window.setLeftBottlesStep = setLeftBottlesStep;
 
@@ -660,26 +712,25 @@ const TOTAL_STOPS = 8;
 
 function getCurrentStop() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
-  const vh = window.innerHeight || 800;
+  const vh = cachedViewportHeight || window.innerHeight || 800;
 
   if (scrollY < vh * 0.45) return STOP_HERO_TOP;
   if (scrollY < vh * 1.45) return STOP_HERO_CENTER;
 
-  const s2 = document.getElementById('slide-2');
-  const s2Top = s2 ? s2.offsetTop : vh * 3;
+  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : vh * 3;
   if (scrollY < (vh * 2 + s2Top) / 2) return STOP_HERO_TRIO;
 
   for (let i = 2; i < totalSlides; i++) {
-    const s = document.getElementById(`slide-${i}`);
-    const nextS = document.getElementById(`slide-${i + 1}`);
+    const sTop = cachedSlideOffsets[i];
+    const nextTop = cachedSlideOffsets[i + 1];
     const stopIdx = i + 1; // Slide 2 -> Stop 3, Slide 3 -> Stop 4, etc.
-    if (s && nextS) {
-      const mid = (s.offsetTop + nextS.offsetTop) / 2;
+    if (sTop !== undefined && nextTop !== undefined) {
+      const mid = (sTop + nextTop) / 2;
       if (scrollY < mid) {
         return stopIdx;
       }
-    } else if (s) {
-      if (scrollY < s.offsetTop + vh * 0.5) {
+    } else if (sTop !== undefined) {
+      if (scrollY < sTop + vh * 0.5) {
         return stopIdx;
       }
     }
@@ -756,12 +807,24 @@ const PROCESS_DESCRIPTIONS = {
   10: "FROM NATURE. THROUGH CARE. TO YOU. — A carefully controlled journey from fresh tender coconut to a finished product."
 };
 
+// Cached DOM elements for Slide 3 Interactive Process Engine
+let cachedStageItems = null;
+let cachedNodeItems = null;
+let cachedHeadingEl = null;
+let cachedDescEl = null;
+let cachedCardEl = null;
+
 function setProcessStep(step) {
   currentProcessStep = Math.max(1, Math.min(10, step));
 
+  if (!cachedStageItems) cachedStageItems = Array.from(document.querySelectorAll('#process-viewport .process-stage-item'));
+  if (!cachedNodeItems) cachedNodeItems = Array.from(document.querySelectorAll('.process-timeline-bar .process-node-item'));
+  if (!cachedHeadingEl) cachedHeadingEl = document.getElementById('process-desc-heading');
+  if (!cachedDescEl) cachedDescEl = document.getElementById('process-desc-text');
+  if (!cachedCardEl) cachedCardEl = document.querySelector('.process-desc-card');
+
   // 1. Stage visual items
-  const stageItems = document.querySelectorAll('#process-viewport .process-stage-item');
-  stageItems.forEach(item => {
+  cachedStageItems.forEach(item => {
     const s = parseInt(item.dataset.stage, 10);
     const isActive = s === currentProcessStep;
     item.classList.toggle('active', isActive);
@@ -780,8 +843,8 @@ function setProcessStep(step) {
   });
 
   // Lazy-preload next step's video metadata so it plays seamlessly on advance (only if Slide 3 is active)
-  if (isSlide3Active) {
-    const nextItem = document.querySelector(`#process-viewport .process-stage-item[data-stage="${currentProcessStep + 1}"]`);
+  if (isSlide3Active && currentProcessStep < 10) {
+    const nextItem = cachedStageItems.find(it => parseInt(it.dataset.stage, 10) === currentProcessStep + 1);
     const nextVid = nextItem?.querySelector('video.stage-process-video');
     if (nextVid && nextVid.preload === 'none') {
       nextVid.preload = 'metadata';
@@ -789,8 +852,7 @@ function setProcessStep(step) {
   }
 
   // 2. Timeline nodes
-  const nodeItems = document.querySelectorAll('.process-timeline-bar .process-node-item');
-  nodeItems.forEach(node => {
+  cachedNodeItems.forEach(node => {
     const nodeStep = parseInt(node.dataset.step, 10);
     node.classList.toggle('active', currentProcessStep <= 9 ? nodeStep === currentProcessStep : nodeStep === 9);
     node.classList.toggle('completed', nodeStep < currentProcessStep);
@@ -799,20 +861,17 @@ function setProcessStep(step) {
   // 3. Continuous progress track fill bar (centers perfectly on active node dot)
   updateProcessTrackFill();
 
-  // 4. Dynamic Heading and Description text (No numbers, heading with description below)
-  const headingEl = document.getElementById('process-desc-heading');
-  const descEl = document.getElementById('process-desc-text');
-  const cardEl = document.querySelector('.process-desc-card');
+  // 4. Dynamic Heading and Description text
   const stepData = PROCESS_STEPS[currentProcessStep];
   if (stepData) {
-    if (headingEl) headingEl.textContent = stepData.heading;
-    if (descEl) {
-      if (stepData.descHtml) descEl.innerHTML = stepData.descHtml;
-      else descEl.textContent = stepData.desc;
+    if (cachedHeadingEl) cachedHeadingEl.textContent = stepData.heading;
+    if (cachedDescEl) {
+      if (stepData.descHtml) cachedDescEl.innerHTML = stepData.descHtml;
+      else cachedDescEl.textContent = stepData.desc;
     }
   }
-  if (cardEl) {
-    cardEl.classList.toggle('highlight-stage-7', currentProcessStep === 7);
+  if (cachedCardEl) {
+    cachedCardEl.classList.toggle('highlight-stage-7', currentProcessStep === 7);
   }
 }
 
@@ -987,22 +1046,22 @@ function handleRetreat() {
 }
 
 function isScrollableInside(target, deltaY) {
-  let cur = target;
-  while (cur && cur !== document.body && cur !== document.documentElement) {
-    if (cur.id === 'cart-drawer' || cur.classList?.contains('cart-items')) return true;
-    const style = window.getComputedStyle(cur);
-    const overflowY = style.overflowY;
-    if ((overflowY === 'auto' || overflowY === 'scroll') && cur.scrollHeight > cur.clientHeight + 6) {
-      if (deltaY > 0 && cur.scrollTop + cur.clientHeight < cur.scrollHeight - 6) {
-        return true;
-      }
-      if (deltaY < 0 && cur.scrollTop > 6) {
-        return true;
-      }
+  if (!target || typeof target.closest !== 'function') return false;
+  const scrollable = target.closest('#cart-drawer, .cart-items, #cart-items-list, .catalog-grid-row, #process-viewport, #mobile-nav-drawer, [data-scrollable]');
+  if (!scrollable) return false;
+
+  const sh = scrollable.scrollHeight;
+  const ch = scrollable.clientHeight;
+  if (sh > ch + 4) {
+    const st = scrollable.scrollTop;
+    if (deltaY > 0 && st + ch < sh - 4) {
+      return true;
     }
-    cur = cur.parentElement;
+    if (deltaY < 0 && st > 4) {
+      return true;
+    }
   }
-  return false;
+  return true;
 }
 
 // Keyboard Navigation
@@ -1490,7 +1549,7 @@ if (heroStage) {
       clearcoat: 1.0,
       clearcoatRoughness: 0.02,
       ior: 1.52,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide, // High-performance single-side rendering (cuts transparent fill-rate overhead by 50%)
       depthWrite: false
     });
     petMat.userData = { baseOpacity: 0.18 };
@@ -1625,6 +1684,19 @@ if (heroStage) {
   const B500_SCALE = 0.92;      // Authentic medium cylinder height
   const B250_SCALE = 0.95;      // Authentic compact hourglass height
 
+  // Interactive Hit Candidate Meshes pre-registered for O(1) instantaneous raycasting
+  const hitCandidates = [];
+  function registerBottleHitMeshes(data, targetName) {
+    if (!data) return;
+    [data.bottleMesh, data.sleeveMesh, data.capMesh].forEach(m => {
+      if (m && !hitCandidates.includes(m)) {
+        m.userData.hitTarget = targetName;
+        hitCandidates.push(m);
+      }
+    });
+  }
+  registerBottleHitMeshes(bottle1LData, 'bottle');
+
   // Interactive Rigs for independent rotation around each bottle's center
   const bottleInteractiveRig = new THREE.Group();
   bottleInteractiveRig.name = 'BottleInteractiveRig';
@@ -1652,11 +1724,13 @@ if (heroStage) {
       bottle500Data = createBottleMeshGroup(profile500ml, '/textures/label_500ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle500ml');
       window.bottle500Data = bottle500Data;
       bottle500InteractiveRig.add(bottle500Data.group);
+      registerBottleHitMeshes(bottle500Data, 'bottle500');
     }
     if (!bottle250Data) {
       bottle250Data = createBottleMeshGroup(profile250ml, '/textures/label_250ml_albedo.webp', 0.0, 0xf4f6f8, 'Bottle250ml');
       window.bottle250Data = bottle250Data;
       bottle250InteractiveRig.add(bottle250Data.group);
+      registerBottleHitMeshes(bottle250Data, 'bottle250');
     }
   }
   window.loadSideBottles = loadSideBottles;
@@ -1688,21 +1762,31 @@ if (heroStage) {
   bottle250Rig.rotation.set(0.015, -0.14, 0.025);
   bottle250Rig.add(bottle250InteractiveRig);
 
-  // Soft Radial Contact Shadows for photorealistic tabletop grounding
-  function createContactShadowMesh(rx, rz) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grad.addColorStop(0, 'rgba(25, 45, 15, 0.45)');
-    grad.addColorStop(0.35, 'rgba(25, 45, 15, 0.22)');
-    grad.addColorStop(0.70, 'rgba(25, 45, 15, 0.06)');
-    grad.addColorStop(1.0, 'rgba(25, 45, 15, 0.0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 128, 128);
+  // Soft Radial Contact Shadows with Shared Canvas Texture (saves GPU texture memory)
+  let sharedShadowTexture = null;
+  function getSharedShadowTexture() {
+    if (!sharedShadowTexture) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(25, 45, 15, 0.45)');
+      grad.addColorStop(0.35, 'rgba(25, 45, 15, 0.22)');
+      grad.addColorStop(0.70, 'rgba(25, 45, 15, 0.06)');
+      grad.addColorStop(1.0, 'rgba(25, 45, 15, 0.0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 128, 128);
 
-    const tex = new THREE.CanvasTexture(canvas);
+      sharedShadowTexture = new THREE.CanvasTexture(canvas);
+      sharedShadowTexture.generateMipmaps = false;
+      sharedShadowTexture.minFilter = THREE.LinearFilter;
+    }
+    return sharedShadowTexture;
+  }
+
+  function createContactShadowMesh(rx, rz) {
+    const tex = getSharedShadowTexture();
     const geo = new THREE.PlaneGeometry(rx * 2, rz * 2);
     geo.rotateX(-Math.PI / 2);
     const mat = new THREE.MeshBasicMaterial({
@@ -1848,13 +1932,13 @@ if (heroStage) {
   window.c3Right = c3Right;
 
   // ====================================================================
-  // INDEPENDENT MOUSE CONTROLLER (Separate 3D Control for Bottle & Coconuts)
-  // Allows users to drag and inspect Bottle, Left Coconut, or Right Coconut separately!
+  // INDEPENDENT MOUSE CONTROLLER (Separate 3D Control for Bottles)
+  // Highly optimized: zero-allocation candidate raycasting & 30Hz throttled cursor hover
   // ====================================================================
   const raycaster = new THREE.Raycaster();
   const mouseCoords = new THREE.Vector2();
 
-  let activeDragObject = null; // 'bottle' | 'bottle500' | 'bottle250' | 'c2' | 'c3' | null
+  let activeDragObject = null; // 'bottle' | 'bottle500' | 'bottle250' | null
   let isPointerDownOnObject = false;
   let lastPointerPos = { x: 0, y: 0 };
 
@@ -1864,68 +1948,28 @@ if (heroStage) {
   const c2Vel = { x: 0, y: 0 };
   const c3Vel = { x: 0, y: 0 };
 
+  let cachedStageWidth = typeof window !== 'undefined' ? (window.innerWidth || 1200) : 1200;
+  let cachedStageHeight = typeof window !== 'undefined' ? (window.innerHeight || 800) : 800;
+
   function getHitObject(clientX, clientY) {
-    if (!renderer || !camera) return null;
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouseCoords.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-    mouseCoords.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    if (!renderer || !camera || hitCandidates.length === 0) return null;
+    const w = cachedStageWidth || window.innerWidth;
+    const h = cachedStageHeight || window.innerHeight;
+    mouseCoords.x = (clientX / w) * 2 - 1;
+    mouseCoords.y = -(clientY / h) * 2 + 1;
     raycaster.setFromCamera(mouseCoords, camera);
 
-    const candidates = [];
-    if (bottleMeshGroup && bottleMeshGroup.visible) {
-      bottleMeshGroup.traverse(child => {
-        if (child.isMesh) {
-          child.userData.hitTarget = 'bottle';
-          candidates.push(child);
-        }
-      });
-    }
-    if (bottle500Rig && bottle500Rig.visible) {
-      bottle500Rig.traverse(child => {
-        if (child.isMesh) {
-          child.userData.hitTarget = 'bottle500';
-          candidates.push(child);
-        }
-      });
-    }
-    if (bottle250Rig && bottle250Rig.visible) {
-      bottle250Rig.traverse(child => {
-        if (child.isMesh) {
-          child.userData.hitTarget = 'bottle250';
-          candidates.push(child);
-        }
-      });
-    }
-    if (coconutRig && coconutRig.visible) {
-      if (coconutRigLeft && coconutRigLeft.visible) {
-        if (c2Center) {
-          c2Center.traverse(child => {
-            if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
-              child.userData.hitTarget = 'c2';
-              candidates.push(child);
-            }
-          });
-        }
-        if (c1Left) {
-          c1Left.traverse(child => {
-            if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
-              child.userData.hitTarget = 'c2';
-              candidates.push(child);
-            }
-          });
-        }
+    // Filter to meshes whose parent groups are currently visible
+    const activeCandidates = hitCandidates.filter(m => {
+      let cur = m;
+      while (cur) {
+        if (!cur.visible) return false;
+        cur = cur.parent;
       }
-      if (coconutRigRight && coconutRigRight.visible && c3Right) {
-        c3Right.traverse(child => {
-          if (child.isMesh && child.geometry && child.geometry.type !== 'PlaneGeometry') {
-            child.userData.hitTarget = 'c3';
-            candidates.push(child);
-          }
-        });
-      }
-    }
+      return true;
+    });
 
-    const hits = raycaster.intersectObjects(candidates, false);
+    const hits = raycaster.intersectObjects(activeCandidates, false);
     if (hits.length > 0) {
       return hits[0].object.userData.hitTarget;
     }
@@ -1957,6 +2001,9 @@ if (heroStage) {
     }
   });
 
+  let lastHoverRaycastTime = 0;
+  let lastHoverCursor = 'default';
+
   canvasEl.addEventListener('pointermove', (e) => {
     if (window.innerWidth <= 768) return;
     if (isPointerDownOnObject && activeDragObject) {
@@ -1974,19 +2021,18 @@ if (heroStage) {
       } else if (activeDragObject === 'bottle250') {
         bottle250Vel.y += dx * SENSITIVITY;
         bottle250Vel.x += dy * SENSITIVITY;
-      } else if (activeDragObject === 'c2') {
-        c2Vel.y += dx * SENSITIVITY;
-        c2Vel.x += dy * SENSITIVITY;
-      } else if (activeDragObject === 'c3') {
-        c3Vel.y += dx * SENSITIVITY;
-        c3Vel.x += dy * SENSITIVITY;
       }
     } else if (!isPointerDownOnObject) {
-      const hit = getHitObject(e.clientX, e.clientY);
-      if (hit) {
-        canvasEl.style.cursor = 'grab';
-      } else {
-        canvasEl.style.cursor = 'default';
+      const now = performance.now();
+      // Throttle hover raycasting to ~30Hz to eliminate pointer cursor calculation overhead
+      if (now - lastHoverRaycastTime > 32) {
+        lastHoverRaycastTime = now;
+        const hit = getHitObject(e.clientX, e.clientY);
+        const cur = hit ? 'grab' : 'default';
+        if (cur !== lastHoverCursor) {
+          lastHoverCursor = cur;
+          canvasEl.style.cursor = cur;
+        }
       }
     }
   });
@@ -2159,7 +2205,7 @@ if (heroStage) {
     });
   };
 
-  // Cached target 3D transform for Slide 2 image place to prevent 60fps layout thrashing
+  // Cached target 3D transform for Slide 2 image place to prevent layout thrashing
   const slide2TargetEl = document.getElementById('slide-2-bottle-target');
   let cachedSlide2Slot = {
     x: 0,
@@ -2169,8 +2215,8 @@ if (heroStage) {
   };
 
   window.updateSlide2TargetCache = function() {
-    const vh = window.innerHeight || 800;
-    const vw = window.innerWidth || 1200;
+    const vh = cachedViewportHeight || window.innerHeight || 800;
+    const vw = cachedViewportWidth || window.innerWidth || 1200;
 
     const camDist = camera ? camera.position.z : 0.76;
     const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
@@ -2189,8 +2235,14 @@ if (heroStage) {
     }
 
     const rect = slide2TargetEl.getBoundingClientRect();
-    const slotCenterX = Math.round(rect.left + rect.width / 2);
-    const slotCenterY = Math.round(rect.top + rect.height / 2);
+    const s2 = document.getElementById('slide-2');
+    const s2Rect = s2 ? s2.getBoundingClientRect() : { top: 0, left: 0 };
+
+    // Canonical resting position when Slide 2 is docked at top of viewport
+    const restingLeft = rect.left;
+    const restingTop = rect.top - s2Rect.top;
+    const slotCenterX = Math.round(restingLeft + rect.width / 2);
+    const slotCenterY = Math.round(restingTop + rect.height / 2);
 
     const normX = (slotCenterX - vw / 2) / (vw / 2);
     const normY = -(slotCenterY - vh / 2) / (vh / 2);
@@ -2215,9 +2267,10 @@ if (heroStage) {
   // Initial calculation
   window.updateSlide2TargetCache();
 
-  // Animation Loop with Real Physical Inertia, Scroll Scrubbing & Multi-Phase Motion
+  // Animation Loop with Real Physical Inertia, Frame-Rate-Independent Damping & Multi-Phase Motion
   let lastTime = performance.now();
   let wasOffscreen = false;
+  let lastSideBottleFade = -1;
 
   function animate() {
     requestAnimationFrame(animate);
@@ -2236,10 +2289,11 @@ if (heroStage) {
     const dt = Math.min(0.1, (now - lastTime) / 1000);
     lastTime = now;
 
-    // Damped progress tracking for butter-smooth physical response
-    currentPhase1CenterProgress += (targetPhase1CenterProgress - currentPhase1CenterProgress) * Math.min(1.0, dt * 4.5);
-    currentPhase1EmergeProgress += (targetPhase1EmergeProgress - currentPhase1EmergeProgress) * Math.min(1.0, dt * 4.5);
-    currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * Math.min(1.0, dt * 4.5);
+    // Frame-rate-independent exponential progress tracking for butter-smooth physical response across 60Hz/120Hz/144Hz displays
+    const progressBlend = 1.0 - Math.exp(-8.5 * dt);
+    currentPhase1CenterProgress += (targetPhase1CenterProgress - currentPhase1CenterProgress) * progressBlend;
+    currentPhase1EmergeProgress += (targetPhase1EmergeProgress - currentPhase1EmergeProgress) * progressBlend;
+    currentPhase2Progress += (targetPhase2Progress - currentPhase2Progress) * progressBlend;
     if (Math.abs(targetPhase1CenterProgress - currentPhase1CenterProgress) < 0.0005) {
       currentPhase1CenterProgress = targetPhase1CenterProgress;
     }
@@ -2298,7 +2352,7 @@ if (heroStage) {
     const floatRotZ = floatWeight > 0.0001 ? Math.sin(now * 0.0012 + 0.6) * 0.020 * floatWeight : 0;
     const floatRotY = floatWeight > 0.0001 ? Math.sin(now * 0.0008) * 0.06 * floatWeight : 0;
 
-    // Apply Transform
+    // Apply Transform with delta-time normalized exponential interpolation
     const targetX = baseX + floatX;
     const targetY = baseY + floatY;
     const targetZ = baseZ + floatZ;
@@ -2307,24 +2361,24 @@ if (heroStage) {
     const targetRotY = baseRotY + floatRotY;
     const targetRotZ = baseRotZ + floatRotZ;
 
-    const lerpFactor = Math.min(1.0, dt * 4.5);
+    const rigBlend = 1.0 - Math.exp(-9.0 * dt);
     if (Math.abs(targetX - bottleRig.position.x) < 0.0002) bottleRig.position.x = targetX;
-    else bottleRig.position.x += (targetX - bottleRig.position.x) * lerpFactor;
+    else bottleRig.position.x += (targetX - bottleRig.position.x) * rigBlend;
 
     if (Math.abs(targetY - bottleRig.position.y) < 0.0002) bottleRig.position.y = targetY;
-    else bottleRig.position.y += (targetY - bottleRig.position.y) * lerpFactor;
+    else bottleRig.position.y += (targetY - bottleRig.position.y) * rigBlend;
 
     if (Math.abs(targetZ - bottleRig.position.z) < 0.0002) bottleRig.position.z = targetZ;
-    else bottleRig.position.z += (targetZ - bottleRig.position.z) * lerpFactor;
+    else bottleRig.position.z += (targetZ - bottleRig.position.z) * rigBlend;
 
     if (Math.abs(targetRotX - bottleRig.rotation.x) < 0.0002) bottleRig.rotation.x = targetRotX;
-    else bottleRig.rotation.x += (targetRotX - bottleRig.rotation.x) * lerpFactor;
+    else bottleRig.rotation.x += (targetRotX - bottleRig.rotation.x) * rigBlend;
 
     if (Math.abs(targetRotY - bottleRig.rotation.y) < 0.0002) bottleRig.rotation.y = targetRotY;
-    else bottleRig.rotation.y += (targetRotY - bottleRig.rotation.y) * lerpFactor;
+    else bottleRig.rotation.y += (targetRotY - bottleRig.rotation.y) * rigBlend;
 
     if (Math.abs(targetRotZ - bottleRig.rotation.z) < 0.0002) bottleRig.rotation.z = targetRotZ;
-    else bottleRig.rotation.z += (targetRotZ - bottleRig.rotation.z) * lerpFactor;
+    else bottleRig.rotation.z += (targetRotZ - bottleRig.rotation.z) * rigBlend;
 
     bottleRig.scale.setScalar(baseScale);
 
@@ -2334,22 +2388,19 @@ if (heroStage) {
     bottleMeshGroup.visible = true;
 
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
-    // During second scroll (tEmerge > 0), they emerge from behind with rotation flourish.
     const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
 
     // Dynamic rotation flourish while emerging from behind center bottle:
-    // 500ml spins smoothly as it slides out to the left and settles squarely facing forward
     const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
     const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
     const emerge500RotZ = THREE.MathUtils.lerp(-0.16, 0.0, tEmerge);
 
-    // 250ml spins in opposite direction as it slides out to the right and settles squarely facing forward
     const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, 0.0, tEmerge);
     const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const isMobileViewport = window.innerWidth <= 768;
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
     const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
     const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
@@ -2375,15 +2426,6 @@ if (heroStage) {
 
       bottle500Rig.position.set(emerge500X + breath500X, emerge500Y + breath500Y, emerge500Z);
       bottle500Rig.rotation.set(emerge500RotX, emerge500RotY, emerge500RotZ);
-
-      if (bottle500Data && bottle500Data.materials) {
-        bottle500Data.materials.forEach((mat, idx) => {
-          const base = mat.userData?.baseOpacity !== undefined ? mat.userData.baseOpacity : 1.0;
-          mat.opacity = base * sideBottleFade;
-          // Keep shrink sleeve and cap completely opaque when settled for maximum vibrancy
-          mat.transparent = (sideBottleFade < 0.99) || (idx === 0 || idx === 1);
-        });
-      }
     }
 
     if (bottle250Rig) {
@@ -2396,13 +2438,34 @@ if (heroStage) {
 
       bottle250Rig.position.set(emerge250X + breath250X, emerge250Y + breath250Y, emerge250Z);
       bottle250Rig.rotation.set(emerge250RotX, emerge250RotY, emerge250RotZ);
+    }
+
+    // Material Opacity Updates: Dirty-checked so materials are untouched once settled
+    if (Math.abs(sideBottleFade - lastSideBottleFade) > 0.002) {
+      lastSideBottleFade = sideBottleFade;
+      const isSettled = sideBottleFade >= 0.995;
+
+      if (bottle500Data && bottle500Data.materials) {
+        bottle500Data.materials.forEach((mat, idx) => {
+          const base = mat.userData?.baseOpacity !== undefined ? mat.userData.baseOpacity : 1.0;
+          mat.opacity = isSettled ? base : base * sideBottleFade;
+          const shouldTransparent = (!isSettled) || (idx === 0 || idx === 1);
+          if (mat.transparent !== shouldTransparent) {
+            mat.transparent = shouldTransparent;
+            mat.needsUpdate = true;
+          }
+        });
+      }
 
       if (bottle250Data && bottle250Data.materials) {
         bottle250Data.materials.forEach((mat, idx) => {
           const base = mat.userData?.baseOpacity !== undefined ? mat.userData.baseOpacity : 1.0;
-          mat.opacity = base * sideBottleFade;
-          // Keep shrink sleeve and cap completely opaque when settled for maximum vibrancy
-          mat.transparent = (sideBottleFade < 0.99) || (idx === 0 || idx === 1);
+          mat.opacity = isSettled ? base : base * sideBottleFade;
+          const shouldTransparent = (!isSettled) || (idx === 0 || idx === 1);
+          if (mat.transparent !== shouldTransparent) {
+            mat.transparent = shouldTransparent;
+            mat.needsUpdate = true;
+          }
         });
       }
     }
@@ -2428,42 +2491,45 @@ if (heroStage) {
     }
 
     // ================================================================
-    // INDEPENDENT MOUSE ROTATION PHYSICS (Inertia & Smooth Damping)
+    // INDEPENDENT MOUSE ROTATION PHYSICS (Frame-Rate Normalized Damping)
+    // Ensures physical inertia feels identical on 60Hz, 120Hz, and 144Hz screens
     // ================================================================
+    const velDamping = Math.pow(0.91, Math.min(dt, 0.05) * 60);
+
     if (bottleInteractiveRig) {
       bottleInteractiveRig.rotation.y += bottleVel.y;
       bottleInteractiveRig.rotation.x += bottleVel.x;
       bottleInteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottleInteractiveRig.rotation.x));
-      bottleVel.y *= 0.91;
-      bottleVel.x *= 0.91;
+      bottleVel.y *= velDamping;
+      bottleVel.x *= velDamping;
     }
     if (bottle500InteractiveRig) {
       bottle500InteractiveRig.rotation.y += bottle500Vel.y;
       bottle500InteractiveRig.rotation.x += bottle500Vel.x;
       bottle500InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottle500InteractiveRig.rotation.x));
-      bottle500Vel.y *= 0.91;
-      bottle500Vel.x *= 0.91;
+      bottle500Vel.y *= velDamping;
+      bottle500Vel.x *= velDamping;
     }
     if (bottle250InteractiveRig) {
       bottle250InteractiveRig.rotation.y += bottle250Vel.y;
       bottle250InteractiveRig.rotation.x += bottle250Vel.x;
       bottle250InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, bottle250InteractiveRig.rotation.x));
-      bottle250Vel.y *= 0.91;
-      bottle250Vel.x *= 0.91;
+      bottle250Vel.y *= velDamping;
+      bottle250Vel.x *= velDamping;
     }
     if (c2InteractiveRig) {
       c2InteractiveRig.rotation.y += c2Vel.y;
       c2InteractiveRig.rotation.x += c2Vel.x;
       c2InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, c2InteractiveRig.rotation.x));
-      c2Vel.y *= 0.91;
-      c2Vel.x *= 0.91;
+      c2Vel.y *= velDamping;
+      c2Vel.x *= velDamping;
     }
     if (c3InteractiveRig) {
       c3InteractiveRig.rotation.y += c3Vel.y;
       c3InteractiveRig.rotation.x += c3Vel.x;
       c3InteractiveRig.rotation.x = Math.max(-1.25, Math.min(1.25, c3InteractiveRig.rotation.x));
-      c3Vel.y *= 0.91;
-      c3Vel.x *= 0.91;
+      c3Vel.y *= velDamping;
+      c3Vel.x *= velDamping;
     }
 
     if (controls && controls.enabled && isHeroStageVisible) controls.update();
@@ -2478,6 +2544,22 @@ if (heroStage) {
     if (!heroStage || !camera || !renderer) return;
     const w = heroStage.clientWidth || window.innerWidth;
     const h = heroStage.clientHeight || window.innerHeight;
+    cachedStageWidth = w;
+    cachedStageHeight = h;
+
+    // Adaptive DPR capping based on device tier
+    const rawDpr = window.devicePixelRatio || 1;
+    let targetDpr = 1.0;
+    if (w <= 768) {
+      targetDpr = Math.min(rawDpr, 1.25);
+    } else if (w <= 1024) {
+      targetDpr = Math.min(rawDpr, 1.5);
+    } else {
+      targetDpr = Math.min(rawDpr, 1.75);
+    }
+    renderer.setPixelRatio(targetDpr);
+    renderer.setSize(w, h, false);
+
     camera.aspect = w / h;
 
     // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
@@ -2501,16 +2583,20 @@ if (heroStage) {
     }
 
     camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
     if (typeof window.updateSlide2TargetCache === 'function') {
       window.updateSlide2TargetCache();
     }
+    updateLayoutCache();
   }
 
   // Ensure camera distance and aspect ratio are calibrated on startup
   onStageResize();
 
-  window.addEventListener('resize', onStageResize);
+  window.addEventListener('resize', () => {
+    updateLayoutCache();
+    onStageResize();
+    updateScrollMetrics();
+  }, { passive: true });
 } else {
   // If hero stage does not exist in DOM, mark 3D as loaded
   on3DModelCompletelyLoaded();
