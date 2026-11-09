@@ -2647,7 +2647,8 @@ body {
 }
 
 .client-logo-img.logo-safari,
-.client-logo-img.logo-nesto {
+.client-logo-img.logo-nesto,
+.client-logo-img.logo-ajman-coop {
   max-height: 82px;
 }
 
@@ -4350,7 +4351,8 @@ body {
   }
 
   .client-logo-img.logo-safari,
-  .client-logo-img.logo-nesto {
+  .client-logo-img.logo-nesto,
+  .client-logo-img.logo-ajman-coop {
     max-height: 40px !important;
   }
 
