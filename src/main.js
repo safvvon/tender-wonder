@@ -301,16 +301,12 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
 
-  // Phase 1A: First scroll - Center 1L bottle ascends from bottom to centre
-  const isMobile = checkIsMobileOrTouch();
-  const centerAscentDist = isMobile ? (vh * 0.85) : vh;
-  const pCenter = Math.min(Math.max(scrollY / centerAscentDist, 0), 1);
+  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
+  const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
   targetPhase1CenterProgress = pCenter;
 
-  // Phase 1B: Second scroll - Side bottles ascend from bottom directly beside center bottle
-  const emergeStart = isMobile ? (vh * 0.85) : vh;
-  const emergeDist = isMobile ? (vh * 0.95) : vh;
-  const pEmerge = Math.min(Math.max((scrollY - emergeStart) / emergeDist, 0), 1);
+  // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
+  const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
   targetPhase1EmergeProgress = pEmerge;
 
   // Combined progress for backward compatibility
@@ -329,11 +325,9 @@ function updateScrollMetrics() {
     let stageOpacity = 0;
     const isMobile = checkIsMobileOrTouch();
     if (isMobile) {
-      // On mobile portrait, stay fully visible across Slide 1 showcase, then smoothly crossfade as Slide 2 arrives
+      // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
       if (scrollY <= s2Top) {
-        const fadeStart = 0.60;
-        const fadeP = Math.max(0, (p2 - fadeStart) / (1.0 - fadeStart));
-        stageOpacity = Math.max(0, 1.0 - fadeP);
+        stageOpacity = Math.max(0, 1.0 - p2 * 1.8);
       } else {
         stageOpacity = 0;
       }
@@ -2292,19 +2286,6 @@ if (heroStage) {
   window.updateSlide2TargetCache = function () {
     const vh = cachedViewportHeight || window.innerHeight || 800;
     const vw = cachedViewportWidth || window.innerWidth || 1200;
-    const isMobile = checkIsMobileOrTouch() || vw <= 768;
-
-    if (isMobile) {
-      // Mobile Slide 2 layout displays the collection at the bottom in its own podium.
-      // The 3D bottle stays elegantly centered without jumping or rocketing off-screen.
-      cachedSlide2Slot = {
-        x: 0,
-        y: SETTLE_Y,
-        z: 0,
-        scale: 1.0
-      };
-      return;
-    }
 
     const camDist = camera ? camera.position.z : 0.76;
     const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
@@ -2323,16 +2304,6 @@ if (heroStage) {
     }
 
     const rect = slide2TargetEl.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      cachedSlide2Slot = {
-        x: halfW * 0.50,
-        y: BOTTLE_CENTER_Y + 0.045,
-        z: -0.02,
-        scale: 0.76
-      };
-      return;
-    }
-
     const s2 = document.getElementById('slide-2');
     const s2Rect = s2 ? s2.getBoundingClientRect() : { top: 0, left: 0 };
 
@@ -2418,21 +2389,14 @@ if (heroStage) {
       loadSideBottles();
     }
 
-    // 1. Phase 1: Ascent from bottom directly to centre of screen (Center 1L bottle arrives first)
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768 || checkIsMobileOrTouch();
-    const camDist = camera ? camera.position.z : 0.76;
-    const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
-    // On mobile view, bottle ascends cleanly and upright from bottom directly to centre without tilt or corkscrew
-    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.1465)) : START_Y;
-    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
-
-    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
+    // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
+    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
     const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
 
-    const p1RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTZ, SETTLE_ROTZ, tCenter);
+    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2447,8 +2411,7 @@ if (heroStage) {
 
     // 3. Weightless Harmonic Floating (subtle breathing - active only on Slide 1 hero)
     // On Slide 2, the bottle is docked in its slot - floatWeight fades completely to 0 so it stays rock-solid
-    const floatEaseFade = isMobileViewport ? Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)) : Math.max(0, 1.0 - ease2 * 1.6);
-    const floatWeight = tCenter * floatEaseFade;
+    const floatWeight = tCenter * Math.max(0, 1.0 - ease2 * 1.6);
     const floatY = floatWeight > 0.0001 ? Math.sin(now * 0.0016) * 0.007 * floatWeight : 0;
     const floatX = floatWeight > 0.0001 ? Math.cos(now * 0.0011) * 0.004 * floatWeight : 0;
     const floatZ = floatWeight > 0.0001 ? Math.sin(now * 0.0009) * 0.003 * floatWeight : 0;
@@ -2494,45 +2457,33 @@ if (heroStage) {
     bottleMeshGroup.visible = true;
 
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
-    const sideBottleFade = isMobileViewport
-      ? ((tEmerge > 0.0005 ? 1.0 : 0.0) * Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)))
-      : (tEmerge * Math.max(0, 1.0 - ease2 * 2.2));
+    const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
+
+    // Dynamic rotation flourish while emerging from behind center bottle:
+    const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
+    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
+    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, 0.0, tEmerge);
+
+    const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, 0.0, tEmerge);
+    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
+    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const targetB500X = isMobileViewport ? -0.080 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.076 : B250_POS_X;
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
+    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
-    // Side bottles starting position:
-    // On mobile view, side bottles ascend straight up from the bottom directly into position beside center bottle
-    // On desktop view, side bottles originate behind center bottle (X = 0, Z = -0.090) and curve outward
-    const sideStartY500 = isMobileViewport ? (B500_POS_Y - (fovHalfH + 0.1465)) : (B500_POS_Y - 0.015);
-    const sideStartY250 = isMobileViewport ? (B250_POS_Y - (fovHalfH + 0.1465)) : (B250_POS_Y - 0.015);
+    // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
+    const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
+    const emerge500Y = THREE.MathUtils.lerp(B500_POS_Y - 0.015, B500_POS_Y, tEmerge);
+    const emerge500Z = THREE.MathUtils.lerp(-0.090, B500_POS_Z, tEmerge);
 
-    const sideStartX500 = isMobileViewport ? targetB500X : 0.0;
-    const sideStartX250 = isMobileViewport ? targetB250X : 0.0;
+    const emerge250X = THREE.MathUtils.lerp(0.0, targetB250X, tEmerge);
+    const emerge250Y = THREE.MathUtils.lerp(B250_POS_Y - 0.015, B250_POS_Y, tEmerge);
+    const emerge250Z = THREE.MathUtils.lerp(-0.090, B250_POS_Z, tEmerge);
 
-    const sideStartZ500 = isMobileViewport ? B500_POS_Z : -0.090;
-    const sideStartZ250 = isMobileViewport ? B250_POS_Z : -0.090;
-
-    const emerge500X = THREE.MathUtils.lerp(sideStartX500, targetB500X, tEmerge);
-    const emerge500Y = THREE.MathUtils.lerp(sideStartY500, B500_POS_Y, tEmerge);
-    const emerge500Z = THREE.MathUtils.lerp(sideStartZ500, B500_POS_Z, tEmerge);
-
-    const emerge250X = THREE.MathUtils.lerp(sideStartX250, targetB250X, tEmerge);
-    const emerge250Y = THREE.MathUtils.lerp(sideStartY250, B250_POS_Y, tEmerge);
-    const emerge250Z = THREE.MathUtils.lerp(sideStartZ250, B250_POS_Z, tEmerge);
-
-    // On mobile view, clean upright ascent from bottom without tilt or corkscrew spin (matching 1L bottle)
-    const emerge500RotY = THREE.MathUtils.lerp(isMobileViewport ? 0.12 : (0.0 - Math.PI * 1.5), 0.12, tEmerge);
-    const emerge500RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.015 : 0.10, 0.015, tEmerge);
-    const emerge500RotZ = THREE.MathUtils.lerp(isMobileViewport ? -0.02 : -0.16, -0.02, tEmerge);
-
-    const emerge250RotY = THREE.MathUtils.lerp(isMobileViewport ? -0.14 : (0.0 + Math.PI * 1.5), -0.14, tEmerge);
-    const emerge250RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.015 : 0.10, 0.015, tEmerge);
-    const emerge250RotZ = THREE.MathUtils.lerp(isMobileViewport ? 0.025 : 0.16, 0.025, tEmerge);
-
-    const emergeScale500 = isMobileViewport ? 1.0 : THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
-    const emergeScale250 = isMobileViewport ? 1.0 : THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
+    const emergeScale500 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
+    const emergeScale250 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
 
     if (bottle500Rig) {
       bottle500Rig.visible = sideBottleFade > 0.005;
@@ -2590,19 +2541,16 @@ if (heroStage) {
 
     // Soft Contact Shadows tracking
     if (window.shadow1L) {
-      const shadowEaseFade = isMobileViewport ? Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)) : Math.max(0, 1.0 - ease2 * 2.0);
-      const shadowFade1L = Math.max(0, (tCenter - 0.4) / 0.6) * shadowEaseFade;
+      const shadowFade1L = Math.max(0, (tCenter - 0.4) / 0.6) * Math.max(0, 1.0 - ease2 * 2.0);
       window.shadow1L.material.opacity = shadowFade1L * 0.45;
     }
     if (window.shadow500) {
-      const shadowSideFade = isMobileViewport ? (tEmerge * 0.40 * shadowEaseFade) : (sideBottleFade * 0.40);
-      window.shadow500.material.opacity = shadowSideFade;
+      window.shadow500.material.opacity = sideBottleFade * 0.40;
       window.shadow500.position.x = emerge500X;
       window.shadow500.position.z = emerge500Z;
     }
     if (window.shadow250) {
-      const shadowSideFade = isMobileViewport ? (tEmerge * 0.40 * shadowEaseFade) : (sideBottleFade * 0.40);
-      window.shadow250.material.opacity = shadowSideFade;
+      window.shadow250.material.opacity = sideBottleFade * 0.40;
       window.shadow250.position.x = emerge250X;
       window.shadow250.position.z = emerge250Z;
     }
