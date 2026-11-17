@@ -2286,6 +2286,17 @@ if (heroStage) {
   window.updateSlide2TargetCache = function () {
     const vh = cachedViewportHeight || window.innerHeight || 800;
     const vw = cachedViewportWidth || window.innerWidth || 1200;
+    const isMobile = checkIsMobileOrTouch() || vw <= 768;
+
+    if (isMobile) {
+      cachedSlide2Slot = {
+        x: 0,
+        y: SETTLE_Y,
+        z: 0,
+        scale: 1.0
+      };
+      return;
+    }
 
     const camDist = camera ? camera.position.z : 0.76;
     const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
@@ -2390,13 +2401,26 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
-    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768 || checkIsMobileOrTouch();
+    const camDist = camera ? camera.position.z : 0.76;
+    const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
-    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
+    // On mobile view, the bottle animation comes directly and cleanly from the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.16)) : START_Y;
+    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
+    const effectiveStartZ = START_Z;
+
+    const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
+    const effectiveStartRotY = isMobileViewport ? (-Math.PI * 1.0) : START_ROTY;
+    const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
+
+    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
+    const p1Z = THREE.MathUtils.lerp(effectiveStartZ, SETTLE_Z, tCenter);
+
+    const p1RotX = THREE.MathUtils.lerp(effectiveStartRotX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(effectiveStartRotY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(effectiveStartRotZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2469,9 +2493,8 @@ if (heroStage) {
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
+    const targetB500X = isMobileViewport ? -0.082 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.078 : B250_POS_X;
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
