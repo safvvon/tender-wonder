@@ -357,6 +357,8 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
+  height: 100svh;
   z-index: 12;
   pointer-events: none;
   display: flex;
@@ -3076,6 +3078,9 @@ body {
   .bottle-3d-stage.interactive canvas {
     pointer-events: none !important;
     touch-action: pan-y !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    height: 100svh !important;
   }
 
   html, body {

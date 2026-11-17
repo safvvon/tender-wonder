@@ -63,6 +63,14 @@ function dismissLoadingScreen() {
   isPageLoadingDismissed = true;
   if (progressBar) progressBar.style.width = '100%';
   loadingScreen.classList.add('fade-out');
+
+  // Trigger mobile bottom-to-center entrance animation cleanly as loading screen lifts
+  const isMobile = typeof window !== 'undefined' && ((window.innerWidth <= 768) || (typeof cachedViewportWidth !== 'undefined' && cachedViewportWidth <= 768));
+  if (isMobile) {
+    currentPhase1CenterProgress = 0.0;
+    targetPhase1CenterProgress = 1.0;
+  }
+
   setTimeout(() => {
     loadingScreen.style.display = 'none';
   }, 600);
@@ -293,17 +301,26 @@ let lastAppliedDisplay = '';
 function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
 
-  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
-  const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
-  targetPhase1CenterProgress = pCenter;
+  if (!isMobile) {
+    // Desktop: 3-phase scroll-linked progression
+    // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
+    const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
+    targetPhase1CenterProgress = pCenter;
 
-  // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
-  const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
-  targetPhase1EmergeProgress = pEmerge;
+    // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
+    const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
+    targetPhase1EmergeProgress = pEmerge;
 
-  // Combined progress for backward compatibility
-  targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
+    // Combined progress for backward compatibility
+    targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
+  } else {
+    // Mobile: The bottle animates cleanly from below into the center on arrival!
+    targetPhase1CenterProgress = 1.0;
+    targetPhase1EmergeProgress = 1.0;
+    targetPhase1Progress = 1.0;
+  }
 
   // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
   const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (vh * 3);
@@ -574,8 +591,15 @@ window.goToSlide = function(index) {
   updateActiveSlideUI(index);
 
   const vh = window.innerHeight || 800;
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   if (index === 1) {
     resetLeftBottlesSequence();
+    if (isMobile) {
+      currentPhase1CenterProgress = 0.0;
+      targetPhase1CenterProgress = 1.0;
+      animateScrollTo(0, 600);
+      return;
+    }
     const curY = window.scrollY || 0;
     if (curY < 50) {
       animateScrollTo(vh, 1200);
@@ -1028,6 +1052,7 @@ window.navigateToStop = navigateToStop;
 window.handleAdvance = handleAdvance;
 
 function handleAdvance() {
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
@@ -1048,6 +1073,12 @@ function handleAdvance() {
     return;
   }
 
+  // On mobile view: when advancing from Slide 1 (where the bottle has arrived), advance directly to Slide 2
+  if (isMobile && cur < STOP_SLIDE_2) {
+    navigateToStop(STOP_SLIDE_2);
+    return;
+  }
+
   // Once all 3 bottles have come in (or on any other stop), advance to the next stop!
   if (cur < TOTAL_STOPS) {
     navigateToStop(cur + 1);
@@ -1055,10 +1086,15 @@ function handleAdvance() {
 }
 
 function handleRetreat() {
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   if (cur === STOP_SLIDE_3 && currentProcessStep > 1) {
     setProcessStep(currentProcessStep - 1);
     lastProcessStepTime = performance.now();
+    return;
+  }
+  if (isMobile && cur === STOP_SLIDE_2) {
+    navigateToStop(STOP_HERO_TOP);
     return;
   }
   if (cur > STOP_HERO_TOP) {
@@ -1872,7 +1908,7 @@ if (heroStage) {
 
   // Outer Master Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
-  bottleRig.position.set(0, -0.60, 0);
+  bottleRig.position.set(0, (typeof window !== 'undefined' && window.innerWidth <= 768) ? -1.0 : (0.213 - 0.40), 0);
   bottleRig.add(bottleInteractiveRig);
   bottleRig.add(bottle500Rig);
   bottleRig.add(bottle250Rig);
@@ -2254,6 +2290,13 @@ if (heroStage) {
 
   // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
   window.replayBottleAnimation = function() {
+    const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
+    if (isMobile) {
+      currentPhase1CenterProgress = 0.0;
+      targetPhase1CenterProgress = 1.0;
+      animateScrollTo(0, 400);
+      return;
+    }
     loadSideBottles();
     const vh = window.innerHeight || 800;
     animateScrollTo(0, 500, () => {
@@ -2388,12 +2431,12 @@ if (heroStage) {
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
     // On mobile view, the bottle animation comes directly and cleanly from below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.25)) : START_Y;
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.40)) : START_Y;
     const effectiveStartX = isMobileViewport ? 0.0 : START_X;
     const effectiveStartZ = START_Z;
 
     const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
-    const effectiveStartRotY = isMobileViewport ? (-Math.PI * 1.0) : START_ROTY;
+    const effectiveStartRotY = isMobileViewport ? 0.0 : START_ROTY;
     const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
 
     const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
