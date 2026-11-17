@@ -939,6 +939,22 @@ window.updateProcessTrackFill = updateProcessTrackFill;
 window.setProcessStep = setProcessStep;
 window.getProcessStep = () => currentProcessStep;
 
+function replayProcessJourney(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  isSlide3Active = true;
+  setProcessStep(1);
+  lastProcessStepTime = performance.now();
+  const s3 = document.getElementById('slide-3');
+  if (s3) {
+    const s3Top = s3.offsetTop;
+    animateScrollTo(s3Top, 500);
+  }
+}
+window.replayProcessJourney = replayProcessJourney;
+
 function initProcessControls() {
   document.querySelectorAll('.process-timeline-bar .process-node-item').forEach(node => {
     node.addEventListener('click', () => {
@@ -952,9 +968,8 @@ function initProcessControls() {
 
   const replayBtn = document.getElementById('btn-replay-process');
   if (replayBtn) {
-    replayBtn.addEventListener('click', () => {
-      setProcessStep(1);
-      lastProcessStepTime = performance.now();
+    replayBtn.addEventListener('click', (e) => {
+      replayProcessJourney(e);
     });
   }
 
@@ -965,6 +980,12 @@ function initProcessControls() {
   requestAnimationFrame(() => {
     updateProcessTrackFill();
   });
+}
+
+// Ensure process timeline & replay controls are initialized immediately
+initProcessControls();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initProcessControls, { once: true });
 }
 
 function navigateToStop(targetStop) {

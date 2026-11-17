@@ -1408,7 +1408,11 @@ body {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
-  cursor: pointer;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+  touch-action: manipulation;
   box-shadow: 0 8px 20px rgba(12, 86, 46, 0.25);
   transition: all 0.25s ease;
 }
