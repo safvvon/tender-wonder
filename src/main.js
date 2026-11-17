@@ -290,6 +290,13 @@ let lastAppliedStageOpacity = -1;
 let lastAppliedInteractive = null;
 let lastAppliedDisplay = '';
 
+function checkIsMobileOrTouch() {
+  const isSmallWidth = (window.innerWidth <= 768) || ((typeof cachedViewportWidth !== 'undefined') && cachedViewportWidth <= 768);
+  const isTouch = (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+  return isSmallWidth || isTouch;
+}
+window.checkIsMobileOrTouch = checkIsMobileOrTouch;
+
 function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
@@ -316,7 +323,7 @@ function updateScrollMetrics() {
   // Update active slide indicator and 3D stage visibility (Reflow-free with dirty check)
   if (heroStage) {
     let stageOpacity = 0;
-    const isMobile = cachedViewportWidth <= 768;
+    const isMobile = checkIsMobileOrTouch();
     if (isMobile) {
       // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
       if (scrollY <= s2Top) {
@@ -1386,9 +1393,17 @@ if (heroStage) {
   controls.maxAzimuthAngle = Math.PI / 4;
   controls.minPolarAngle = Math.PI / 2.8;
   controls.maxPolarAngle = Math.PI / 1.8;
-  if (window.innerWidth <= 768) {
+  if (checkIsMobileOrTouch()) {
     controls.enabled = false;
-    renderer.domElement.style.touchAction = 'auto';
+    controls.enableRotate = false;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    if (controls.touches) {
+      controls.touches.ONE = null;
+      controls.touches.TWO = null;
+    }
+    renderer.domElement.style.touchAction = 'pan-y';
+    renderer.domElement.style.pointerEvents = 'none';
   }
   window.controls = controls;
   window.camera = camera;
@@ -2033,8 +2048,8 @@ if (heroStage) {
   const canvasEl = renderer.domElement;
 
   canvasEl.addEventListener('pointerdown', (e) => {
-    // Disable bottle touch/pointer control in mobile view and on all touch interactions
-    if (e.pointerType === 'touch' || window.innerWidth <= 768) {
+    // Strictly disable bottle touch/pointer control in mobile view and on all touch interactions
+    if (e.pointerType === 'touch' || checkIsMobileOrTouch()) {
       return;
     }
     if (e.button !== 0) return;
@@ -2051,7 +2066,7 @@ if (heroStage) {
     } else {
       activeDragObject = null;
       isPointerDownOnObject = false;
-      if (controls && window.innerWidth > 768) controls.enabled = true;
+      if (controls && !checkIsMobileOrTouch()) controls.enabled = true;
     }
   });
 
@@ -2059,7 +2074,7 @@ if (heroStage) {
   let lastHoverCursor = 'default';
 
   canvasEl.addEventListener('pointermove', (e) => {
-    if (window.innerWidth <= 768) return;
+    if (checkIsMobileOrTouch()) return;
     if (isPointerDownOnObject && activeDragObject) {
       const dx = e.clientX - lastPointerPos.x;
       const dy = e.clientY - lastPointerPos.y;
@@ -2095,9 +2110,9 @@ if (heroStage) {
     if (isPointerDownOnObject) {
       isPointerDownOnObject = false;
       activeDragObject = null;
-      if (controls && window.innerWidth > 768) controls.enabled = true;
+      if (controls && !checkIsMobileOrTouch()) controls.enabled = true;
       canvasEl.classList.remove('is-dragging');
-      const hit = window.innerWidth > 768 ? getHitObject(e.clientX, e.clientY) : null;
+      const hit = !checkIsMobileOrTouch() ? getHitObject(e.clientX, e.clientY) : null;
       canvasEl.style.cursor = hit ? 'grab' : 'default';
       if (canvasEl.releasePointerCapture) {
         try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) {}
@@ -2617,23 +2632,40 @@ if (heroStage) {
     camera.aspect = w / h;
 
     // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
-    if (w <= 768) {
+    const isMobileMode = checkIsMobileOrTouch();
+    if (isMobileMode || w <= 768) {
       const mobileZ = Math.min(1.22, Math.max(0.92, 0.76 * (540 / Math.max(300, w))));
       camera.position.set(0.0, 0.213, mobileZ);
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
         controls.enabled = false;
+        controls.enableRotate = false;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        if (controls.touches) {
+          controls.touches.ONE = null;
+          controls.touches.TWO = null;
+        }
       }
       heroStage.classList.remove('interactive');
       heroStage.style.pointerEvents = 'none';
-      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'auto';
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.touchAction = 'pan-y';
+        renderer.domElement.style.pointerEvents = 'none';
+      }
     } else {
       camera.position.set(0.0, 0.213, 0.76);
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
+        controls.enableRotate = true;
+        controls.enableZoom = true;
+        controls.enablePan = false;
         if (!isPointerDownOnObject) controls.enabled = true;
       }
-      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'none';
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.touchAction = 'none';
+        renderer.domElement.style.pointerEvents = 'auto';
+      }
     }
 
     camera.updateProjectionMatrix();

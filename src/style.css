@@ -3058,6 +3058,20 @@ body {
   display: none;
 }
 
+/* Disable bottle touch / pointer dragging on mobile and all touch screens so native scrolling is smooth and uninhibited */
+@media (hover: none) and (pointer: coarse) {
+  #hero-3d-bottle-container,
+  #hero-3d-bottle-container.interactive,
+  #hero-3d-bottle-container canvas,
+  .bottle-3d-stage,
+  .bottle-3d-stage.interactive,
+  .bottle-3d-stage canvas,
+  .bottle-3d-stage.interactive canvas {
+    pointer-events: none !important;
+    touch-action: pan-y !important;
+  }
+}
+
 /* ============================================================ */
 /* MOBILE & TABLET RESPONSIVE SYSTEM (<= 768px)                 */
 /* ============================================================ */
