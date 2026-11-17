@@ -2387,16 +2387,22 @@ if (heroStage) {
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
-    // On mobile view, calibrate entrance so bottle begins completely below the viewport bottom
-    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.22)) : START_Y;
+    // On mobile view, the bottle animation comes directly and cleanly from below the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.18)) : START_Y;
+    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
+    const effectiveStartZ = START_Z;
 
-    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
+    const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
+    const effectiveStartRotY = isMobileViewport ? (-Math.PI * 1.0) : START_ROTY;
+    const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
+
+    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
     const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
-    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
+    const p1Z = THREE.MathUtils.lerp(effectiveStartZ, SETTLE_Z, tCenter);
 
-    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
+    const p1RotX = THREE.MathUtils.lerp(effectiveStartRotX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(effectiveStartRotY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(effectiveStartRotZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2656,7 +2662,7 @@ if (heroStage) {
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
         controls.enableRotate = true;
-        controls.enableZoom = true;
+        controls.enableZoom = false;
         controls.enablePan = false;
         if (!isPointerDownOnObject) controls.enabled = true;
       }
