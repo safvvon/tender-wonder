@@ -1872,7 +1872,7 @@ if (heroStage) {
 
   // Outer Master Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
-  bottleRig.position.set(0, -0.60, 0);
+  bottleRig.position.set(0, -0.35, 0);
   bottleRig.add(bottleInteractiveRig);
   bottleRig.add(bottle500Rig);
   bottleRig.add(bottle250Rig);
@@ -2388,8 +2388,8 @@ if (heroStage) {
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
-    // On mobile view, the bottle animation comes directly and cleanly from below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (effectiveSettleY - (fovHalfH + 0.25)) : START_Y;
+    // On mobile view, the bottle animation comes directly and cleanly from a little below the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (effectiveSettleY - (fovHalfH + 0.15)) : START_Y;
     const effectiveStartX = isMobileViewport ? 0.0 : START_X;
     const effectiveStartZ = START_Z;
 
