@@ -2286,17 +2286,6 @@ if (heroStage) {
   window.updateSlide2TargetCache = function () {
     const vh = cachedViewportHeight || window.innerHeight || 800;
     const vw = cachedViewportWidth || window.innerWidth || 1200;
-    const isMobile = checkIsMobileOrTouch() || vw <= 768;
-
-    if (isMobile) {
-      cachedSlide2Slot = {
-        x: 0,
-        y: SETTLE_Y,
-        z: 0,
-        scale: 1.0
-      };
-      return;
-    }
 
     const camDist = camera ? camera.position.z : 0.76;
     const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
@@ -2401,7 +2390,7 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768 || checkIsMobileOrTouch();
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
@@ -2493,8 +2482,8 @@ if (heroStage) {
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const targetB500X = isMobileViewport ? -0.082 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.078 : B250_POS_X;
+    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
@@ -2655,8 +2644,7 @@ if (heroStage) {
     camera.aspect = w / h;
 
     // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
-    const isMobileMode = checkIsMobileOrTouch();
-    if (isMobileMode || w <= 768) {
+    if (w <= 768) {
       const mobileZ = Math.min(1.22, Math.max(0.92, 0.76 * (540 / Math.max(300, w))));
       camera.position.set(0.0, 0.213, mobileZ);
       if (controls) {
