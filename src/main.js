@@ -1388,7 +1388,15 @@ if (heroStage) {
   controls.maxPolarAngle = Math.PI / 1.8;
   if (window.innerWidth <= 768) {
     controls.enabled = false;
-    renderer.domElement.style.touchAction = 'auto';
+    controls.enableRotate = false;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    if (controls.touches) {
+      controls.touches.ONE = null;
+      controls.touches.TWO = null;
+    }
+    renderer.domElement.style.touchAction = 'pan-y';
+    renderer.domElement.style.pointerEvents = 'none';
   }
   window.controls = controls;
   window.camera = camera;
@@ -2375,13 +2383,27 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
-    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
+    const camDist = camera ? camera.position.z : 0.76;
+    const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
 
-    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
+    // On mobile view, the bottle animation comes directly and cleanly from the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.16)) : START_Y;
+    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
+    const effectiveStartZ = START_Z;
+
+    // On mobile view, the bottle ascends upright and cleanly from the bottom without tilt or corkscrew
+    const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
+    const effectiveStartRotY = isMobileViewport ? 0.0 : START_ROTY;
+    const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
+
+    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
+    const p1Z = THREE.MathUtils.lerp(effectiveStartZ, SETTLE_Z, tCenter);
+
+    const p1RotX = THREE.MathUtils.lerp(effectiveStartRotX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(effectiveStartRotY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(effectiveStartRotZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2444,31 +2466,41 @@ if (heroStage) {
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
     const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
 
-    // Dynamic rotation flourish while emerging from behind center bottle:
-    const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
-    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
-    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, 0.0, tEmerge);
-
-    const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, 0.0, tEmerge);
-    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
-    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
-
     // Dynamic bottle spacing calibrated for screen width
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
     const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
     const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
-    // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
-    const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
-    const emerge500Y = THREE.MathUtils.lerp(B500_POS_Y - 0.015, B500_POS_Y, tEmerge);
-    const emerge500Z = THREE.MathUtils.lerp(-0.090, B500_POS_Z, tEmerge);
+    // Side bottles starting position:
+    // On mobile view, side bottles ascend straight up from the bottom directly into position beside center bottle
+    // On desktop view, side bottles originate behind center bottle (X = 0, Z = -0.090) and curve outward
+    const sideStartY500 = isMobileViewport ? (B500_POS_Y - (fovHalfH + 0.16)) : (B500_POS_Y - 0.015);
+    const sideStartY250 = isMobileViewport ? (B250_POS_Y - (fovHalfH + 0.16)) : (B250_POS_Y - 0.015);
 
-    const emerge250X = THREE.MathUtils.lerp(0.0, targetB250X, tEmerge);
-    const emerge250Y = THREE.MathUtils.lerp(B250_POS_Y - 0.015, B250_POS_Y, tEmerge);
-    const emerge250Z = THREE.MathUtils.lerp(-0.090, B250_POS_Z, tEmerge);
+    const sideStartX500 = isMobileViewport ? targetB500X : 0.0;
+    const sideStartX250 = isMobileViewport ? targetB250X : 0.0;
 
-    const emergeScale500 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
-    const emergeScale250 = THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
+    const sideStartZ500 = isMobileViewport ? B500_POS_Z : -0.090;
+    const sideStartZ250 = isMobileViewport ? B250_POS_Z : -0.090;
+
+    const emerge500X = THREE.MathUtils.lerp(sideStartX500, targetB500X, tEmerge);
+    const emerge500Y = THREE.MathUtils.lerp(sideStartY500, B500_POS_Y, tEmerge);
+    const emerge500Z = THREE.MathUtils.lerp(sideStartZ500, B500_POS_Z, tEmerge);
+
+    const emerge250X = THREE.MathUtils.lerp(sideStartX250, targetB250X, tEmerge);
+    const emerge250Y = THREE.MathUtils.lerp(sideStartY250, B250_POS_Y, tEmerge);
+    const emerge250Z = THREE.MathUtils.lerp(sideStartZ250, B250_POS_Z, tEmerge);
+
+    // On mobile view, clean upright ascent from bottom. On desktop view, full rotational flourish from behind center bottle.
+    const emerge500RotY = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : (0.0 - Math.PI * 1.5), 0.0, tEmerge);
+    const emerge500RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : 0.10, 0.0, tEmerge);
+    const emerge500RotZ = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : -0.16, 0.0, tEmerge);
+
+    const emerge250RotY = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : (0.0 + Math.PI * 1.5), 0.0, tEmerge);
+    const emerge250RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : 0.10, 0.0, tEmerge);
+    const emerge250RotZ = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : 0.16, 0.0, tEmerge);
+
+    const emergeScale500 = isMobileViewport ? 1.0 : THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
+    const emergeScale250 = isMobileViewport ? 1.0 : THREE.MathUtils.lerp(0.001, 1.0, Math.min(1.0, tEmerge * 1.35));
 
     if (bottle500Rig) {
       bottle500Rig.visible = sideBottleFade > 0.005;
@@ -2623,17 +2655,33 @@ if (heroStage) {
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
         controls.enabled = false;
+        controls.enableRotate = false;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        if (controls.touches) {
+          controls.touches.ONE = null;
+          controls.touches.TWO = null;
+        }
       }
       heroStage.classList.remove('interactive');
       heroStage.style.pointerEvents = 'none';
-      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'auto';
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.touchAction = 'pan-y';
+        renderer.domElement.style.pointerEvents = 'none';
+      }
     } else {
       camera.position.set(0.0, 0.213, 0.76);
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
+        controls.enableRotate = true;
+        controls.enableZoom = true;
+        controls.enablePan = false;
         if (!isPointerDownOnObject) controls.enabled = true;
       }
-      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'none';
+      if (renderer && renderer.domElement) {
+        renderer.domElement.style.touchAction = 'none';
+        renderer.domElement.style.pointerEvents = 'auto';
+      }
     }
 
     camera.updateProjectionMatrix();
