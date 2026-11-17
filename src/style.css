@@ -3381,10 +3381,10 @@ body {
   /* ------------------------------------------------------------ */
   #slide-1 {
     width: 100vw !important;
-    height: 200vh !important;
-    height: 200dvh !important;
-    min-height: 200vh !important;
-    min-height: 200dvh !important;
+    height: 300vh !important;
+    height: 300dvh !important;
+    min-height: 300vh !important;
+    min-height: 300dvh !important;
     max-height: none !important;
     overflow: visible !important;
     display: block !important;
