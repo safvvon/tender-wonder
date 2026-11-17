@@ -357,8 +357,6 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;
-  height: 100svh;
   z-index: 12;
   pointer-events: none;
   display: flex;
@@ -3078,9 +3076,6 @@ body {
   .bottle-3d-stage.interactive canvas {
     pointer-events: none !important;
     touch-action: pan-y !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    height: 100svh !important;
   }
 
   html, body {
@@ -3386,10 +3381,10 @@ body {
   /* ------------------------------------------------------------ */
   #slide-1 {
     width: 100vw !important;
-    height: 300vh !important;
-    height: 300dvh !important;
-    min-height: 300vh !important;
-    min-height: 300dvh !important;
+    height: 200vh !important;
+    height: 200dvh !important;
+    min-height: 200vh !important;
+    min-height: 200dvh !important;
     max-height: none !important;
     overflow: visible !important;
     display: block !important;
