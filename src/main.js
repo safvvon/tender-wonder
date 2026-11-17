@@ -301,8 +301,10 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
 
-  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
-  const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
+  // Phase 1A: First scroll - Center 1L bottle ascends from bottom to centre
+  const isMobile = checkIsMobileOrTouch();
+  const centerAscentDist = isMobile ? (vh * 0.85) : vh;
+  const pCenter = Math.min(Math.max(scrollY / centerAscentDist, 0), 1);
   targetPhase1CenterProgress = pCenter;
 
   // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
@@ -2414,21 +2416,21 @@ if (heroStage) {
       loadSideBottles();
     }
 
-    // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
+    // 1. Phase 1: Ascent from bottom directly to centre of screen (Center 1L bottle arrives first)
     const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768 || checkIsMobileOrTouch();
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
-    // Dynamically ensure top of bottle starts completely hidden below viewport on all screen sizes
-    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.24)) : START_Y;
-    const effectiveStartX = isMobileViewport ? 0.015 : START_X;
+    // On mobile view, bottle ascends cleanly and upright from bottom directly to centre without tilt or corkscrew
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.1465)) : START_Y;
+    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
 
     const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
     const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
     const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
 
-    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
+    const p1RotX = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(isMobileViewport ? 0.0 : START_ROTZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
