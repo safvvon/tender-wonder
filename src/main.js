@@ -2384,12 +2384,14 @@ if (heroStage) {
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
     const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const effectiveSettleY = isMobileViewport ? 0.207 : SETTLE_Y;
+    const effectiveSettleY = isMobileViewport ? 0.172 : SETTLE_Y;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
+    const camY = camera ? camera.position.y : 0.207;
+    const bottomEdgeY = camY - fovHalfH;
 
     // On mobile view, the bottle animation comes directly and cleanly from a little below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (effectiveSettleY - (fovHalfH + 0.15)) : START_Y;
+    const effectiveStartY = isMobileViewport ? (bottomEdgeY - 0.150) : START_Y;
     const effectiveStartX = isMobileViewport ? 0.0 : START_X;
     const effectiveStartZ = START_Z;
 
