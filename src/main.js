@@ -493,14 +493,22 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 
 // Initial hero presentation: establish fast LCP and readable headline immediately
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (prefersReducedMotion) {
+const isMobileStartup = (window.innerWidth || 1200) <= 768;
+if (isMobileStartup) {
+  // Mobile view strictly starts at Starting Position (Image 2: bottle below screen, "SCROLL TO WONDER" centered)
+  targetPhase1CenterProgress = 0.0;
+  currentPhase1CenterProgress = 0.0;
+  targetPhase1EmergeProgress = 0.0;
+  currentPhase1EmergeProgress = 0.0;
+  renderHeroText(0.0, 0.0);
+} else if (prefersReducedMotion) {
   targetPhase1CenterProgress = 1.0;
   currentPhase1CenterProgress = 1.0;
   targetPhase1EmergeProgress = 1.0;
   currentPhase1EmergeProgress = 1.0;
   renderHeroText(1.0, 0.0);
 } else {
-  // Smooth initial hero entrance on arrival
+  // Desktop: smooth initial hero entrance on arrival
   targetPhase1CenterProgress = 1.0;
   currentPhase1CenterProgress = 0.0;
   renderHeroText(1.0, 0.0);
@@ -945,13 +953,12 @@ function replayProcessJourney(e) {
     if (typeof e.preventDefault === 'function') e.preventDefault();
     if (typeof e.stopPropagation === 'function') e.stopPropagation();
   }
-  isSlide3Active = true;
   setProcessStep(1);
   lastProcessStepTime = performance.now();
-  const s3 = document.getElementById('slide-3');
-  if (s3) {
-    const s3Top = s3.offsetTop;
-    animateScrollTo(s3Top, 500);
+  if (typeof window.replayBottleAnimation === 'function') {
+    window.replayBottleAnimation();
+  } else {
+    animateScrollTo(0, 750);
   }
 }
 window.replayProcessJourney = replayProcessJourney;
@@ -2253,18 +2260,35 @@ if (heroStage) {
     return x * x * x * (x * (x * 6 - 15) + 10);
   }
 
-  // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
+  // Replay Journey: smoothly scrolls back to Starting Position (Image 2: scrollY = 0, clean screen, bottle below)
+  // and re-runs the ascent up to Ending Position (Image 3: scrollY = 100dvh, 1L bottle centered upright)
   window.replayBottleAnimation = function() {
-    loadSideBottles();
-    const vh = window.innerHeight || 800;
-    animateScrollTo(0, 500, () => {
+    const vh = cachedViewportHeight || window.innerHeight || 800;
+    const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
+
+    if (!isMobile) {
+      loadSideBottles();
+    }
+
+    resetLeftBottlesSequence();
+
+    // 1. Smoothly scroll back to the starting position (scrollY = 0)
+    // Starting position: "SCROLL TO WONDER", 3D bottle hidden below bottom edge (Image 2)
+    animateScrollTo(0, 750, () => {
+      // 2. Pause momentarily at starting position so user sees the clean initial state
       setTimeout(() => {
-        animateScrollTo(vh, 1000, () => {
-          setTimeout(() => {
-            animateScrollTo(vh * 2, 1000);
-          }, 300);
+        // 3. Smoothly animate scroll to 1.0 * vh (100dvh)
+        // As it scrolls, 1L bottle smoothly ascends from below into screen center (Image 3)
+        animateScrollTo(vh, 1200, () => {
+          // 4. On desktop, continue smoothly to Phase 1B (side emergence at 2.0 * vh)
+          // On mobile, stop cleanly at 1.0 * vh (Image 3: single 1L bottle centered upright)
+          if (!isMobile) {
+            setTimeout(() => {
+              animateScrollTo(vh * 2, 1000);
+            }, 350);
+          }
         });
-      }, 250);
+      }, 350);
     });
   };
 
