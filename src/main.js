@@ -15,7 +15,7 @@ window.scrollTo(0, 0);
 if (window.location.hash) {
   try {
     history.replaceState(null, '', window.location.pathname + window.location.search);
-  } catch (e) {}
+  } catch (e) { }
 }
 window.addEventListener('beforeunload', () => {
   window.scrollTo(0, 0);
@@ -325,9 +325,11 @@ function updateScrollMetrics() {
     let stageOpacity = 0;
     const isMobile = checkIsMobileOrTouch();
     if (isMobile) {
-      // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
+      // On mobile portrait, stay fully visible across Slide 1 showcase, then smoothly crossfade as Slide 2 arrives
       if (scrollY <= s2Top) {
-        stageOpacity = Math.max(0, 1.0 - p2 * 1.8);
+        const fadeStart = 0.60;
+        const fadeP = Math.max(0, (p2 - fadeStart) / (1.0 - fadeStart));
+        stageOpacity = Math.max(0, 1.0 - fadeP);
       } else {
         stageOpacity = 0;
       }
@@ -576,7 +578,7 @@ function animateScrollTo(targetY, duration = null, callback) {
   currentScrollAnimationId = requestAnimationFrame(tick);
 }
 
-window.goToSlide = function(index) {
+window.goToSlide = function (index) {
   if (index < 1 || index > totalSlides) return;
   updateActiveSlideUI(index);
 
@@ -639,7 +641,7 @@ function onSlide3VisibilityChange(active) {
     if (vid) {
       if (vid.preload !== 'auto') vid.preload = 'auto';
       const p = vid.play();
-      if (p !== undefined) p.catch(() => {});
+      if (p !== undefined) p.catch(() => { });
     }
   }
 }
@@ -842,7 +844,7 @@ function setProcessStep(step) {
         if (vid.preload !== 'auto') vid.preload = 'auto';
         vid.currentTime = 0;
         const p = vid.play();
-        if (p !== undefined) p.catch(() => {});
+        if (p !== undefined) p.catch(() => { });
       } else {
         vid.pause();
       }
@@ -2061,7 +2063,7 @@ if (heroStage) {
       if (controls) controls.enabled = false;
       canvasEl.classList.add('is-dragging');
       if (canvasEl.setPointerCapture) {
-        try { canvasEl.setPointerCapture(e.pointerId); } catch (_) {}
+        try { canvasEl.setPointerCapture(e.pointerId); } catch (_) { }
       }
     } else {
       activeDragObject = null;
@@ -2115,7 +2117,7 @@ if (heroStage) {
       const hit = !checkIsMobileOrTouch() ? getHitObject(e.clientX, e.clientY) : null;
       canvasEl.style.cursor = hit ? 'grab' : 'default';
       if (canvasEl.releasePointerCapture) {
-        try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) {}
+        try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) { }
       }
     }
   }
@@ -2260,7 +2262,7 @@ if (heroStage) {
   }
 
   // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
-  window.replayBottleAnimation = function() {
+  window.replayBottleAnimation = function () {
     loadSideBottles();
     const vh = window.innerHeight || 800;
     animateScrollTo(0, 500, () => {
@@ -2283,9 +2285,22 @@ if (heroStage) {
     scale: 0.76
   };
 
-  window.updateSlide2TargetCache = function() {
+  window.updateSlide2TargetCache = function () {
     const vh = cachedViewportHeight || window.innerHeight || 800;
     const vw = cachedViewportWidth || window.innerWidth || 1200;
+    const isMobile = checkIsMobileOrTouch() || vw <= 768;
+
+    if (isMobile) {
+      // Mobile Slide 2 layout displays the collection at the bottom in its own podium.
+      // The 3D bottle stays elegantly centered without jumping or rocketing off-screen.
+      cachedSlide2Slot = {
+        x: 0,
+        y: SETTLE_Y,
+        z: 0,
+        scale: 1.0
+      };
+      return;
+    }
 
     const camDist = camera ? camera.position.z : 0.76;
     const fovRad = camera ? THREE.MathUtils.degToRad(camera.fov) : THREE.MathUtils.degToRad(30);
@@ -2304,6 +2319,16 @@ if (heroStage) {
     }
 
     const rect = slide2TargetEl.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      cachedSlide2Slot = {
+        x: halfW * 0.50,
+        y: BOTTLE_CENTER_Y + 0.045,
+        z: -0.02,
+        scale: 0.76
+      };
+      return;
+    }
+
     const s2 = document.getElementById('slide-2');
     const s2Rect = s2 ? s2.getBoundingClientRect() : { top: 0, left: 0 };
 
@@ -2390,8 +2415,15 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768 || checkIsMobileOrTouch();
+    const camDist = camera ? camera.position.z : 0.76;
+    const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
+    // Dynamically ensure top of bottle starts completely hidden below viewport on all screen sizes
+    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.24)) : START_Y;
+    const effectiveStartX = isMobileViewport ? 0.015 : START_X;
+
+    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
     const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
 
     const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
@@ -2411,7 +2443,8 @@ if (heroStage) {
 
     // 3. Weightless Harmonic Floating (subtle breathing - active only on Slide 1 hero)
     // On Slide 2, the bottle is docked in its slot - floatWeight fades completely to 0 so it stays rock-solid
-    const floatWeight = tCenter * Math.max(0, 1.0 - ease2 * 1.6);
+    const floatEaseFade = isMobileViewport ? Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)) : Math.max(0, 1.0 - ease2 * 1.6);
+    const floatWeight = tCenter * floatEaseFade;
     const floatY = floatWeight > 0.0001 ? Math.sin(now * 0.0016) * 0.007 * floatWeight : 0;
     const floatX = floatWeight > 0.0001 ? Math.cos(now * 0.0011) * 0.004 * floatWeight : 0;
     const floatZ = floatWeight > 0.0001 ? Math.sin(now * 0.0009) * 0.003 * floatWeight : 0;
@@ -2457,21 +2490,22 @@ if (heroStage) {
     bottleMeshGroup.visible = true;
 
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
-    const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
+    const sideBottleFade = isMobileViewport
+      ? (tEmerge * Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)))
+      : (tEmerge * Math.max(0, 1.0 - ease2 * 2.2));
 
     // Dynamic rotation flourish while emerging from behind center bottle:
-    const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
-    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
-    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, 0.0, tEmerge);
+    const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.12, tEmerge);
+    const emerge500RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
+    const emerge500RotZ = THREE.MathUtils.lerp(-0.16, -0.02, tEmerge);
 
-    const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, 0.0, tEmerge);
-    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.0, tEmerge);
-    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
+    const emerge250RotY = THREE.MathUtils.lerp(0.0 + Math.PI * 1.5, -0.14, tEmerge);
+    const emerge250RotX = THREE.MathUtils.lerp(0.10, 0.015, tEmerge);
+    const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.025, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
+    const targetB500X = isMobileViewport ? -0.080 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.076 : B250_POS_X;
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
@@ -2541,7 +2575,8 @@ if (heroStage) {
 
     // Soft Contact Shadows tracking
     if (window.shadow1L) {
-      const shadowFade1L = Math.max(0, (tCenter - 0.4) / 0.6) * Math.max(0, 1.0 - ease2 * 2.0);
+      const shadowEaseFade = isMobileViewport ? Math.max(0, 1.0 - Math.max(0, (ease2 - 0.60) / 0.40)) : Math.max(0, 1.0 - ease2 * 2.0);
+      const shadowFade1L = Math.max(0, (tCenter - 0.4) / 0.6) * shadowEaseFade;
       window.shadow1L.material.opacity = shadowFade1L * 0.45;
     }
     if (window.shadow500) {
@@ -2787,7 +2822,7 @@ document.getElementById('btn-floating-cart')?.addEventListener('click', () => {
 // ======================================================================
 // 4. CONTACT US & DIRECT WHATSAPP INTEGRATION (+971 503130165)
 // ======================================================================
-window.submitContactForm = function(e) {
+window.submitContactForm = function (e) {
   if (e && e.preventDefault) e.preventDefault();
   const nameInput = document.getElementById('cust-name');
   const phoneInput = document.getElementById('cust-phone');
@@ -2822,7 +2857,7 @@ window.submitContactForm = function(e) {
   const whatsappUrl = `https://wa.me/971503130165?text=${encodeURIComponent(textLines)}`;
 
   showToast('Connecting to WhatsApp (+971 50 313 0165)...');
-  
+
   // Open WhatsApp in new tab, with failover to same-window navigation if popups are blocked
   try {
     const newWin = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
@@ -2837,7 +2872,7 @@ window.submitContactForm = function(e) {
 window.submitOrder = window.submitContactForm;
 
 // Direct WhatsApp Order from Shopping Cart Drawer with Selected Bottle Quantities
-window.sendCartOrderToWhatsApp = function() {
+window.sendCartOrderToWhatsApp = function () {
   if (!cart || cart.length === 0) {
     showToast('Your cart is empty! Please add bottles from the catalog.');
     window.goToSlide(4);
