@@ -3385,9 +3385,17 @@ body {
     height: 300dvh !important;
     min-height: 300vh !important;
     min-height: 300dvh !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    position: relative !important;
   }
 
   #slide-1 .hero-detail-stage {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
     padding: 64px 16px 20px !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -3399,6 +3407,7 @@ body {
     justify-content: space-between !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+    z-index: 10 !important;
   }
 
   /* Remove "TASTE NATURE'S WONDER" background typography on mobile as requested */
