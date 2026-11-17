@@ -15,7 +15,7 @@ window.scrollTo(0, 0);
 if (window.location.hash) {
   try {
     history.replaceState(null, '', window.location.pathname + window.location.search);
-  } catch (e) { }
+  } catch (e) {}
 }
 window.addEventListener('beforeunload', () => {
   window.scrollTo(0, 0);
@@ -290,13 +290,6 @@ let lastAppliedStageOpacity = -1;
 let lastAppliedInteractive = null;
 let lastAppliedDisplay = '';
 
-function checkIsMobileOrTouch() {
-  const isSmallWidth = (window.innerWidth <= 768) || ((typeof cachedViewportWidth !== 'undefined') && cachedViewportWidth <= 768);
-  const isTouch = (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
-  return isSmallWidth || isTouch;
-}
-window.checkIsMobileOrTouch = checkIsMobileOrTouch;
-
 function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
@@ -323,7 +316,7 @@ function updateScrollMetrics() {
   // Update active slide indicator and 3D stage visibility (Reflow-free with dirty check)
   if (heroStage) {
     let stageOpacity = 0;
-    const isMobile = checkIsMobileOrTouch();
+    const isMobile = cachedViewportWidth <= 768;
     if (isMobile) {
       // On mobile portrait, smoothly fade out 3D bottle as Slide 2 arrives so Slide 2 collection is clean and unblocked
       if (scrollY <= s2Top) {
@@ -576,7 +569,7 @@ function animateScrollTo(targetY, duration = null, callback) {
   currentScrollAnimationId = requestAnimationFrame(tick);
 }
 
-window.goToSlide = function (index) {
+window.goToSlide = function(index) {
   if (index < 1 || index > totalSlides) return;
   updateActiveSlideUI(index);
 
@@ -639,7 +632,7 @@ function onSlide3VisibilityChange(active) {
     if (vid) {
       if (vid.preload !== 'auto') vid.preload = 'auto';
       const p = vid.play();
-      if (p !== undefined) p.catch(() => { });
+      if (p !== undefined) p.catch(() => {});
     }
   }
 }
@@ -842,7 +835,7 @@ function setProcessStep(step) {
         if (vid.preload !== 'auto') vid.preload = 'auto';
         vid.currentTime = 0;
         const p = vid.play();
-        if (p !== undefined) p.catch(() => { });
+        if (p !== undefined) p.catch(() => {});
       } else {
         vid.pause();
       }
@@ -1393,17 +1386,9 @@ if (heroStage) {
   controls.maxAzimuthAngle = Math.PI / 4;
   controls.minPolarAngle = Math.PI / 2.8;
   controls.maxPolarAngle = Math.PI / 1.8;
-  if (checkIsMobileOrTouch()) {
+  if (window.innerWidth <= 768) {
     controls.enabled = false;
-    controls.enableRotate = false;
-    controls.enableZoom = false;
-    controls.enablePan = false;
-    if (controls.touches) {
-      controls.touches.ONE = null;
-      controls.touches.TWO = null;
-    }
-    renderer.domElement.style.touchAction = 'pan-y';
-    renderer.domElement.style.pointerEvents = 'none';
+    renderer.domElement.style.touchAction = 'auto';
   }
   window.controls = controls;
   window.camera = camera;
@@ -2048,8 +2033,8 @@ if (heroStage) {
   const canvasEl = renderer.domElement;
 
   canvasEl.addEventListener('pointerdown', (e) => {
-    // Strictly disable bottle touch/pointer control in mobile view and on all touch interactions
-    if (e.pointerType === 'touch' || checkIsMobileOrTouch()) {
+    // Disable bottle touch/pointer control in mobile view and on all touch interactions
+    if (e.pointerType === 'touch' || window.innerWidth <= 768) {
       return;
     }
     if (e.button !== 0) return;
@@ -2061,12 +2046,12 @@ if (heroStage) {
       if (controls) controls.enabled = false;
       canvasEl.classList.add('is-dragging');
       if (canvasEl.setPointerCapture) {
-        try { canvasEl.setPointerCapture(e.pointerId); } catch (_) { }
+        try { canvasEl.setPointerCapture(e.pointerId); } catch (_) {}
       }
     } else {
       activeDragObject = null;
       isPointerDownOnObject = false;
-      if (controls && !checkIsMobileOrTouch()) controls.enabled = true;
+      if (controls && window.innerWidth > 768) controls.enabled = true;
     }
   });
 
@@ -2074,7 +2059,7 @@ if (heroStage) {
   let lastHoverCursor = 'default';
 
   canvasEl.addEventListener('pointermove', (e) => {
-    if (checkIsMobileOrTouch()) return;
+    if (window.innerWidth <= 768) return;
     if (isPointerDownOnObject && activeDragObject) {
       const dx = e.clientX - lastPointerPos.x;
       const dy = e.clientY - lastPointerPos.y;
@@ -2110,12 +2095,12 @@ if (heroStage) {
     if (isPointerDownOnObject) {
       isPointerDownOnObject = false;
       activeDragObject = null;
-      if (controls && !checkIsMobileOrTouch()) controls.enabled = true;
+      if (controls && window.innerWidth > 768) controls.enabled = true;
       canvasEl.classList.remove('is-dragging');
-      const hit = !checkIsMobileOrTouch() ? getHitObject(e.clientX, e.clientY) : null;
+      const hit = window.innerWidth > 768 ? getHitObject(e.clientX, e.clientY) : null;
       canvasEl.style.cursor = hit ? 'grab' : 'default';
       if (canvasEl.releasePointerCapture) {
-        try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) { }
+        try { canvasEl.releasePointerCapture(e.pointerId); } catch (_) {}
       }
     }
   }
@@ -2260,7 +2245,7 @@ if (heroStage) {
   }
 
   // Replay: smoothly scrolls to top and re-runs the starting ascent and text arrival, followed by side emergence
-  window.replayBottleAnimation = function () {
+  window.replayBottleAnimation = function() {
     loadSideBottles();
     const vh = window.innerHeight || 800;
     animateScrollTo(0, 500, () => {
@@ -2283,7 +2268,7 @@ if (heroStage) {
     scale: 0.76
   };
 
-  window.updateSlide2TargetCache = function () {
+  window.updateSlide2TargetCache = function() {
     const vh = cachedViewportHeight || window.innerHeight || 800;
     const vw = cachedViewportWidth || window.innerWidth || 1200;
 
@@ -2390,26 +2375,13 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const camDist = camera ? camera.position.z : 0.76;
-    const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
+    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(START_Y, SETTLE_Y, tCenter);
+    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
 
-    // On mobile view, the bottle animation comes directly and cleanly from the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (SETTLE_Y - (fovHalfH + 0.16)) : START_Y;
-    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
-    const effectiveStartZ = START_Z;
-
-    const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
-    const effectiveStartRotY = isMobileViewport ? (-Math.PI * 1.0) : START_ROTY;
-    const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
-
-    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
-    const p1Z = THREE.MathUtils.lerp(effectiveStartZ, SETTLE_Z, tCenter);
-
-    const p1RotX = THREE.MathUtils.lerp(effectiveStartRotX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(effectiveStartRotY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(effectiveStartRotZ, SETTLE_ROTZ, tCenter);
+    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2482,6 +2454,7 @@ if (heroStage) {
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
     const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
     const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
@@ -2650,33 +2623,17 @@ if (heroStage) {
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
         controls.enabled = false;
-        controls.enableRotate = false;
-        controls.enableZoom = false;
-        controls.enablePan = false;
-        if (controls.touches) {
-          controls.touches.ONE = null;
-          controls.touches.TWO = null;
-        }
       }
       heroStage.classList.remove('interactive');
       heroStage.style.pointerEvents = 'none';
-      if (renderer && renderer.domElement) {
-        renderer.domElement.style.touchAction = 'pan-y';
-        renderer.domElement.style.pointerEvents = 'none';
-      }
+      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'auto';
     } else {
       camera.position.set(0.0, 0.213, 0.76);
       if (controls) {
         controls.target.set(0.0, 0.213, 0.0);
-        controls.enableRotate = true;
-        controls.enableZoom = true;
-        controls.enablePan = false;
         if (!isPointerDownOnObject) controls.enabled = true;
       }
-      if (renderer && renderer.domElement) {
-        renderer.domElement.style.touchAction = 'none';
-        renderer.domElement.style.pointerEvents = 'auto';
-      }
+      if (renderer && renderer.domElement) renderer.domElement.style.touchAction = 'none';
     }
 
     camera.updateProjectionMatrix();
@@ -2798,7 +2755,7 @@ document.getElementById('btn-floating-cart')?.addEventListener('click', () => {
 // ======================================================================
 // 4. CONTACT US & DIRECT WHATSAPP INTEGRATION (+971 503130165)
 // ======================================================================
-window.submitContactForm = function (e) {
+window.submitContactForm = function(e) {
   if (e && e.preventDefault) e.preventDefault();
   const nameInput = document.getElementById('cust-name');
   const phoneInput = document.getElementById('cust-phone');
@@ -2833,7 +2790,7 @@ window.submitContactForm = function (e) {
   const whatsappUrl = `https://wa.me/971503130165?text=${encodeURIComponent(textLines)}`;
 
   showToast('Connecting to WhatsApp (+971 50 313 0165)...');
-
+  
   // Open WhatsApp in new tab, with failover to same-window navigation if popups are blocked
   try {
     const newWin = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
@@ -2848,7 +2805,7 @@ window.submitContactForm = function (e) {
 window.submitOrder = window.submitContactForm;
 
 // Direct WhatsApp Order from Shopping Cart Drawer with Selected Bottle Quantities
-window.sendCartOrderToWhatsApp = function () {
+window.sendCartOrderToWhatsApp = function() {
   if (!cart || cart.length === 0) {
     showToast('Your cart is empty! Please add bottles from the catalog.');
     window.goToSlide(4);
