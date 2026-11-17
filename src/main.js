@@ -1047,21 +1047,54 @@ function handleRetreat() {
 
 function isScrollableInside(target, deltaY) {
   if (!target || typeof target.closest !== 'function') return false;
-  const scrollable = target.closest('#cart-drawer, .cart-items, #cart-items-list, .catalog-grid-row, #process-viewport, #mobile-nav-drawer, [data-scrollable]');
-  if (!scrollable) return false;
 
-  const sh = scrollable.scrollHeight;
-  const ch = scrollable.clientHeight;
-  if (sh > ch + 4) {
-    const st = scrollable.scrollTop;
-    if (deltaY > 0 && st + ch < sh - 4) {
-      return true;
+  // 1. If cart drawer is active (visible), isolate scroll inside it
+  const cartDrawer = target.closest('#cart-drawer:not(.hidden)');
+  if (cartDrawer) {
+    const list = target.closest('.cart-items, #cart-items-list');
+    if (list) {
+      const sh = list.scrollHeight;
+      const ch = list.clientHeight;
+      if (sh > ch + 4) {
+        const st = list.scrollTop;
+        if (deltaY > 0 && st + ch < sh - 4) return true;
+        if (deltaY < 0 && st > 4) return true;
+      }
     }
-    if (deltaY < 0 && st > 4) {
-      return true;
+    return true; // Keep wheel isolated inside active cart modal
+  }
+
+  // 2. Mobile nav drawer (when open)
+  const navDrawer = target.closest('#mobile-nav-drawer.active');
+  if (navDrawer) return true;
+
+  // 3. On mobile viewports only: handle scroll within vertical catalog card row
+  if (window.innerWidth <= 768) {
+    const catalogRow = target.closest('.catalog-grid-row');
+    if (catalogRow) {
+      const sh = catalogRow.scrollHeight;
+      const ch = catalogRow.clientHeight;
+      if (sh > ch + 4) {
+        const st = catalogRow.scrollTop;
+        if (deltaY > 0 && st + ch < sh - 4) return true;
+        if (deltaY < 0 && st > 4) return true;
+      }
     }
   }
-  return true;
+
+  // 4. Any container explicitly tagged with [data-scrollable] with available scroll range
+  const scrollable = target.closest('[data-scrollable]');
+  if (scrollable) {
+    const sh = scrollable.scrollHeight;
+    const ch = scrollable.clientHeight;
+    if (sh > ch + 4) {
+      const st = scrollable.scrollTop;
+      if (deltaY > 0 && st + ch < sh - 4) return true;
+      if (deltaY < 0 && st > 4) return true;
+    }
+  }
+
+  return false;
 }
 
 // Keyboard Navigation
