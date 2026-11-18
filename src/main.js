@@ -492,25 +492,23 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 
 // Initial hero presentation: establish fast LCP and readable headline immediately
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const isMobileStartup = (window.innerWidth || 1200) <= 768;
-if (isMobileStartup) {
-  // Mobile starting view: clean screen without bottle, user scrolls to wonder (Video Frame 00:00)
-  targetPhase1CenterProgress = 0.0;
-  currentPhase1CenterProgress = 0.0;
-  targetPhase1EmergeProgress = 0.0;
-  currentPhase1EmergeProgress = 0.0;
-  renderHeroText(0.0, 0.0);
-} else if (prefersReducedMotion) {
+const initialScrollY = typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || 0) : 0;
+if (prefersReducedMotion) {
   targetPhase1CenterProgress = 1.0;
   currentPhase1CenterProgress = 1.0;
   targetPhase1EmergeProgress = 1.0;
   currentPhase1EmergeProgress = 1.0;
   renderHeroText(1.0, 0.0);
-} else {
-  // Desktop: smooth initial hero entrance on arrival
-  targetPhase1CenterProgress = 1.0;
+} else if (initialScrollY === 0) {
+  // At scroll 0 (top of page), the bottle starts cleanly below the bottom edge with "Scroll to Wonder"
+  targetPhase1CenterProgress = 0.0;
   currentPhase1CenterProgress = 0.0;
-  renderHeroText(1.0, 0.0);
+  targetPhase1EmergeProgress = 0.0;
+  currentPhase1EmergeProgress = 0.0;
+  renderHeroText(0.0, 0.0);
+} else {
+  // Smooth initial hero entrance on arrival if scrolled
+  updateScrollMetrics();
 }
 
 // In case page was reloaded at a scrolled position, sync immediately:
@@ -1399,10 +1397,6 @@ if (heroStage) {
     controls.enableRotate = false;
     controls.enableZoom = false;
     controls.enablePan = false;
-    if (controls.touches) {
-      controls.touches.ONE = null;
-      controls.touches.TWO = null;
-    }
     renderer.domElement.style.touchAction = 'pan-y';
     renderer.domElement.style.pointerEvents = 'none';
   }
@@ -1880,7 +1874,7 @@ if (heroStage) {
 
   // Outer Master Rig carries 3D diagonal drift, natural tilt, and weightless floating physics
   const bottleRig = new THREE.Group();
-  bottleRig.position.set(0, -0.35, 0);
+  bottleRig.position.set(0, BOTTLE_CENTER_Y, 0);
   bottleRig.add(bottleInteractiveRig);
   bottleRig.add(bottle500Rig);
   bottleRig.add(bottle250Rig);
@@ -2391,27 +2385,18 @@ if (heroStage) {
     }
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
-    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const effectiveSettleY = isMobileViewport ? 0.207 : SETTLE_Y;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
+    // Dynamic starting Y ensures the bottle starts cleanly below the bottom viewport edge on ALL screens (desktop & mobile)
+    const effectiveStartY = SETTLE_Y - (fovHalfH + 0.20);
 
-    // On mobile view, the bottle animation comes directly and cleanly from a little below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (effectiveSettleY - (fovHalfH + 0.15)) : START_Y;
-    const effectiveStartX = isMobileViewport ? 0.0 : START_X;
-    const effectiveStartZ = START_Z;
+    const p1X = THREE.MathUtils.lerp(START_X, SETTLE_X, tCenter);
+    const p1Y = THREE.MathUtils.lerp(effectiveStartY, SETTLE_Y, tCenter);
+    const p1Z = THREE.MathUtils.lerp(START_Z, SETTLE_Z, tCenter);
 
-    const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
-    const effectiveStartRotY = isMobileViewport ? 0.0 : START_ROTY;
-    const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
-
-    const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
-    const p1Y = THREE.MathUtils.lerp(effectiveStartY, effectiveSettleY, tCenter);
-    const p1Z = THREE.MathUtils.lerp(effectiveStartZ, SETTLE_Z, tCenter);
-
-    const p1RotX = THREE.MathUtils.lerp(effectiveStartRotX, SETTLE_ROTX, tCenter);
-    const p1RotY = THREE.MathUtils.lerp(effectiveStartRotY, SETTLE_ROTY, tCenter);
-    const p1RotZ = THREE.MathUtils.lerp(effectiveStartRotZ, SETTLE_ROTZ, tCenter);
+    const p1RotX = THREE.MathUtils.lerp(START_ROTX, SETTLE_ROTX, tCenter);
+    const p1RotY = THREE.MathUtils.lerp(START_ROTY, SETTLE_ROTY, tCenter);
+    const p1RotZ = THREE.MathUtils.lerp(START_ROTZ, SETTLE_ROTZ, tCenter);
 
     // 2. Phase 2: Glide from center to Slide 2's own image place (reading cached transform)
     const slot = cachedSlide2Slot;
@@ -2469,14 +2454,7 @@ if (heroStage) {
     // ================================================================
     // THREE-BOTTLE 3D SHOWCASE ANIMATION & TRANSITION
     // ================================================================
-    // On mobile starting view (scroll 0, tCenter < 0.005), strictly keep bottle completely hidden so page starts with only "SCROLL TO WONDER"
-    if (isMobileViewport && tCenter < 0.005) {
-      bottleMeshGroup.visible = false;
-      if (window.shadow1L) window.shadow1L.visible = false;
-    } else {
-      bottleMeshGroup.visible = true;
-      if (window.shadow1L) window.shadow1L.visible = true;
-    }
+    bottleMeshGroup.visible = true;
 
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
     const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
@@ -2491,8 +2469,9 @@ if (heroStage) {
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const targetB500X = isMobileViewport ? -0.070 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.076 : B250_POS_X;
+    const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
+    const targetB500X = isMobileViewport ? -0.096 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.092 : B250_POS_X;
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
@@ -2654,18 +2633,14 @@ if (heroStage) {
 
     // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
     if (w <= 768) {
-      const mobileZ = Math.min(1.05, Math.max(0.88, 0.95 * (390 / Math.max(300, w))));
-      camera.position.set(0.0, 0.207, mobileZ);
+      const mobileZ = Math.min(1.22, Math.max(0.92, 0.76 * (540 / Math.max(300, w))));
+      camera.position.set(0.0, 0.213, mobileZ);
       if (controls) {
-        controls.target.set(0.0, 0.207, 0.0);
+        controls.target.set(0.0, 0.213, 0.0);
         controls.enabled = false;
         controls.enableRotate = false;
         controls.enableZoom = false;
         controls.enablePan = false;
-        if (controls.touches) {
-          controls.touches.ONE = null;
-          controls.touches.TWO = null;
-        }
       }
       heroStage.classList.remove('interactive');
       heroStage.style.pointerEvents = 'none';
