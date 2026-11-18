@@ -294,19 +294,21 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
 
-  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
+
+  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and stops at center
   const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
   targetPhase1CenterProgress = pCenter;
 
-  // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
-  const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
+  // Phase 1B (1.0 * vh to 2.0 * vh): Remaining 2 bottles emerge on desktop only; on mobile, bottle strictly stops at center
+  const pEmerge = isMobile ? 0.0 : Math.min(Math.max((scrollY - vh) / vh, 0), 1);
   targetPhase1EmergeProgress = pEmerge;
 
   // Combined progress for backward compatibility
-  targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
+  targetPhase1Progress = isMobile ? pCenter : (pCenter * 0.5 + pEmerge * 0.5);
 
   // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
-  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (vh * 3);
+  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (isMobile ? (vh * 2) : (vh * 3));
   const s2Height = cachedSlideHeights[2] !== undefined ? cachedSlideHeights[2] : vh;
   const s2Dist = s2Top - scrollY;
   const s2Bottom = s2Dist + s2Height;
@@ -1036,6 +1038,7 @@ window.navigateToStop = navigateToStop;
 window.handleAdvance = handleAdvance;
 
 function handleAdvance() {
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
@@ -1056,6 +1059,12 @@ function handleAdvance() {
     return;
   }
 
+  // On mobile view: when advancing from STOP_HERO_CENTER (where bottle stops at center), advance directly to Slide 2
+  if (isMobile && cur === STOP_HERO_CENTER) {
+    navigateToStop(STOP_SLIDE_2);
+    return;
+  }
+
   // Once all 3 bottles have come in (or on any other stop), advance to the next stop!
   if (cur < TOTAL_STOPS) {
     navigateToStop(cur + 1);
@@ -1063,10 +1072,15 @@ function handleAdvance() {
 }
 
 function handleRetreat() {
+  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   if (cur === STOP_SLIDE_3 && currentProcessStep > 1) {
     setProcessStep(currentProcessStep - 1);
     lastProcessStepTime = performance.now();
+    return;
+  }
+  if (isMobile && cur === STOP_SLIDE_2) {
+    navigateToStop(STOP_HERO_CENTER);
     return;
   }
   if (cur > STOP_HERO_TOP) {
@@ -2395,7 +2409,7 @@ if (heroStage) {
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
     const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const effectiveSettleY = isMobileViewport ? 0.198 : SETTLE_Y;
+    const effectiveSettleY = isMobileViewport ? 0.207 : SETTLE_Y;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
     const camY = camera ? camera.position.y : 0.207;
@@ -2483,8 +2497,8 @@ if (heroStage) {
       if (window.shadow1L) window.shadow1L.visible = true;
     }
 
-    // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
-    const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
+    // The remaining two bottles remain strictly hidden on mobile view so center bottle stands alone
+    const sideBottleFade = isMobileViewport ? 0.0 : (tEmerge * Math.max(0, 1.0 - ease2 * 2.2));
 
     // Dynamic rotation flourish while emerging from behind center bottle:
     const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
