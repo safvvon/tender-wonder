@@ -492,14 +492,22 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 
 // Initial hero presentation: establish fast LCP and readable headline immediately
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (prefersReducedMotion) {
+const isMobileStartup = (window.innerWidth || 1200) <= 768;
+if (isMobileStartup) {
+  // Mobile starting view: clean screen without bottle, user scrolls to wonder
+  targetPhase1CenterProgress = 0.0;
+  currentPhase1CenterProgress = 0.0;
+  targetPhase1EmergeProgress = 0.0;
+  currentPhase1EmergeProgress = 0.0;
+  renderHeroText(0.0, 0.0);
+} else if (prefersReducedMotion) {
   targetPhase1CenterProgress = 1.0;
   currentPhase1CenterProgress = 1.0;
   targetPhase1EmergeProgress = 1.0;
   currentPhase1EmergeProgress = 1.0;
   renderHeroText(1.0, 0.0);
 } else {
-  // Smooth initial hero entrance on arrival
+  // Desktop: smooth initial hero entrance on arrival
   targetPhase1CenterProgress = 1.0;
   currentPhase1CenterProgress = 0.0;
   renderHeroText(1.0, 0.0);
@@ -1738,6 +1746,9 @@ if (heroStage) {
   // 1. Center Hero Bottle (1L) - Immediately constructed & rendered for instant visual arrival
   const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.webp', 0.025, 0x6ed618, 'Bottle1L');
   const bottleMeshGroup = bottle1LData.group;
+  if ((window.innerWidth || 1200) <= 768) {
+    bottleMeshGroup.visible = false;
+  }
   window.bottleMeshGroup = bottleMeshGroup;
   window.labelAlbedoTex = bottle1LData.labelTex;
 
@@ -2384,14 +2395,14 @@ if (heroStage) {
 
     // 1. Phase 1: Ascent from down below to center of screen (Center 1L bottle arrives first)
     const isMobileViewport = (cachedViewportWidth || window.innerWidth) <= 768;
-    const effectiveSettleY = isMobileViewport ? 0.172 : SETTLE_Y;
+    const effectiveSettleY = isMobileViewport ? 0.198 : SETTLE_Y;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
     const camY = camera ? camera.position.y : 0.207;
     const bottomEdgeY = camY - fovHalfH;
 
-    // On mobile view, the bottle animation comes directly and cleanly from a little below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (bottomEdgeY - 0.150) : START_Y;
+    // On mobile view, the bottle animation comes directly and cleanly from below the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (bottomEdgeY - 0.180) : START_Y;
     const effectiveStartX = isMobileViewport ? 0.0 : START_X;
     const effectiveStartZ = START_Z;
 
@@ -2463,7 +2474,14 @@ if (heroStage) {
     // ================================================================
     // THREE-BOTTLE 3D SHOWCASE ANIMATION & TRANSITION
     // ================================================================
-    bottleMeshGroup.visible = true;
+    // On mobile starting view (scroll 0, tCenter < 0.005), strictly keep bottle completely hidden so page starts with only "SCROLL TO WONDER"
+    if (isMobileViewport && tCenter < 0.005) {
+      bottleMeshGroup.visible = false;
+      if (window.shadow1L) window.shadow1L.visible = false;
+    } else {
+      bottleMeshGroup.visible = true;
+      if (window.shadow1L) window.shadow1L.visible = true;
+    }
 
     // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
     const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
