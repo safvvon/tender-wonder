@@ -294,21 +294,19 @@ function updateScrollMetrics() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
   const vh = cachedViewportHeight || window.innerHeight || 800;
 
-  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
-
-  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and stops at center
+  // Phase 1A (0 to 1.0 * vh): First scroll - Center 1L bottle ascends and text slides in
   const pCenter = Math.min(Math.max(scrollY / vh, 0), 1);
   targetPhase1CenterProgress = pCenter;
 
-  // Phase 1B (1.0 * vh to 2.0 * vh): Remaining 2 bottles emerge on desktop only; on mobile, bottle strictly stops at center
-  const pEmerge = isMobile ? 0.0 : Math.min(Math.max((scrollY - vh) / vh, 0), 1);
+  // Phase 1B (1.0 * vh to 2.0 * vh): Second scroll - Remaining 2 bottles emerge with rotation from behind center bottle
+  const pEmerge = Math.min(Math.max((scrollY - vh) / vh, 0), 1);
   targetPhase1EmergeProgress = pEmerge;
 
   // Combined progress for backward compatibility
-  targetPhase1Progress = isMobile ? pCenter : (pCenter * 0.5 + pEmerge * 0.5);
+  targetPhase1Progress = pCenter * 0.5 + pEmerge * 0.5;
 
   // Phase 2: Bottle moves smoothly to Slide 2 as scrolling reaches the second page
-  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (isMobile ? (vh * 2) : (vh * 3));
+  const s2Top = cachedSlideOffsets[2] !== undefined ? cachedSlideOffsets[2] : (vh * 3);
   const s2Height = cachedSlideHeights[2] !== undefined ? cachedSlideHeights[2] : vh;
   const s2Dist = s2Top - scrollY;
   const s2Bottom = s2Dist + s2Height;
@@ -496,7 +494,7 @@ window.addEventListener('scroll', onWindowScroll, { passive: true });
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isMobileStartup = (window.innerWidth || 1200) <= 768;
 if (isMobileStartup) {
-  // Mobile starting view: clean screen without bottle, user scrolls to wonder
+  // Mobile starting view: clean screen without bottle, user scrolls to wonder (Video Frame 00:00)
   targetPhase1CenterProgress = 0.0;
   currentPhase1CenterProgress = 0.0;
   targetPhase1EmergeProgress = 0.0;
@@ -1038,7 +1036,6 @@ window.navigateToStop = navigateToStop;
 window.handleAdvance = handleAdvance;
 
 function handleAdvance() {
-  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   // On Slide 2: ONLY scroll down to Slide 3 after the 3 bottles have entered!
   // If not all 3 bottles have come in yet, step the bottles in while keeping viewport locked:
@@ -1059,12 +1056,6 @@ function handleAdvance() {
     return;
   }
 
-  // On mobile view: when advancing from STOP_HERO_CENTER (where bottle stops at center), advance directly to Slide 2
-  if (isMobile && cur === STOP_HERO_CENTER) {
-    navigateToStop(STOP_SLIDE_2);
-    return;
-  }
-
   // Once all 3 bottles have come in (or on any other stop), advance to the next stop!
   if (cur < TOTAL_STOPS) {
     navigateToStop(cur + 1);
@@ -1072,15 +1063,10 @@ function handleAdvance() {
 }
 
 function handleRetreat() {
-  const isMobile = (cachedViewportWidth || window.innerWidth) <= 768;
   const cur = getCurrentStop();
   if (cur === STOP_SLIDE_3 && currentProcessStep > 1) {
     setProcessStep(currentProcessStep - 1);
     lastProcessStepTime = performance.now();
-    return;
-  }
-  if (isMobile && cur === STOP_SLIDE_2) {
-    navigateToStop(STOP_HERO_CENTER);
     return;
   }
   if (cur > STOP_HERO_TOP) {
@@ -1760,9 +1746,6 @@ if (heroStage) {
   // 1. Center Hero Bottle (1L) - Immediately constructed & rendered for instant visual arrival
   const bottle1LData = createBottleMeshGroup(profile1L, '/textures/label_albedo.webp', 0.025, 0x6ed618, 'Bottle1L');
   const bottleMeshGroup = bottle1LData.group;
-  if ((window.innerWidth || 1200) <= 768) {
-    bottleMeshGroup.visible = false;
-  }
   window.bottleMeshGroup = bottleMeshGroup;
   window.labelAlbedoTex = bottle1LData.labelTex;
 
@@ -2412,16 +2395,14 @@ if (heroStage) {
     const effectiveSettleY = isMobileViewport ? 0.207 : SETTLE_Y;
     const camDist = camera ? camera.position.z : 0.76;
     const fovHalfH = camDist * Math.tan(THREE.MathUtils.degToRad(camera ? camera.fov / 2 : 15));
-    const camY = camera ? camera.position.y : 0.207;
-    const bottomEdgeY = camY - fovHalfH;
 
-    // On mobile view, the bottle animation comes directly and cleanly from below the bottom of the viewport
-    const effectiveStartY = isMobileViewport ? (bottomEdgeY - 0.180) : START_Y;
+    // On mobile view, the bottle animation comes directly and cleanly from a little below the bottom of the viewport
+    const effectiveStartY = isMobileViewport ? (effectiveSettleY - (fovHalfH + 0.15)) : START_Y;
     const effectiveStartX = isMobileViewport ? 0.0 : START_X;
     const effectiveStartZ = START_Z;
 
     const effectiveStartRotX = isMobileViewport ? 0.0 : START_ROTX;
-    const effectiveStartRotY = isMobileViewport ? (-Math.PI * 1.0) : START_ROTY;
+    const effectiveStartRotY = isMobileViewport ? 0.0 : START_ROTY;
     const effectiveStartRotZ = isMobileViewport ? 0.0 : START_ROTZ;
 
     const p1X = THREE.MathUtils.lerp(effectiveStartX, SETTLE_X, tCenter);
@@ -2497,8 +2478,8 @@ if (heroStage) {
       if (window.shadow1L) window.shadow1L.visible = true;
     }
 
-    // The remaining two bottles remain strictly hidden on mobile view so center bottle stands alone
-    const sideBottleFade = isMobileViewport ? 0.0 : (tEmerge * Math.max(0, 1.0 - ease2 * 2.2));
+    // The remaining two bottles remain strictly hidden until the center bottle has completely reached center!
+    const sideBottleFade = tEmerge * Math.max(0, 1.0 - ease2 * 2.2);
 
     // Dynamic rotation flourish while emerging from behind center bottle:
     const emerge500RotY = THREE.MathUtils.lerp(0.0 - Math.PI * 1.5, 0.0, tEmerge);
@@ -2510,8 +2491,8 @@ if (heroStage) {
     const emerge250RotZ = THREE.MathUtils.lerp(0.16, 0.0, tEmerge);
 
     // Dynamic bottle spacing calibrated for screen width
-    const targetB500X = isMobileViewport ? -0.076 : B500_POS_X;
-    const targetB250X = isMobileViewport ? +0.072 : B250_POS_X;
+    const targetB500X = isMobileViewport ? -0.070 : B500_POS_X;
+    const targetB250X = isMobileViewport ? +0.076 : B250_POS_X;
 
     // Positions: originate directly behind center bottle (X = 0, Z = -0.090) and curve outward
     const emerge500X = THREE.MathUtils.lerp(0.0, targetB500X, tEmerge);
@@ -2673,7 +2654,7 @@ if (heroStage) {
 
     // Calibrate camera distance for mobile portrait viewports so all 3 bottles fit symmetrically
     if (w <= 768) {
-      const mobileZ = Math.min(1.05, Math.max(0.88, 0.925 * (390 / Math.max(300, w))));
+      const mobileZ = Math.min(1.05, Math.max(0.88, 0.95 * (390 / Math.max(300, w))));
       camera.position.set(0.0, 0.207, mobileZ);
       if (controls) {
         controls.target.set(0.0, 0.207, 0.0);
